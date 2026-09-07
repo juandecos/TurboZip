@@ -1,0 +1,151 @@
+/* ===========================================================================
+   archive.css -- the house style, shared by every page in the ring.
+
+   Each page still carries its own <style> block AFTER the link to this file,
+   so anything a page declares for itself wins. This holds the rules that were
+   being copy-pasted (and drifting: three pages had lost their button/select
+   styling entirely) plus the ring chrome, which is identical everywhere by
+   construction.
+   =========================================================================== */
+
+/* --- base ---------------------------------------------------------------- */
+
+html, body { min-height:100%; margin:0; background:#111; color:#999;
+             font:13px/1.6 ui-monospace, Consolas, "DejaVu Sans Mono", monospace }
+body { display:flex; flex-direction:column; align-items:center; gap:12px; padding:20px }
+
+canvas { background:#000; image-rendering:pixelated; border:1px solid #333 }
+
+button, select { background:#1a1a1a; color:#ccc; border:1px solid #444;
+                 padding:4px 8px; font:inherit }
+/* The ring arrows sit either side of a selector on eleven pages. Pinning the
+   width keeps them the same size as each other and from page to page, so they
+   do not shift as the selector beside them changes. */
+.panel.selector > button#prev,
+.panel.selector > button#next { min-width:2.4em }
+button:hover, select:hover { border-color:#666 }
+
+.panel { display:flex; gap:16px; align-items:center; flex-wrap:wrap;
+         justify-content:center; max-width:880px }
+label  { display:flex; gap:6px; align-items:center; cursor:pointer }
+input[type=range] { width:120px }
+
+/* The selector row: which of the files you are looking at. Always directly
+   above the canvas, always the same shape -- arrows, the selector, restart.
+   Options and sliders go BELOW the canvas; this row is only ever the subject. */
+.panel.selector { width:min(94vw,880px); max-width:none; gap:8px;
+                  flex-wrap:nowrap; margin-bottom:2px }
+.panel.selector > select,
+.panel.selector > #timeline { flex:1 1 auto; min-width:0; width:auto }
+.panel.selector > button { flex:0 0 auto }
+
+#status { color:#7a7; white-space:pre; font-size:12px; text-align:center }
+.cap    { color:#666; font-size:11px; text-align:center; max-width:74ch }
+
+/* The DAC strip. Most of these programs animate colour registers rather than
+   pixels, so this row is often the only thing on the page that is moving. */
+#strip { image-rendering:pixelated; border:1px solid #333;
+         width:min(94vw,640px); height:22px; display:block }
+
+/* Clickable key buttons. Every one of these programs reads its keyboard with
+   ReadKey inside the main loop, so these are not an addition to the interface --
+   they are that interface, clickable, because a canvas that only responds to
+   typing is easy to walk past. `.on` marks a key whose effect is currently
+   active. */
+#keys { display:flex; gap:6px; flex-wrap:wrap; justify-content:center;
+        max-width:70ch }
+.keybtn { display:flex; flex-direction:column; align-items:center; gap:0;
+          line-height:1.25; padding:3px 9px; min-width:2.6em; cursor:pointer }
+.keybtn b { color:#ccc; font-weight:normal; font-size:13px }
+.keybtn span { color:#666; font-size:10px }
+.keybtn.on { border-color:#5a6a4a; background:#20241e }
+.keybtn.on b { color:#cc9 }
+.hidden { display:none }
+/* The HTML hidden attribute has only a weak UA rule behind it, so any
+   display:flex above would silently defeat it -- which is how per-demo options
+   would have stayed on screen for every demo. Make it win outright. */
+[hidden] { display:none !important }
+
+/* Per-demo notes. These live in the markup as hidden siblings -- plain HTML,
+   no escaping, and unable to break the page's script. The JS only flips
+   `hidden`, so keep any display rule off .note itself. */
+#notes { width:min(94vw,880px); display:flex; justify-content:center }
+.note { color:#888; font-size:12px; max-width:76ch; text-align:left }
+.note[hidden] { display:none }
+.note b { color:#cc9; font-weight:normal }
+.note i { color:#9a9 }
+.note code { color:#9a9 }
+
+/* --- ring chrome --------------------------------------------------------- */
+
+a { color:#8aa; text-decoration:none }
+
+.ring { display:flex; width:min(94vw,880px); border:1px solid #3a3a3a;
+        background:#161616 }
+.ring a, .ring .here { flex:1 1 0; display:flex; flex-direction:column; gap:2px;
+          padding:10px 14px; border-right:1px solid #2c2c2c; min-width:0 }
+.ring a:last-child, .ring .here:last-child { border-right:0 }
+.ring a:hover { background:#1e2020 }
+/* the hub's own middle cell: same shape, dimmed, not a link */
+.ring .here { cursor:default }
+.ring .here b { color:#7a7a6a }
+.ring .here span { color:#5a5a5a }
+.ring b { color:#cc9; font-weight:normal; font-size:15px; letter-spacing:.06em }
+.ring span { color:#777; font-size:11px; white-space:nowrap; overflow:hidden;
+             text-overflow:ellipsis }
+.ring .home { flex:0 0 auto; text-align:center; align-items:center }
+.ring .next { text-align:right; align-items:flex-end }
+
+header.entry { width:min(94vw,880px); border-bottom:1px solid #333;
+               padding-bottom:14px }
+header.entry .num { color:#555; font-size:34px; line-height:1 }
+header.entry h1 { margin:2px 0 12px; color:#ddd; font-size:20px; font-weight:normal }
+header.entry dl { margin:0; display:grid; grid-template-columns:max-content 1fr;
+                  gap:3px 14px; font-size:12px }
+header.entry dt { color:#666 }
+header.entry dd { margin:0; color:#9a9a9a }
+header.entry code { color:#b8b8a0 }
+
+/* The file/date block, collapsed by default: interesting but bulky, and the
+   commentary below the demo covers it in more detail. */
+header.entry details.meta { margin-top:10px }
+header.entry details.meta summary { cursor:pointer; color:#8aa; font-size:12px;
+                                    padding:2px 0; list-style:revert }
+header.entry details.meta dl { margin-top:9px }
+
+/* The lede: a short personal note between the title and the demo, at the full
+   880px rather than .prose's reading measure. The technical commentary stays
+   below the demo. */
+.lede { color:#9a9a9a; font-size:13px; margin:10px 0 0 }
+.lede p { margin:0 0 10px }
+.lede p:last-child { margin-bottom:0 }
+.lede b { color:#cc9; font-weight:normal }
+.lede code { color:#b8b8a0 }
+/* placeholder lede -- deliberately conspicuous so it cannot ship unnoticed.
+   `node utils/check.js` lists every page still carrying one. */
+.lede p.todo { color:#c96; border:1px dashed #5a4a34; background:#1d1a15;
+               padding:7px 10px; margin:0; font-size:12px }
+
+/* gap:inherit keeps each page's own body spacing; width:100% lets the wider
+   canvases (asmstars at 1280px) stay wide while the ring stays at 880. */
+.demo { display:flex; flex-direction:column; align-items:center; gap:inherit;
+        width:100%; padding:8px 0 4px }
+
+.prose { width:min(94vw,880px); max-width:78ch; color:#8f8f8f; font-size:13px }
+.prose h2 { color:#cc9; font-size:14px; font-weight:normal; margin:22px 0 6px;
+            letter-spacing:.04em }
+.prose p { margin:0 0 11px }
+.prose b { color:#cc9; font-weight:normal }
+.prose code { color:#b8b8a0 }
+.prose table { border-collapse:collapse; font-size:12px; margin:0 0 12px }
+.prose th, .prose td { border:1px solid #333; padding:4px 9px; text-align:left;
+                       vertical-align:top }
+.prose th { color:#777; font-weight:normal }
+
+details.source { width:min(94vw,880px) }
+details.source summary { cursor:pointer; color:#8aa; padding:7px 0; font-size:13px }
+details.source .cap { color:#666; font-size:11px; margin:0 0 6px; text-align:left }
+details.source pre { background:#0c0c0c; border:1px solid #2c2c2c; padding:12px;
+                     overflow-x:auto; color:#9a9a8a; font-size:12px;
+                     line-height:1.45; white-space:pre-wrap; word-break:break-word;
+                     margin:0 0 14px }

@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Learning MS-DOS Graphics Coding, 1994&ndash;1996</title>
+<link rel="stylesheet" href="archive.css">
+<style>
+
+  .hub{width:min(94vw,880px)}
+  #banner{width:min(94vw,880px);height:34px;display:block;
+          image-rendering:pixelated;border:1px solid #333;margin:2px 0 4px}
+  #bannercap{color:#5f5f5f;font-size:11px;margin:0 0 20px}
+  #bannercap a{color:#7a8a8a}
+  h1.big{color:#ddd;font-size:26px;font-weight:normal;margin:6px 0 2px}
+  .sub{color:#777;font-size:12px;margin:0 0 18px}
+  .chart{margin:6px 0 4px}
+  .mrow{display:flex;align-items:flex-end;gap:2px;height:120px;
+        border-bottom:1px solid #333}
+  .mcol{flex:1 1 0;display:flex;align-items:flex-end;height:100%;min-width:3px}
+  /* .stack needs a definite height or the percentage heights on the bars below
+     resolve against auto and collapse to nothing. */
+  .stack{display:flex;flex-direction:column-reverse;width:100%;height:100%}
+  .mcol i{display:block;width:100%;min-height:2px}
+  i.his{background:#cc9} i.shelf{background:#4a5a5a} i.unattrib{background:#c96}
+  .yrs{position:relative;height:16px;font-size:10px;color:#666}
+  .yrs .yr{position:absolute;top:2px}
+  .hrow{display:flex;align-items:flex-end;gap:3px;height:96px;
+        border-bottom:1px solid #333;margin-bottom:16px}
+  .hcol{flex:1 1 0;display:flex;flex-direction:column;justify-content:flex-end;
+        height:100%;text-align:center;position:relative}
+  .hcol i{display:block;width:100%;background:#4a5a5a;min-height:1px}
+  .hcol.night i{background:#cc9}
+  /* the label is taken out of flow, so a 100% bar means the full row height
+     instead of overflowing it by the height of the label */
+  .hcol em{position:absolute;top:100%;left:0;right:0;font-style:normal;
+           font-size:9px;color:#666;padding-top:3px}
+  .key{font-size:11px;color:#777;display:flex;gap:14px;flex-wrap:wrap;margin:8px 0 0}
+  .key s{text-decoration:none;display:inline-block;width:10px;height:10px;
+         vertical-align:-1px;margin-right:4px}
+  ol.toc{list-style:none;padding:0;margin:14px 0 0;counter-reset:e}
+  ol.toc li{border-top:1px solid #262626;padding:11px 2px}
+  ol.toc li:last-child{border-bottom:1px solid #262626}
+  ol.toc a{display:grid;grid-template-columns:2.4em 1fr;gap:14px;align-items:baseline}
+  ol.toc a:hover{background:#181a1a}
+  ol.toc .n{color:#555;font-size:17px}
+  ol.toc .t{color:#cc9;font-size:14px}
+  ol.toc .w{color:#7d7d7d;font-size:12px;display:block;margin-top:3px}
+  ol.toc .d{color:#5f5f5f;font-size:11px;float:right;margin-left:12px}
+</style>
+</head>
+<body>
+
+<nav class="ring">
+  <a href="saver001.html"><b>&laquo; PREVIOUS</b><span>17 &middot; Mixing It Up</span></a>
+  <div class="home here"><b>HOME</b><span>you are here</span></div>
+  <a class="next" href="palette.html"><b>NEXT &raquo;</b><span>01 &middot; Inspiration: BBS Loaders</span></a>
+</nav>
+
+<div class="hub">
+<h1 class="big">Learning MS-DOS Graphics Coding, 1994&ndash;1996</h1>
+<p class="sub">A bit of code history and archaeology, a bit of personal story, with samples ported to run in the browser.</p>
+
+<div class="prose" style="max-width:none">
+
+<canvas id="banner" width="256" height="1"></canvas>
+<p id="bannercap">Adapted from the archive code, see the 
+<a href="saver001.html">Mixing It Up</a> page for details.</p>
+
+<h2>TL;DR</h2>
+<p>
+      If you just want to see the samples running, the top navigation will take you through each page.
+</p>
+
+<h2>Intro</h2>
+<p>
+      For 30 years I've had a file called Turbo.zip sitting around and I finally
+      got around to doing something with it. The file contained a variety of
+      Pascal/Assembly program source code, some mine, some not, all mid-1990's graphics demo
+      experiments.
+</p>
+<p>
+      All the original code is included here. Most of it is also ported to JavaScript
+      and runnable here as well. The code itself is not
+      terribly impressive - I was a high school kid trying to learn with
+      limited resources - but maybe the walk down memory lane will amuse
+      or inspire you.
+</p>
+
+<h2>Some Context</h2>
+<p>
+      Back in 1994 I was a high school
+      senior taking AP Computer Science. Our language was
+      <a href="https://en.wikipedia.org/wiki/Turbo_Pascal">Borland Turbo Pascal</a>,
+      and our assignments were things like
+      <a href="https://en.wikipedia.org/wiki/Eight_queens_puzzle">8 Queens</a> or
+      <a href="https://en.wikipedia.org/wiki/Tower_of_Hanoi">Towers of Hanoi</a>. This
+      was nice and educational, but I wanted to do more. At the time,
+      <a href="https://en.wikipedia.org/wiki/MS-DOS">MS-DOS</a>
+      was my available OS, and while the
+      <a href="https://en.wikipedia.org/wiki/World_Wide_Web">World Wide Web</a> technically
+      existed, I had no way to reach it yet.
+</p>
+<p>
+      My main connection to the outside world was through
+      <a href="https://en.wikipedia.org/wiki/Bulletin_board_system">Bulletin Board
+      Systems (BBS)</a>, where you could tie up your family's phone line and
+      get a text-based connection to someone else who might be hosting
+      some interesting files. Lists of BBS phone
+      numbers were circulated by students, and eventually, with enough
+      wandering I stumbled upon the
+      <a href="https://en.wikipedia.org/wiki/Demoscene">demo scene</a>.
+</p>
+<p>
+      While out in the real world demo parties like <a href="https://en.wikipedia.org/wiki/Assembly_(demoparty)">Assembly</a>
+      and <a href="https://en.wikipedia.org/wiki/The_Gathering_(LAN_party)">The Gathering</a>
+      had crews pushing the boundaries of our
+      <a href="https://en.wikipedia.org/wiki/I386">386-era</a> machines
+      (e.g. <a href="https://www.youtube.com/watch?v=iw17c70uJes">Future Crew's Second Reality</a> from 1993,
+      which I didn't see until years later),
+      all I was aware of were the few files that trickled out to our local
+      BBSs (long distance calls were forbidden by mom).
+</p>
+<p>
+      Much of the demo scene code of the time was in pure Assembly or C/C++,
+      and I only knew Pascal and Basic, so I'd hunt around on the BBSs for
+      any sample code in Pascal I could get my hands on.
+</p>
+<p>
+      The story continues in the examples below.
+</p>
+
+
+<h2>File Timestamp Archaeology</h2>
+<div class="chart"><div class="mrow"><span class="mcol" title="1990-04: 1 file"><span class="stack"><i class="shelf" style="height:7.7%"></i></span></span><span class="mcol" title="1991-06: 1 file"><span class="stack"><i class="shelf" style="height:7.7%"></i></span></span><span class="mcol" title="1991-07: 1 file"><span class="stack"><i class="shelf" style="height:7.7%"></i></span></span><span class="mcol" title="1994-05: 2 files"><span class="stack"><i class="shelf" style="height:15.4%"></i></span></span><span class="mcol" title="1994-07: 2 files"><span class="stack"><i class="shelf" style="height:7.7%"></i><i class="unattrib" style="height:7.7%"></i></span></span><span class="mcol" title="1994-11: 4 files"><span class="stack"><i class="shelf" style="height:30.8%"></i></span></span><span class="mcol" title="1995-01: 1 file"><span class="stack"><i class="shelf" style="height:7.7%"></i></span></span><span class="mcol" title="1995-03: 3 files"><span class="stack"><i class="shelf" style="height:15.4%"></i><i class="his" style="height:7.7%"></i></span></span><span class="mcol" title="1995-05: 2 files"><span class="stack"><i class="shelf" style="height:7.7%"></i><i class="his" style="height:7.7%"></i></span></span><span class="mcol" title="1995-06: 2 files"><span class="stack"><i class="his" style="height:15.4%"></i></span></span><span class="mcol" title="1995-07: 9 files"><span class="stack"><i class="his" style="height:69.2%"></i></span></span><span class="mcol" title="1995-08: 4 files"><span class="stack"><i class="his" style="height:30.8%"></i></span></span><span class="mcol" title="1995-09: 12 files"><span class="stack"><i class="shelf" style="height:7.7%"></i><i class="unattrib" style="height:7.7%"></i><i class="his" style="height:76.9%"></i></span></span><span class="mcol" title="1995-10: 2 files"><span class="stack"><i class="his" style="height:15.4%"></i></span></span><span class="mcol" title="1995-12: 7 files"><span class="stack"><i class="his" style="height:53.8%"></i></span></span><span class="mcol" title="1996-01: 10 files"><span class="stack"><i class="his" style="height:76.9%"></i></span></span><span class="mcol" title="1996-02: 1 file"><span class="stack"><i class="his" style="height:7.7%"></i></span></span><span class="mcol" title="1996-03: 13 files"><span class="stack"><i class="his" style="height:100.0%"></i></span></span><span class="mcol" title="1996-08: 4 files"><span class="stack"><i class="his" style="height:30.8%"></i></span></span><span class="mcol" title="1996-09: 1 file"><span class="stack"><i class="his" style="height:7.7%"></i></span></span><span class="mcol" title="1997-06: 1 file"><span class="stack"><i class="his" style="height:7.7%"></i></span></span></div><div class="yrs"><span class="yr" style="left:0.000%">1990</span><span class="yr" style="left:4.762%">1991</span><span class="yr" style="left:14.286%">1994</span><span class="yr" style="left:28.571%">1995</span><span class="yr" style="left:71.429%">1996</span><span class="yr" style="left:95.238%">1997</span></div></div>
+<div class="key">
+  <span><s style="background:#4a5a5a"></s>not my files</span>
+  <span><s style="background:#c96"></s>uncertain</span>
+  <span><s style="background:#cc9"></s>my files</span>
+</div>
+<p style="margin-top:14px">The earliest files in the archive are from 1990 and 1991 and then nothing for three
+years. My own work starts in 1995 and stops in September 1996. There is a spike in July 1995 right after I
+graduated, and another in September 1995 when I started college and first had internet.</p>
+
+<h2>Time of Day</h2>
+<div class="chart"><div class="hrow"><span class="hcol night" title="00:00 6 files"><i style="height:85.7%"></i><em>00</em></span><span class="hcol night" title="01:00 2 files"><i style="height:28.6%"></i><em>01</em></span><span class="hcol night" title="02:00 1 file"><i style="height:14.3%"></i><em>02</em></span><span class="hcol night" title="03:00 7 files"><i style="height:100.0%"></i><em>03</em></span><span class="hcol night" title="04:00 2 files"><i style="height:28.6%"></i><em>04</em></span><span class="hcol night" title="05:00 6 files"><i style="height:85.7%"></i><em>05</em></span><span class="hcol night" title="06:00 4 files"><i style="height:57.1%"></i><em>06</em></span><span class="hcol night" title="07:00 5 files"><i style="height:71.4%"></i><em>07</em></span><span class="hcol" title="08:00 2 files"><i style="height:28.6%"></i><em>08</em></span><span class="hcol" title="09:00 0 files"><i style="height:0.0%"></i><em>09</em></span><span class="hcol" title="10:00 3 files"><i style="height:42.9%"></i><em>10</em></span><span class="hcol" title="11:00 1 file"><i style="height:14.3%"></i><em>11</em></span><span class="hcol" title="12:00 1 file"><i style="height:14.3%"></i><em>12</em></span><span class="hcol" title="13:00 2 files"><i style="height:28.6%"></i><em>13</em></span><span class="hcol" title="14:00 2 files"><i style="height:28.6%"></i><em>14</em></span><span class="hcol" title="15:00 3 files"><i style="height:42.9%"></i><em>15</em></span><span class="hcol" title="16:00 2 files"><i style="height:28.6%"></i><em>16</em></span><span class="hcol" title="17:00 3 files"><i style="height:42.9%"></i><em>17</em></span><span class="hcol" title="18:00 2 files"><i style="height:28.6%"></i><em>18</em></span><span class="hcol" title="19:00 0 files"><i style="height:0.0%"></i><em>19</em></span><span class="hcol" title="20:00 0 files"><i style="height:0.0%"></i><em>20</em></span><span class="hcol" title="21:00 0 files"><i style="height:0.0%"></i><em>21</em></span><span class="hcol" title="22:00 1 file"><i style="height:14.3%"></i><em>22</em></span><span class="hcol" title="23:00 1 file"><i style="height:14.3%"></i><em>23</em></span></div></div>
+<p><b>33 of the 56 source files (59%) were saved between midnight and 8 AM</b>.
+The peak is 3 AM. Nothing at all between 7 PM and 10 PM. I've always been a bit
+nocturnal, and in high school I'd have to wait until everyone was asleep to sneak
+down to the shared computer in the dining room.</p>
+
+<h2>Navigation Notes</h2>
+<p>
+For each entry, you'll get a bit of personal story, followed by a collapsible "Details" block with file archive details, then
+a demo picker for pages with multiple examples, then the running demo, demo controls for those that have them, technical commentary, and
+finally the original source in collapsible panels.
+</p>
+
+<h2>The Entries</h2>
+<p>
+      Each page links to the next so start anywhere. I'd suggest 01.      
+</p>
+<ol class="toc">
+<li><a href="palette.html"><span class="n">01</span><span><span class="d">1990&ndash;1994</span><span class="t">Inspiration: BBS Loaders</span></span></a></li>
+<li><a href="download.html"><span class="n">02</span><span><span class="d">1995-03-22</span><span class="t">Downloading at School</span></span></a></li>
+<li><a href="jbars.html"><span class="n">03</span><span><span class="d">1995-05-06</span><span class="t">Copper Bars: Palette Cycling 101</span></span></a></li>
+<li><a href="modex.html"><span class="n">04</span><span><span class="d">1995-06 &rarr; 09</span><span class="t">Enter Mode X</span></span></a></li>
+<li><a href="mimsy.html"><span class="n">05</span><span><span class="d">1995-06-16</span><span class="t">Jabberwocky</span></span></a></li>
+<li><a href="circle.html"><span class="n">06</span><span><span class="d">1995-07 &rarr; 09</span><span class="t">Drawing Circles</span></span></a></li>
+<li><a href="pcx.html"><span class="n">07</span><span><span class="d">1995-07-26</span><span class="t">PCX + Plasma</span></span></a></li>
+<li><a href="cube.html"><span class="n">08</span><span><span class="d">1994-07 &rarr; 1995-09</span><span class="t">Spinning Cubes</span></span></a></li>
+<li><a href="all.html"><span class="n">09</span><span><span class="d">1995-09-16</span><span class="t">More Fun With Palette Cycling</span></span></a></li>
+<li><a href="mydemo.html"><span class="n">10</span><span><span class="d">1995-09-21</span><span class="t">My Awful Demo</span></span></a></li>
+<li><a href="pattern.html"><span class="n">11</span><span><span class="d">1995-09-22</span><span class="t">Doodling With Lines</span></span></a></li>
+<li><a href="fun.html"><span class="n">12</span><span><span class="d">1995-12-31</span><span class="t">Random Walking</span></span></a></li>
+<li><a href="asmstars.html"><span class="n">13</span><span><span class="d">1996-01-25</span><span class="t">Parallax Starfield</span></span></a></li>
+<li><a href="asctxt.html"><span class="n">14</span><span><span class="d">1996-02 &rarr; 03</span><span class="t">Bouncing Lines</span></span></a></li>
+<li><a href="mar27.html"><span class="n">15</span><span><span class="d">1996-03-27</span><span class="t">Spiral Illusions</span></span></a></li>
+<li><a href="mar31.html"><span class="n">16</span><span><span class="d">1996-03-31</span><span class="t">Wiggles and Waves</span></span></a></li>
+<li><a href="saver001.html"><span class="n">17</span><span><span class="d">1996-09-02</span><span class="t">Mixing It Up</span></span></a></li>
+</ol>
+
+<h2>AI Note</h2>
+<p>
+      I know not everyone is a fan of AI, and I'm somewhere in the middle.
+      The reality is that if I were to do this project by hand, it would
+      have taken many months, so I would not have done it.  When I pointed
+      Claude (Opus 4.8/5) at my old files and
+      it was able to immediately start porting it to working JavaScript,
+      digging through timestamps to recreate the history, and more, it made
+      the project happen.
+</p>
+<p>
+      Perhaps you also have some old files around, and perhaps AI will
+      help you breathe life back into them, or perhaps inspire you to
+      do it without AI help, which would be cool, too.
+</p>
+
+<h2>Disclaimer</h2>
+<p>
+      Some of this code is not mine, and I do my best to attribute it. This
+      content is presented as historical and not an attempt to redistribute
+      anything without license. If any of it is yours and you object to its
+      inclusion, let me know.
+</p>
+
+<h2>More Notes</h2>
+<p><b>Bugs are generally reproduced, not fixed.</b> Where a program had a fault you can see,
+the port has it too, usually behind a toggle so you can turn it off and compare.
+In some cases where the bug completely ruins the demo, it starts in a better state,
+with documentation and toggles to get back to the original code.</p>
+<p><b>Provenance is tracked as carefully as the code.</b> A lot of this archive is
+other people's work, adapted: ZSoft, Matt Pritchard, Scott Wyatt, Michael Abrash,
+Fred Nietzche, Frank Jan S&oslash;rensen, Brian Baynes. One file (<a href="cube.html">BOX</a>)
+I haven't been able to nail down attribution for, and its entry says so rather than
+guessing.</p>
+
+</div>
+</div>
+
+<nav class="ring">
+  <a href="saver001.html"><b>&laquo; PREVIOUS</b><span>17 &middot; Mixing It Up</span></a>
+  <div class="home here"><b>HOME</b><span>you are here</span></div>
+  <a class="next" href="palette.html"><b>NEXT &raquo;</b><span>01 &middot; Inspiration: BBS Loaders</span></a>
+</nav>
+
+<script src="archive.js"></script>
+<script>
+'use strict';
+// ---------------------------------------------------------------------------
+// The banner strip. NOT a port of anything -- it is SAVER001.PAS's palette
+// engine (entry 17) with the bouncing line removed, so only the color half
+// survives. Kept faithful to that file: Turbo Pascal's own generator, the same
+// +/-1 walk per channel, and the same re-rolled ceiling that stops r, g and b
+// moving in lockstep. The buffer is pre-rolled before the first paint so the
+// page does not open on four seconds of black.
+// ---------------------------------------------------------------------------
+(function () {
+  const cv = document.getElementById('banner');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const img = ctx.createImageData(256, 1);
+  const out = new Uint32Array(img.data.buffer);
+
+  let seed = Date.now() >>> 0;
+  const rnd = n => { seed = (Math.imul(seed, 134775813) + 1) >>> 0;
+                     return Math.floor(seed * n / 4294967296); };
+
+  const dr = new Uint8Array(257), dg = new Uint8Array(257), db = new Uint8Array(257);
+  let s = 1, t = 1, u = 1;
+  const dac = v => Math.round((v & 63) * 255 / 63);
+
+  function step() {
+    for (let x = 1; x <= 255; x++) { dr[x] = dr[x+1]; dg[x] = dg[x+1]; db[x] = db[x+1]; }
+    dr[256] = dr[255] + s; dg[256] = dg[255] + t; db[256] = db[255] + u;
+    if (dr[256] > rnd(33) + 29 || dr[256] < 1) s = -s;
+    if (dg[256] > rnd(33) + 29 || dg[256] < 1) t = -t;
+    if (db[256] > rnd(33) + 29 || db[256] < 1) u = -u;
+  }
+  function paint() {
+    for (let x = 0; x < 256; x++)
+      out[x] = (255 << 24) | (dac(db[x+1]) << 16) | (dac(dg[x+1]) << 8) | dac(dr[x+1]);
+    ctx.putImageData(img, 0, 0);
+  }
+
+  for (let i = 0; i < 600; i++) step();     // pre-roll, so it opens full of color
+  paint();
+
+  // A decorative animation, so honor the reduced-motion preference: the strip
+  // still shows a walk, it just stops moving.
+  const still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
+  if (still && still.matches) return;
+  (function loop() { requestAnimationFrame(loop); step(); paint(); })();
+})();
+</script>
+</body>
+</html>

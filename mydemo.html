@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>10 &middot; My Awful Demo</title>
+<link rel="stylesheet" href="archive.css">
+<style>
+
+  #screen{height:min(70vh,600px)}
+  #part{color:#cc9}
+</style>
+</head>
+<body>
+
+<nav class="ring">
+  <a href="all.html"><b>&laquo; PREVIOUS</b><span>09 &middot; More Fun With Palette Cycling</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
+  <a class="next" href="pattern.html"><b>NEXT &raquo;</b><span>11 &middot; Doodling With Lines</span></a>
+</nav>
+
+<header class="entry">
+  <div class="num">10</div>
+  <h1>My Awful Demo</h1>
+  <div class="lede">
+    After learning the various techniques, I wanted to make my own loader to rival the Counterpoint ones that inspired me.
+    Clearly I didn't get very far, but I guess we all start somewhere.
+  </div>
+  <details class="meta">
+    <summary>Details</summary>
+    <dl>
+      <dt>File</dt><dd><code>MYDEMO.PAS</code>, 1,139 bytes, <b>1995-09-21 22:41</b></dd>
+      <dt>Provenance</dt><dd>Mine</dd>
+      <dt>Demo</dt><dd>Blue Fade and Meow, the two named parts</dd>
+    </dl>
+  </details>
+</header>
+
+<div class="demo">
+<div class="panel selector">
+  <button id="restart">restart</button>
+</div>
+
+<canvas id="screen" width="320" height="400"></canvas>
+
+<div id="part"></div>
+
+<div class="panel">
+  <label>speed <input id="speed" type="range" min="25" max="400" value="100">
+    <span id="speedLabel">100</span>%</label>
+  <label>the Meow wave
+    <select id="wave">
+      <option value="rad">round(30*sin(x)): as written</option>
+      <option value="deg">round(30*sin(x*pi/180)): if degrees were meant</option>
+      <option value="fit">round(30*sin(x*pi/40)): one cycle across the screen</option>
+    </select></label>
+  <label><input id="trail" type="checkbox"> leave a trail (drop the copy_bitmap restore)</label>
+</div>
+
+<div id="status"></div>
+
+<div id="notes">
+<div class="note" data-note="rad" hidden>
+<b>As written.</b> <code>y := round(30*sin(x))</code> feeds the loop counter
+straight to <code>sin</code>, so it is 1, 2, 3… <i>radians</i>. A full cycle
+takes 2π ≈ 6.28 iterations, and each iteration moves the text 4 pixels right,
+so the wave has a wavelength of about <b>25 pixels</b> on a 320-pixel screen.
+It does not wave. It vibrates, and the amplitude is ±30, which is bigger than
+the text is tall. I probably didn't realize the mathematical silliness, but
+liked how it looked and kept it as is.
+</div>
+<div class="note" data-note="deg" hidden>
+<b>The obvious fix, and it is a disappointment.</b> Convert to degrees and the
+loop covers x = 1..180, which is half a cycle, except the text runs off the
+right edge at <b>x = 80</b>, because <code>x*4</code> reaches 320 there.
+So only 80° of arc is ever on screen: <b>0.22 of a cycle</b>. The text glides
+downward and off the edge. The remaining 100 iterations run entirely
+off-screen with <code>delay(20)</code> each, two seconds of nothing.
+This is what makes the "obvious" correction unconvincing as a reconstruction of
+intent.
+</div>
+<div class="note" data-note="fit" hidden>
+<b>Matched to what is actually visible.</b> The text is on screen for x = 1..80,
+so <code>x*pi/40</code> puts exactly <b>one full cycle</b> in that span: down,
+over, up, and out at the same height it came in.
+This is a guess at intent, not a recovered line. The file says
+<code>sin(x)</code> and nothing else survives to contradict it. It is here
+because it is the version that makes the loop bounds, the 4-pixel step and the
+±30 amplitude all agree with each other, which none of the others do.
+Note the amplitude still is ±30 against a 400-row screen, so it reads as a
+gentle arc rather than a wave; <code>copy_bitmap</code> restores a 39×9 box
+each step, and at this amplitude the boxes overlap cleanly. Tick "leave a trail"
+to see the path.
+</div>
+</div>
+</div>
+
+<div class="prose">
+<h2>The first one shaped like a demo</h2>
+<p>Everything before this is one effect in one file. <code>MYDEMO</code> has
+<b>two named parts behind comment banners</b> (Blue Fade and Meow)
+which is a demo's structure rather than a program's. The name says the same
+thing. It is forty minutes before I opened the year-old <code>BOX</code>, on the
+evening that becomes the busiest stretch in the archive.</p>
+
+<h2>Page 0 as a background store</h2>
+<p>The real step forward is invisible: it keeps a clean copy of the background on
+another Mode X page and restores only the rectangle it dirtied. Three months
+earlier <code>MIMSY</code> cleared and repainted.</p>
+
+<h2>Over half the animation happens off-screen</h2>
+<p>The Meow loop runs <code>for x := 1 to 180</code> and places the text at
+<code>x*4</code>. The screen is 320 pixels wide.</p>
+<table>
+<tr><th>x</th><th>x*4</th><th></th></tr>
+<tr><td>1</td><td>4</td><td>first frame</td></tr>
+<tr><td>80</td><td>320</td><td><b>the text reaches the right edge</b></td></tr>
+<tr><td>180</td><td>720</td><td>400 pixels past it</td></tr>
+</table>
+<p><b>101 of the 180 iterations draw nothing you can see</b>, and each one
+still runs its <code>delay(20)</code>, so the program spends about two seconds
+animating text that left the screen. The status line under the demo says so as
+it happens because otherwise the second half just looks like the program hanging.</p>
+<p>It is the same shape of mistake as the wave itself. Both come from writing a
+loop bound that felt right (180 for half a circle, 180 for a nice long
+run) without checking it against the width of the thing it was drawing
+into.</p>
+</div>
+
+<details class="source">
+<summary>MYDEMO.PAS: 1,139 bytes</summary>
+<p class="cap">Both parts, with the banners.</p>
+<pre>Uses Crt,jmodex;Type xy=array[1..100,1..100]of byte;
+Var x,y,z:integer;Col:Byte;a:xy;
+Procedure Text(s:string;x,y,B,F:integer);Var a:Array[1..135]of Char;i:byte;
+Begin For i:=1to Length(s)DO a[i]:=s[i];Print_Str(a,Length(s),X,Y,B,f);End;
+Procedure TText(s:string;X,Y,c:integer);Var a:Array[1..135]of Char;i:byte;
+Begin For i:=1to Length(s)DO a[i]:=s[i];TPrint_Str(a,Length(s),X,Y,C);End;
+Procedure Page(p:byte);Begin set_active_page(p);set_display_page(p);end;
+Procedure Demo;Begin IF SET_VGA_MODEX(1,320,400,2)=0 THEN halt(0);y:=0;
+FOR X:=1TO 250DO Begin SET_DAC_REGISTER(X,0,0,X div 4);end;col:=0;
+{**************Blue Fade**************}
+page(0);for y:=1to 200do draw_line(0,y,320,y,y);for y:=1to 200do
+draw_line(0,y+200,320,y+200,200-y);repeat for x:=1to 254do
+Set_Dac_Register(x,0,0,(Col+x) div 4);col:=col+5;delay(10);until col=255;
+{************Meow*****************}
+copy_page(0,1);page(1);for x:=1 to 180 do begin y:=round(30*sin(x));
+ttext(&#x27;Meow?&#x27;,x*4,200+y,0);delay(20);
+copy_bitmap(0,x*4,200+y,x*4+38,208+y,1,x*4,200+y);end;
+page(0);
+repeat until keypressed;end;Begin Demo;asm mov ah,0;mov al,3;int 16;end;END.</pre>
+</details>
+
+<nav class="ring">
+  <a href="all.html"><b>&laquo; PREVIOUS</b><span>09 &middot; More Fun With Palette Cycling</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
+  <a class="next" href="pattern.html"><b>NEXT &raquo;</b><span>11 &middot; Doodling With Lines</span></a>
+</nav>
+
+<script src="archive.js"></script>
+<script>
+// Notes live in the markup as hidden siblings, so they are plain HTML with no
+// escaping and cannot break this script. This only flips which one is visible.
+function showNote(key) {
+  for (const n of document.getElementById('notes').children)
+    n.hidden = n.dataset.note !== String(key);
+}
+// ---------------------------------------------------------------------------
+// MYDEMO.PAS -- the first file here that is structured as a *demo*: two named
+// parts run in sequence, marked off with comment banners.
+//
+//   {**************Blue Fade**************}
+//   {************Meow*****************}
+//
+// Page 0 holds a pristine gradient. Page 1 is the display. The traveling text
+// is erased by copying its bounding box back from page 0 -- a background-store
+// dirty-rectangle restore, and a real step up from MIMSY a few months earlier.
+// ---------------------------------------------------------------------------
+
+const W = 320, H = 400;
+const canvas = document.getElementById('screen');
+const ctx  = canvas.getContext('2d');
+const img  = ctx.createImageData(W, H);
+const out  = new Uint32Array(img.data.buffer);
+
+// page 0 = clean backdrop, page 1 = what you see. Both are index buffers.
+const page0 = new Uint8Array(W * H);
+const page1 = new Uint8Array(W * H);
+const PAL   = new Uint32Array(256);
+
+function dacBlue(reg, v6) {
+  PAL[reg & 255] = (255 << 24) | (Math.round((v6 & 63) * 255/63) << 16);
+}
+
+// for y:=1to 200do draw_line(0,y,320,y,y);
+// for y:=1to 200do draw_line(0,y+200,320,y+200,200-y);
+// A symmetric ramp: index climbs 1..200 down to the middle, then falls to 0.
+function buildGradient() {
+  page0.fill(0);
+  for (let y = 1; y <= 200; y++) page0.fill(y,       y*W,       y*W + W);
+  for (let y = 1; y <= 200; y++) page0.fill(200 - y, (y+200)*W, (y+200)*W + W);
+  page1.set(page0);                                  // copy_page(0,1)
+}
+
+function mask(str) {
+  const c = document.createElement('canvas'), g = c.getContext('2d');
+  c.width = str.length * 8 + 8; c.height = 10;
+  g.font = '8px "Courier New", monospace';
+  g.textBaseline = 'top'; g.fillStyle = '#fff';
+  g.fillText(str, 0, 1);
+  const d = g.getImageData(0, 0, c.width, c.height).data;
+  const bits = new Uint8Array(c.width * c.height);
+  for (let i = 0; i < bits.length; i++) bits[i] = d[i*4 + 3] > 110 ? 1 : 0;
+  return { w: c.width, h: c.height, bits };
+}
+const MEOW = mask('Meow?');
+
+// copy_bitmap(0, x1,y1, x2,y2, 1, x,y) -- restore a rectangle from page 0.
+function restore(x0, y0, x1, y1) {
+  for (let y = Math.max(0,y0); y <= Math.min(H-1,y1); y++)
+    for (let x = Math.max(0,x0); x <= Math.min(W-1,x1); x++)
+      page1[y*W + x] = page0[y*W + x];
+}
+function blit(m, x0, y0, col) {
+  for (let y = 0; y < m.h; y++) {
+    const ty = y0 + y; if (ty < 0 || ty >= H) continue;
+    for (let x = 0; x < m.w; x++) {
+      const tx = x0 + x; if (tx < 0 || tx >= W) continue;
+      if (m.bits[y*m.w + x]) page1[ty*W + tx] = col;
+    }
+  }
+}
+
+const FADE_STEPS = 51;     // col goes 0,5,...,255
+const MEOW_STEPS = 180;    // for x:=1 to 180
+let t0 = performance.now();
+let prev = null;                  // last box stamped, for the restore
+function restart() { t0 = performance.now(); buildGradient(); prev = null; }
+document.getElementById('restart').addEventListener('click', restart);
+// Changing the wave mid-run leaves the Meow text part-way across the screen and
+// the new curve only applies from there on, which reads as a glitch rather than
+// a comparison. Start over instead, so each reading is seen from the top.
+document.getElementById('wave').addEventListener('change', restart);
+const speedEl = document.getElementById('speed');
+speedEl.addEventListener('input', () =>
+  document.getElementById('speedLabel').textContent = speedEl.value);
+
+buildGradient();
+
+function frame() {
+  requestAnimationFrame(frame);
+  const k  = +speedEl.value / 100;
+  const el = (performance.now() - t0) * k;
+
+  let partName, info;
+
+  if (el < FADE_STEPS * 10) {
+    // repeat for x:=1to 254do Set_Dac_Register(x,0,0,(Col+x)div 4);
+    // col:=col+5; delay(10); until col=255;
+    const col = Math.min(255, Math.floor(el / 10) * 5);
+    for (let x = 1; x <= 254; x++) dacBlue(x, (col + x) >> 2);
+    page1.set(page0); prev = null;
+    partName = 'Blue Fade';
+    info = `col ${col}/255   step ${Math.floor(el/10)+1}/${FADE_STEPS}`;
+  } else {
+    for (let x = 1; x <= 254; x++) dacBlue(x, (255 + x) >> 2);
+    const step = Math.min(MEOW_STEPS, Math.floor((el - FADE_STEPS*10) / 20) + 1);
+    // y:=round(30*sin(x)) -- x is the loop counter, so sin() is being fed
+    // 1,2,3... RADIANS, not degrees. The result jumps rather than waves.
+    const mode = document.getElementById('wave').value;
+    const arg = mode === 'rad' ? step
+              : mode === 'deg' ? step*Math.PI/180
+              :                  step*Math.PI/40;
+    const y   = Math.round(30 * Math.sin(arg));
+    const px  = step * 4, py = 200 + y;
+    // The original restores at the end of each step; restoring the previous
+    // step's box at the start of this one is the same thing, and leaves page1
+    // genuinely persistent so the copy_bitmap call is doing real work.
+    if (prev && !document.getElementById('trail').checked)
+      restore(prev.x, prev.y, prev.x + 38, prev.y + 8);
+    blit(MEOW, px, py, 0);                       // ttext('Meow?',x*4,200+y,0)
+    prev = { x: px, y: py };
+    partName = 'Meow';
+    // The text leaves the 320-wide screen at x=80, so only the first 80 of the
+    // 180 loop iterations are ever visible. Whatever the wave does after that
+    // happens off-screen.
+    const cycles = mode === 'rad' ? 80/(2*Math.PI) : mode === 'deg' ? 80/360 : 80/80;
+    info = `x ${step}/${MEOW_STEPS}   screen x ${px}` +
+           (px >= W ? '  ← off the right edge; 100 iterations still to run' : '') +
+           `   y offset ${y >= 0 ? '+' : ''}${y}` +
+           `   ·   wave cycles completed before it exits: ${cycles.toFixed(2)}`;
+  }
+
+  for (let i = 0; i < page1.length; i++) out[i] = PAL[page1[i]];
+  ctx.putImageData(img, 0, 0);
+
+  document.getElementById('part').textContent = partName;
+  document.getElementById('status').textContent = info;
+  showNote(document.getElementById('wave').value);
+}
+frame();
+</script>
+</body>
+</html>

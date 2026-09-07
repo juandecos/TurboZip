@@ -1,0 +1,2114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>01 &middot; Inspiration: BBS Loaders</title>
+<link rel="stylesheet" href="archive.css">
+<style>
+
+  #screen{width:min(94vw,640px)}
+</style>
+</head>
+<body>
+
+<nav class="ring">
+  <a href="index.html"><b>&laquo; PREVIOUS</b><span>Home &middot; the introduction</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
+  <a class="next" href="download.html"><b>NEXT &raquo;</b><span>02 &middot; Downloading at School</span></a>
+</nav>
+
+<header class="entry">
+  <div class="num">01</div>
+  <h1>Inspiration: BBS Loaders</h1>
+  <div class="lede">
+<p>
+Wandering local BBSs I found various examples that kicked off my adventure. Three that you'll
+see were especially influential to me were loaders for CENTERPOINT! BBS.
+A loader was what ran before your terminal program connected: fifteen
+seconds of someone showing off, with a phone number in it.
+</p>
+  </div>
+  <details class="meta">
+    <summary>Details</summary>
+    <dl>
+      <dt>Files</dt><dd><code>pas/PALETTE4.PAS</code> 45,340 B (1991-06-01) &middot; <code>pas/PALETTE2.PAS</code> 5,208 B (1991-07-30) &middot; <code>pas/CYLINDER.PAS</code> 7,807 B</dd>
+      <dt>Also on the shelf</dt><dd><code>pas/SHOW_PCX.PAS</code> <a href="https://en.wikipedia.org/wiki/PCX">PCX Image</a> Renderer (1990-04-05, ZSoft) &middot; <code>a/BURN.BAK</code> (1994-05-25, Frank Jan S&oslash;rensen, referenced on <a href="https://www.pouet.net/prod.php?which=80815">Pouet</a>) &middot; Borland's <code>BGIDRIV</code> / <code>BGIFONT</code> / <code>BGILINK</code></dd>
+      <dt>Provenance</dt><dd><b>Not mine</b></dd>
+      <dt>Demo</dt><dd>PALETTE2, PALETTE4 and CYLINDER from the Centerpoint collection</dd>
+    </dl>
+  </details>
+</header>
+
+<div class="demo">
+<div class="panel selector">
+  <button id="prev">&larr;</button>
+  <select id="mode">
+      <option value="p2">PALETTE2.PAS: 30 Jul 1991, 5,208 B, bars + scroller, all in BASM</option>
+      <option value="p4">PALETTE4.PAS: 1 Jun 1991, 45,340 B, the same, plus a logo</option>
+      <option value="cyl">CYLINDER.PAS: 7,807 B, the enciphered one: a scroller on a cylinder</option>
+    </select>
+  <button id="next">&rarr;</button>
+  <button id="restart">restart</button>
+</div>
+
+<canvas id="screen" width="320" height="200"></canvas>
+
+<canvas id="strip" width="256" height="16"></canvas>
+
+<div class="cap" id="stripcap">the 256 DAC registers - 1..180 are the 180 scanlines of the backdrop, one row each</div>
+
+<div class="panel">
+  <label>ms/frame <input id="rate" type="range" min="6" max="80" value="14">
+    <span id="rateLabel">14</span></label>
+  <label id="o-idx"><input id="idx" type="checkbox"> reveal the color indices</label>
+</div>
+
+<div id="status"></div>
+
+<div id="notes">
+<div class="note" data-note="p2" hidden>
+<b>PALETTE2.PAS: 30 July 1991, 5,208 bytes.</b> Four sinusoidal
+<a href="https://en.wikipedia.org/wiki/Raster_bar">copper bars</a>
+over a 180-row backdrop, a scrolling BBS advert along the bottom, and the whole
+bar engine in one hand-written BASM block synced to the vertical retrace.
+Everything you see move is DAC register writes; video memory is written once at
+startup and once per frame for the scroller's single new column.
+Two things in here that turn up again. The bounce is not a bounce - <b>Locs[]</b>
+is a 200-entry sine table and each bar just walks it at a different starting
+offset, wrapping at 200. And the bars <b>erase before they draw</b>, in that
+order, per bar, so when two bars cross, the trailing one's 45 zero bytes eat the
+leading one's gradient. Watch bars 1 and 4 pass and you can see them bite.
+The scroller has a genuine off-by-one, and it is visible if you look:
+the glyph index steps on CurrLine div 8 while the bit column steps on
+(CurrLine-1) mod 8, so column 8 of every character is taken from the next
+character along. Every letter is missing its last slice.
+</div>
+<div class="note" data-note="p4" hidden>
+<b>PALETTE4.PAS: 1 June 1991, 45,340 bytes. The earlier of the two.</b> The
+same program with the cycle still in plain Pascal (the hand-written assembly is
+eight weeks <i>later</i>, in PALETTE2) plus a shorter scroll text
+(<i>"...LOADER BY FRED NIETZCHE......ALBERT IS A WEENIE!......"</i>), and 13,776
+bytes of embedded picture.
+<b>The picture is a logo for <a href="https://en.wikipedia.org/wiki/List_of_warez_groups#Tristar_and_Red_Sector_Incorporated">TRSI</a>
+(Tristar + Red Sector Incorporated) and TDT (The Dream Team).</b>
+One bug: <b>PicPalette</b> is declared
+<code>Array[1..22*4]</code> - 88 bytes - and the upload loop runs
+<code>For Count := 1 To 23</code>, reading to byte 92.
+</div>
+<div class="note" data-note="cyl" hidden>
+<b>CYLINDER.PAS: 7,807 bytes, timestamped 16 Sep 1995 but plainly of a piece
+with the other two.</b> Same author, same board, same phone number, and a
+completely different program. No copper bars at all: a dot scroller wrapped
+around a horizontal cylinder.
+<b>How it is built.</b> A 600-entry table <code>ScreenPath</code> holds one
+screen offset per (column, row) pair: 75 columns four pixels apart, and for each
+column eight y positions taken from <b>eight successive points on a sine</b>
+of radius 30 about y=80. The next column then starts one step further along -
+<code>advance 8, step back 7</code> - so the phase slides across the screen.
+The glyph's vertical axis is mapped onto the circumference, which is why the
+text squashes to a line where the sine turns over and stretches where it is
+steep. The 600 positions span
+y 50–110 and x 1–297, against a cleared band of rows 50–111. It fits exactly.
+Every frame the whole 600-position table is repainted from a different
+starting offset in the message, and that offset advances by one glyph column.
+<b>And the text is enciphered.</b> 149 bytes of <code>DispStr</code>, decoded by
+subtracting the repeating key <code>'Esselete'</code>, one byte per character,
+wrapping mod 256 because the temporary is a Byte. Eight characters of key, and
+that is the whole protection. It is not there to stop you reading it; it is
+there to stop the next sysop pulling the strings out with a hex editor and
+dropping his own board's number in, which tells you what happened to loaders
+that were not encrypted. Decoded, in full:
+<br><br><code><span id="cyl-plain"></span></code><br><br>
+Two off-by-ones, both visible if you wait. <code>CurrentLine</code> wraps at
+<b>1184</b> = (149−1)×8, but there are 149×8 = <b>1192</b> glyph columns, so the
+last character never fully comes round. And the inner loop's wrap zeroes both
+its index <i>and</i> its base, so when the message rolls over, the tail restarts
+at screen column 1 and overlaps the head for one pass, a stutter, once per loop.
+<code>CurrentArrayLoc</code> is incremented, bounds-checked at 73, and never
+read: everything that used it sits inside the commented-out block in the middle
+of <code>Cycle</code>.
+The static credit lines at the bottom are drawn once, outside the cleared band,
+and are the only thing here that is not moving.
+</div>
+</div>
+</div>
+
+
+<details class="source">
+<summary>VGAINTRO.TXT: 6,180 bytes</summary>
+<p class="cap">A tutorial that came with the source.</p>
+<pre>
+     Oh well, might as well write a text file on this since I'd be explaining 
+this to more than one person sooner or later.  Here goes -
+
+
+                     Writing (Graphic) VGA Intros/Loaders
+                                     By
+                                Fred Nietzche
+                                  07/30/91
+
+
+     I'm assuming that you don't understand the concept of video memory, so 
+I'll start off from the basics then.  Video memory is defined (for our own 
+purposes) as the memory that the video board scans in determining what signals
+(analog) to send to the monitor.  In graphics mode, the segment of the location
+of this is determined by what type of video mode you are on -
+VGA/EGA modes = $A000 ($=hex), CGA modes = $B800, and Herc = $B000.  The
+offsets always start off at $0.
+
+     Now, what type of organization are the pixels (since we're in graphics 
+mode) stored in?  Because of the simplicity of Mode $13 (320x200x256), most
+VGA intros are written using this.  I'm not about to go ahead and explain to
+you the other VGA modes dealing in the color planes, EGA/VGA registers,etc in
+the higher resolution modes, there are a couple of good books out there that
+can handle those of you interested in that.  Try your local bookstores and look 
+for Power Graphics Programming by Michael Abrash, which contains his articles 
+about higher resolution VGA programming from Programmer's Journal.  HIGHLY 
+recommendable.  In any case, in this mode, each pixel on the screen 
+corresponds to exactly 1 byte on the video memory.  For example, location
+(0,0) = Mem[$A000:0], (1,0) = Mem[$A000:1], (2,0) = Mem[A000:2], and so on.
+Fairly easy eh?  Because the memory map is linear, the next line would just be
+the next byte AFTER the previous line's last pixel.  For example, location
+(0,319) = Mem[$A000:319], AND THEN location (1,0) = Mem[$A000:320].  And the 
+formula for determining the video memory location is
+
+     Video Mem Offset = YPos*320 + XPos
+
+     The actual color of the byte values stored in the video memory is
+flexible and can be changed to any color of the 256,000 palette of the VGA.
+This can be accomplished by altering the VGA Video DAC registers at port
+addresses $3C6 through $3C9.  To read the current settings, set the Table
+Read Index (port $3C7) to the color value you want, and then read the three
+values from the Table Data Register (port $3C9) (one each for Red, Green, and
+Blue).  Once three values have been read from that port, the current read
+index is incremented by one and the next three 6 bit (range of 2^6, or 0 to 63)
+values read are for the next color value.  Writing the to the Video DAC is
+similar, except the Table Write Index is port $3C8.  Again, after writing
+three successive 6 bit values to the Table Data Registers increments the Write
+Index by one.  By the way, all the reference information about the Video DAC's
+can be obtained from any EGA/VGA reference book.  I recommend getting
+Advanced Programmer's Guide to the EGA/VGA by George Sutty and Steve Blair.
+
+     Waiting for the vertical retrace start signal before updating the video
+memory is the key to smooth animation (with a quick memory update too of
+course).  The idea is to have the screen changes "pop up" before your eyes, and
+to do this, you need to make your changes just before the the screen trace
+of the video memory occurs.  For this reason, updating the video memory had
+better fast enough, and generally this is the part done in assembly.  The
+important port and bit locations, and a sample implementation are as follows:
+
+       In Pascal:
+
+         Repeat Until (Port[$3DA] And $08) = 0;
+         Repeat Until (Port[$3DA] And $08) <> 0;
+
+       And in Assembly:
+
+                   MOV   DX,3DAh
+         Wait:     IN    AL,DX
+                   TEST  AL,08h
+                   JZ    Wait
+         Retr:     IN    AL,DX
+                   TEST  AL,08h
+                   JNZ   Retr
+
+
+     And finally, how to get the characters on the screen.  I used the old
+character set that's stored in BIOS because it saves time and space (instead
+of capturing a graphical message).  The memory address for this is
+$F000:$FA6E.  Because the character set is 8 bits by 8 bits, each character
+takes up 8 bytes, each byte representing a horizontal slice of the character.
+It's really not that confusing after fiddling around with it.
+
+     There's also the special effect that palette cycling can do.  For
+example, the color bars seen on Amiga and ST programs, although on the IBM,
+it's more laborous.  What you do is simply fill each and every horizontal line
+along the width of the movement of the bars with a separate color value.
+Then blank out (with whatever color you desire) all of those values using the
+DAC registers.  To move the bars, just change the color of the values that
+need to be blanked out and the ones that need to be "filled in" with the bar
+colors (again, through the DAC registers).  That's about it.  You may want to
+make the movement of the bars in some pattern, like in the motion of a sine
+function for effects.
+
+     Another neat idea that palette cycling can accomplish is a shifting
+checkerboard.  This one is a little bit more difficult, and I'll let you go
+and figure it out on your own.
+
+     That's all there is to it in terms of the basics and effects.  I wrote
+for myself a screen capturing TSR (very crude, but what it does is dump the
+video memory and palette to a file, and that's all I need.  I couldn't find
+any PD programs which stored their captured screens in this format,
+surprisingly!) to add painted pictures to the loaders, so that may be
+something you might want to pursue for yourself.  Compress the executable
+you've just created and you're done.
+
+     Oh, I've included some sample intros (of my own board) with the ZIP.
+I haven't really optimized them fully, but they'll do.  And the TDT/TRSI logo
+was captured from one of their loaders.  I've got to admit, they've got some
+nice artists working over there.
+
+     About a good five minutes of reading eh?  Hope it was some help...
+
+
+No greets, just trying to advertise my board around more..  Give it a ring.
+CenterPoint! BBS (301) 309-0144, 9600+ only, Sysop - Fred Nietzche.
+</pre>
+</details>
+<details class="source">
+<summary>PALETTE2.PAS: 5,208 bytes</summary>
+<p class="cap">The bars, the scroller, and the assembly that ends up in JBARS.</p>
+<pre>Program PaletteTricks;
+
+  Uses Crt;
+
+
+  Const CGA_CharSet_Seg = $0F000;
+        CGA_CharSet_Ofs = $0FA6E;
+        CharLength      = 8;
+        NumChars        = 256;
+        VGA_Segment     = $0A000;
+        NumCycles       = 200;
+        Radius          = 80;
+
+        DispStr         : String =
+&#x27;...LOADER BY FRED NIETZCHE     CALL CENTERPOINT! (301) 309-0144, 9600+ ONLY  NUP: TERMINEX&#x27;+
+&#x27;           WHATEVER ELSE YOU WANT HERE...                         &#x27;;
+
+        Colors : Array[1..15*3] Of Byte =
+                 (  7,  7, 63,
+                   15, 15, 63,
+                   23, 23, 63,
+                   31, 31, 63,
+                   39, 39, 63,
+                   47, 47, 63,
+                   55, 55, 63,
+                   63, 63, 63,
+                   55, 55, 63,
+                   47, 47, 63,
+                   39, 39, 63,
+                   31, 31, 63,
+                   23, 23, 63,
+                   15, 15, 63,
+                    7,  7, 63  );
+
+
+Type  OneChar =Array[1..CharLength] Of Byte;
+
+
+Var   CharSet : Array[1..NumChars] Of OneChar;
+      Locs    : Array[1..NumCycles] Of Integer;
+      BarLocs : Array[1..4] Of Integer;
+
+
+  Procedure GetChars;
+
+    Var NumCounter,
+        ByteCounter,
+        MemCounter   :Integer;
+  
+    Begin { GetChars }
+      MemCounter:=0;
+      For NumCounter:=1 To NumChars Do
+        For ByteCounter:=1 To CharLength Do
+          Begin
+            CharSet[NumCounter][ByteCounter]:=Mem[CGA_CharSet_Seg:CGA_CharSet_Ofs+MemCounter];
+            Inc(MemCounter);
+          End;
+    End;  { GetChars }
+
+
+  Procedure VideoMode ( Mode : Byte );
+
+    Begin { VideoMode }
+      Asm
+        Mov  AH,00
+        Mov  AL,Mode
+        Int  10h
+      End;
+    End;  { VideoMode }
+
+
+  Procedure SetColor ( Color, Red, Green, Blue : Byte );
+
+    Begin { SetColor }
+      Port[$3C8] := Color;
+      Port[$3C9] := Red;
+      Port[$3C9] := Green;
+      Port[$3C9] := Blue;
+    End;  { SetColor }
+
+
+  Procedure DispVert ( Var CurrLine : Integer );
+
+    Var Letter : OneChar;
+        VertLine,
+        Count  : Integer;
+
+    Begin { DispVert }
+      Letter := CharSet[Ord(DispStr[(CurrLine Div 8)+1])+1];
+      VertLine := (CurrLine-1) Mod 8;
+      For Count := 1 To 8 Do
+        If Letter[Count] And ($80 Shr VertLine) = 0
+          Then Mem[VGA_Segment:185*320+(Count-1)*320+319] := 0
+          Else Mem[VGa_Segment:185*320+(Count-1)*320+319] := 181;
+    End;  { DispVert }
+
+
+  Procedure CalcLocs;
+
+    Var Count : Integer;
+
+    Begin { CalcLocs }
+      For Count := 1 To NumCycles Do
+        Locs[Count] := Round(Radius*Sin((2*Pi/NumCycles)*Count))+Radius+1;
+    End;  { CalcLocs }
+
+
+    Procedure DoCycle;
+
+      Label Wait,Retr,BarLoop,PrevIsLast,Continue1,Continue2,Rep1,Rep2;
+
+      Begin { DoCycle }
+        Asm
+
+          MOV   DX,3DAh
+Wait:     IN    AL,DX
+          TEST  AL,08h
+          JZ    Wait
+Retr:     IN    AL,DX
+          TEST  AL,08h
+          JNZ   Retr
+
+{ Do Bars... }
+
+           MOV   BX,0
+BarLoop:
+           PUSH  BX
+           MOV   AX,Word Ptr BarLocs[BX]
+           MOV   BX,AX
+           DEC   BX
+           SHL   BX,1
+           MOV   AX,Word Ptr Locs[BX]
+           PUSH  AX
+           CMP   BX,0
+           JE    PrevIsLast
+           DEC   BX
+           DEC   BX
+           MOV   AX,Word Ptr Locs[BX]
+           JMP   Continue1
+
+PrevIsLast:
+           MOV   AX,Word Ptr Locs[(NumCycles-1)*2]
+
+Continue1:
+           MOV   DX,03C8h
+           OUT   DX,AL
+           INC   DX
+           MOV   CX,15*3
+           MOV   AL,0
+Rep1:
+           OUT   DX,AL
+           LOOP  Rep1
+
+           DEC   DX
+           POP   AX
+           OUT   DX,AL
+           INC   DX
+           MOV   CX,15*3
+           XOR   BX,BX
+Rep2:
+           MOV   AL,Byte Ptr Colors[BX]
+           OUT   DX,AL
+           INC   BX
+           LOOP  Rep2
+
+           POP   BX
+           INC   Word Ptr BarLocs[BX]
+           CMP   Word Ptr BarLocs[BX],NumCycles
+           JNG   Continue2
+
+           Mov   Word Ptr BarLocs[BX],1
+Continue2:
+           INC   BX
+           INC   BX
+           CMP   BX,8
+           JNE   BarLoop
+
+        End;
+      End;  { DoCycle }
+
+
+  Var CurrVert,
+      Count     : Integer;
+      Key       : Char;
+      MemPos    : Word;
+
+  Begin { PaletteTricks }
+
+    VideoMode($13);
+    Port[$3C8] := 1;
+    For Count := 1 To 180 Do
+      SetColor(Count,0,0,0);
+    MemPos := 0;
+    For Count := 1 To 180 Do
+      Begin
+        FillChar(Mem[VGA_Segment:MemPos],320,Chr(Count));
+        MemPos := MemPos + 320;
+      End;
+    SetColor(181,63,63,0);
+    CalcLocs;
+    For Count := 1 To 4 Do
+      BarLocs[Count] := Count*10;
+
+    GetChars;
+    CurrVert := 1;
+    Repeat
+      DoCycle;
+      For Count := 1 To 8 Do
+        Move(Mem[VGA_Segment:185*320+(Count-1)*320+1],
+             Mem[VGA_Segment:185*320+(Count-1)*320],319);
+      DispVert(CurrVert);
+      Inc(CurrVert);
+      If CurrVert &gt; Length(DispStr) * 8
+        Then CurrVert := 1;
+
+    Until Keypressed;
+    Key := ReadKey;
+    VideoMode(3);
+  End.  { PaletteTricks }
+</pre>
+</details>
+<details class="source">
+<summary>CYLINDER.PAS: 7,807 bytes</summary>
+<p class="cap">The cylinder scroller, with the enciphered <code>DispStr</code> near the top.</p>
+<pre>Program Cylinder_Scroll;
+
+  Const CGA_CharSet_Seg = $0F000;
+        CGA_CharSet_Ofs = $0FA6E;
+        VGA_Segment = $A000;
+        
+        ScrollYPos = 80;
+        Radius = 30;
+        NumSlices = 90;
+        AngleInc = 2*Pi / NumSlices;
+
+        Spacing = 4;
+
+        PW = &#x27;Esselete&#x27;;
+
+        NumXCoords = 300 Div Spacing;
+        CharColor = 1;
+
+
+DispStr : Array[1..149] Of Byte =
+(101,147,147,133,140,133,148,133,101,147,191,180,173,169,185,183,101,181,
+204,133,178,183,185,169,101,193,188,170,192,191,183,173,138,147,147,133,
+140,133,148,133,101,147,147,147,154,147,183,170,147,199,184,183,188,180,
+189,179,153,148,147,167,174,184,148,141,120,163,164,142,140,152,164,158,
+114,163,164,153,160,147,162,147,101,147,147,133,140,133,198,186,147,193,
+188,179,179,133,195,179,101,200,198,183,140,150,168,147,121,147,183,186,
+173,177,160,133,126,169,163,149,151,133,195,179,145,204,147,133,140,133,
+148,133,152,204,198,180,188,159,148,171,151,184,183,133,186,174,185,185,
+159,182,187,170,140 );
+
+NumDispChars = 149;
+        CharLength      = 8;
+        NumChars        = 256;
+
+
+  Type  OneChar =Array[1..CharLength] Of Byte;
+
+
+  Var   ScreenPath : Array[1..8*80] Of Word;
+        CurrentLine,
+        CurrentArrayLoc  : Integer;
+        DispChars   : Array[1..NumDispChars*64] Of Byte;
+        CharSet : Array[1..NumChars] Of OneChar;
+        Password : String;
+
+        KeyHit : Boolean;
+        Int9Vec : LongInt;
+
+
+Procedure VideoMode(Mode:Byte);Begin Asm Mov AH,0;Mov AL,Mode;Int 16;End;End;
+
+  Procedure GetChars;
+
+    Var NumCounter,
+        ByteCounter,
+        MemCounter   :Integer;
+
+    Begin { GetChars }
+      MemCounter:=0;
+      For NumCounter:=1 To NumChars Do
+        For ByteCounter:=1 To CharLength Do
+          Begin
+            CharSet[NumCounter][ByteCounter]:=Mem[CGA_CharSet_Seg:CGA_CharSet_Ofs+MemCounter];
+            Inc(MemCounter);
+          End;
+    End;  { GetChars }
+
+
+Procedure SetColor(Color,Red,Green,Blue:Byte);
+
+    Begin { SetColor }
+      Port[$3C8] := Color;
+      Port[$3C9] := Red;
+      Port[$3C9] := Green;
+      Port[$3C9] := Blue;
+    End;  { SetColor }
+
+
+  Procedure BuildPath;
+
+    Var YCount,
+        XCount,
+        ArrayPtr  : Integer;
+        CurrAngle : Real;
+
+    Begin { BuildPath }
+      CurrAngle := Pi;
+      ArrayPtr := 1;
+      For XCount := 1 To NumXCoords Do
+        Begin
+          For YCount := 1 To 8 Do
+            Begin
+              ScreenPath[ArrayPtr] := (ScrollYPos + Round(Radius*Sin(CurrAngle)))*320
+                                      + (XCount-1)*Spacing + 1;
+              CurrAngle := CurrAngle + AngleInc;
+              Inc(ArrayPtr);
+            End;
+          CurrAngle := CurrAngle - 7*AngleInc;
+        End;
+    End;  { BuildPath }
+
+
+  Procedure BuildCharArray;
+
+    Var ShearYCnt,
+        ShearXCnt,
+        Count,
+        ArrayPtr   : Integer;
+        TempByte   : Byte;
+
+    Begin { BuildCharArray }
+      ArrayPtr := 1;
+      For Count := 1 To NumDispChars Do
+        Begin
+          TempByte := DispStr[Count] - Ord(Password[((Count-1) Mod Length(Password))+1]);
+          For ShearXCnt := 1 To 8 Do
+            For ShearYCnt := 1 To 8 Do
+              Begin
+                If Mem[CGA_CharSet_Seg:CGA_CharSet_Ofs+TempByte*8+ShearYCnt-1] And ($80 Shr (ShearXCnt-1)) = 0
+                  Then DispChars[ArrayPtr] := 0
+                  Else DispChars[ArrayPtr] := CharColor;
+                Inc(ArrayPtr);
+              End;
+        End;
+    End;  { BuildCharArray }
+
+
+  Procedure Cycle;
+
+    Label Wait,Retr,Loop1,Loop2,Continue1,Continue2,Continue3,Continue4,
+          Continue5;
+
+    Begin { Cycle }
+      Asm
+          MOV   AX,VGA_Segment
+          MOV   ES,AX
+          MOV   DI,(ScrollYPos-Radius)*320
+          MOV   CX,160*Radius*2+320
+
+          MOV   DX,3DAh
+Wait:     IN    AL,DX
+          TEST  AL,08h
+          JZ    Wait
+Retr:     IN    AL,DX
+          TEST  AL,08h
+          JNZ   Retr
+
+          XOR   AX,AX
+          REP   STOSW
+
+          MOV   BX,CurrentLine
+          MOV   CL,3
+          SHL   BX,CL
+          MOV   DX,BX
+
+          MOV   AX,NumXCoords
+Loop1:
+          MOV   CX,8
+Loop2:
+          CMP   Byte Ptr DispChars[BX],0
+          JE    Continue2
+
+          PUSH  BX
+          {Put Dot}
+          SUB   BX,DX
+          SHL   BX,1
+          MOV   DI,Word Ptr ScreenPath[BX]
+{          PUSH  DX
+          MOV   DX,CurrentArrayLoc
+          SHL   DX,1
+          SHL   DX,1
+          SUB   DI,DX
+          CMP   DI,NumXCoords*Spacing+ScrollYPos*160
+          JLE   Continue1
+
+          ADD   DI,NumXCoords*Spacing
+Continue1:
+          POP   DX }
+          MOV   Byte Ptr ES:[DI],CharColor
+          POP   BX
+
+Continue2:
+          INC   BX
+          CMP   BX,(NumDispChars-1)*8*8
+          JNG   Continue3
+          XOR   BX,BX
+          XOR   DX,DX
+Continue3:
+          LOOP  Loop2
+
+          DEC   AX
+          JNZ   Loop1
+
+          INC   CurrentLine
+          CMP   CurrentLine,(NumDispChars-1)*8
+          JNG   Continue4
+          MOV   CurrentLine,0
+
+Continue4:
+          INC   CurrentArrayLoc
+          CMP   CurrentArrayLoc,73
+          JNG   Continue5
+          MOV   CurrentArrayLoc,0
+
+Continue5:
+
+      End;
+
+    End;  { Cycle }
+
+
+  Procedure SetInt9 ( I9Seg,I9Ofs : Word );
+
+    Begin { SetInt9 }
+      Asm
+        PUSH    DS
+
+        MOV     AH,35h
+        MOV     AL,09h
+        INT     21h
+        MOV     Word Ptr Int9Vec,BX
+        MOV     Word Ptr Int9Vec[2],ES
+
+        MOV     AX,I9Seg
+        MOV     DS,AX
+        MOV     DX,I9Ofs
+        MOV     AH,25h
+        MOV     AL,09h
+        INT     21h
+
+        POP     DS
+      End;
+    End;  { SetInt9 }
+
+
+  Procedure DisInt9;
+
+    Begin { DisInt9 }
+      Asm
+        PUSH    DS
+        MOV     DX,Word Ptr Int9Vec
+        MOV     AX,Word Ptr Int9Vec[2]
+        MOV     DS,AX
+        MOV     AH,25h
+        MOV     AL,09h
+        INT     21h
+        POP     DS
+      End;
+    End;  { DisInt9 }
+
+
+  Procedure Int9;
+
+  Interrupt;
+
+    Begin { Int9 }
+      Asm
+        PUSHF
+        CALL    Int9Vec
+        INC     KeyHit
+      End;
+    End;  { Int9 }
+
+
+  Procedure DrawString ( XPos,YPos,Size : Integer; Color : Byte; Str : String );
+
+    Var TempPos,
+        MemPos   : Word;
+        XSize,
+        YSize,
+        Count,
+        XCount,
+        YCount : Integer;
+        Letter : OneChar;
+
+    Begin
+      MemPos := (YPos-1)*320+(XPos-1);
+      For Count := 1 To Length(Str) Do
+        Begin
+          Letter := CharSet[Ord(Str[Count])+1];
+          For YCount := 1 To 8 Do
+            For XCount := 1 To 8 Do
+              If Letter[YCount] And ($80 Shr (XCount-1)) &lt;&gt; 0
+                Then Begin
+                  TempPos := MemPos+(YCount-1)*320*Size+(Count-1)*8*Size+(XCount-1)*Size;
+                  For XSize := 1 To Size Do
+                    For YSize := 1 To Size Do
+                      Mem[VGA_Segment:TempPos+(XSize-1)+(YSize-1)*320] := Color;
+                End;
+        End;
+    End;
+
+
+  Var   Count,
+        XCount : Integer;
+        CurrAngle : Real;
+
+  Begin { Cylinder_Scroll }
+
+    SetInt9 (Seg(Int9),Ofs(Int9));
+    KeyHit := False;
+
+    Password := PW;
+    VideoMode($13);
+    GetChars;
+    SetColor(CharColor,63,63,63);
+    SetColor(4,63,0,0);
+    SetColor(5,63,63,63);
+    BuildCharArray;
+    BuildPath;
+    DrawString(64,150,1,4,&#x27;Loader by Fred Nietzche&#x27;);
+    DrawString(16,160,1,5,&#x27;Call CenterPoint! BBS (301) 309-0144&#x27;);
+    CurrentLine := 0;
+    CurrentArrayLoc := 0;
+    Repeat
+      Cycle;
+    Until KeyHit;
+    VideoMode($3);
+
+    DisInt9;
+
+  End.  { Cylinder_Scroll }</pre>
+</details>
+<details class="source">
+<summary>PALETTE4.PAS: 45,340 bytes</summary>
+<p class="cap">Same program plus the TRSI/TDT logo. The logo is a 287&times;48 byte array.</p>
+<pre>Program PaletteTricks;
+
+  Uses Crt;
+
+
+  Const CGA_CharSet_Seg = $0F000;
+        CGA_CharSet_Ofs = $0FA6E;
+        CharLength      = 8;
+        NumChars        = 256;
+        VGA_Segment     = $0A000;
+        NumCycles       = 200;
+        Radius          = 80;
+
+        DispStr         : String =
+                              &#x27;...LOADER BY FRED NIETZCHE......ALBERT IS A WEENIE!......CALL CENTERPOINT! (301) 309-0144...&#x27;;
+
+        Colors : Array[1..15*3] Of Byte =
+                 (  7,  7, 63,
+                   15, 15, 63,
+                   23, 23, 63,
+                   31, 31, 63,
+                   39, 39, 63,
+                   47, 47, 63,
+                   55, 55, 63,
+                   63, 63, 63,
+                   55, 55, 63,
+                   47, 47, 63,
+                   39, 39, 63,
+                   31, 31, 63,
+                   23, 23, 63,
+                   15, 15, 63,
+                    7,  7, 63  );
+
+
+Picture : Array[1..13776] Of Byte = 
+(* Size is 287 by 48 *)
+(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,241,245,245,245,245,
+245,246,246,247,247,248,248,249,249,250,250,249,249,248,248,247,247,246,246,
+245,245,244,244,243,243,242,242,241,241,242,242,243,244,244,245,245,246,246,
+247,247,248,248,249,249,250,250,251,251,252,252,251,250,249,248,247,246,245,
+246,247,251,239,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,250,246,244,244,245,245,246,246,247,247,248,248,249,249,249,249,249,
+248,248,247,247,247,246,246,246,245,245,245,245,242,0,0,0,244,247,248,
+248,249,248,247,246,245,242,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,244,246,
+245,245,244,244,243,243,243,242,242,241,241,242,242,243,243,243,243,244,243,
+244,244,245,245,246,246,247,247,248,248,249,249,250,250,251,251,250,250,249,
+249,248,248,248,249,254,239,0,0,0,0,0,0,0,249,249,244,244,246,
+246,247,247,248,248,249,249,250,250,251,251,250,249,248,248,247,247,246,246,
+245,245,244,244,243,243,243,243,243,243,242,242,241,241,242,242,242,243,243,
+243,244,244,245,245,246,244,0,0,0,0,0,0,0,0,0,242,241,245,
+245,245,245,245,246,246,247,247,248,248,249,249,250,250,249,249,248,248,247,
+247,246,246,245,245,244,244,243,243,242,242,241,241,242,243,244,244,245,245,
+246,246,247,248,248,249,249,250,250,251,251,252,252,251,250,249,248,247,246,
+245,244,244,244,245,248,251,239,0,0,0,0,0,0,0,0,0,0,0,
+0,0,250,246,243,243,243,244,244,245,245,246,246,247,247,248,248,249,249,
+249,249,249,248,248,247,247,247,246,246,246,245,245,243,244,0,0,0,243,
+244,247,248,249,248,246,245,243,244,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+247,244,246,245,245,244,244,243,243,243,242,242,241,241,242,242,243,243,244,
+244,244,244,245,245,246,246,247,247,248,248,249,249,250,250,251,251,250,250,
+249,249,248,248,245,246,247,247,248,249,251,254,239,239,249,249,245,243,243,
+244,245,246,246,247,247,248,248,249,249,250,250,251,251,249,249,248,248,247,
+247,246,246,245,245,244,244,244,244,243,243,242,242,241,241,242,242,243,243,
+243,243,244,244,245,245,246,244,247,0,0,0,0,0,0,0,0,0,243,
+242,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,
+249,249,249,249,249,249,249,249,249,249,248,248,248,248,247,247,246,246,246,
+246,246,246,246,246,246,246,246,246,246,246,246,246,247,247,248,248,248,248,
+249,249,249,249,248,247,245,246,246,249,239,0,0,0,0,0,0,0,0,
+0,0,0,247,242,242,244,246,249,249,249,249,249,249,249,249,249,249,249,
+249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,244,246,0,0,
+0,242,243,249,249,249,249,249,249,244,246,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,246,245,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,
+249,249,249,249,249,249,249,249,248,248,248,247,247,246,246,246,246,246,246,
+246,246,246,247,247,248,248,249,249,249,249,249,249,247,247,247,251,251,249,
+249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,
+249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,248,247,
+247,247,247,246,246,246,246,246,246,245,246,0,0,0,0,0,0,0,0,
+0,244,243,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,
+249,249,249,249,249,249,249,249,249,249,249,249,248,248,248,248,247,247,246,
+246,246,246,246,246,246,246,246,246,246,246,246,246,246,247,247,248,248,248,
+248,249,249,249,249,249,249,249,249,248,247,247,250,239,0,0,0,0,0,
+0,0,0,0,245,242,243,246,249,249,249,249,249,249,249,249,249,249,249,
+249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,246,246,
+0,0,0,241,242,249,249,249,249,249,249,246,246,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,246,246,249,249,249,249,249,249,249,249,249,249,249,249,249,
+249,249,249,249,249,249,249,249,249,248,248,248,247,247,246,246,246,246,246,
+246,246,246,246,246,246,247,247,248,248,249,249,249,249,249,249,249,247,247,
+248,251,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,
+249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,
+248,247,247,247,247,247,246,246,246,246,246,246,246,0,0,0,0,0,0,
+0,0,0,245,245,249,249,249,249,249,249,249,249,249,249,249,249,249,249,
+249,249,249,249,249,249,249,249,249,249,249,249,249,249,248,248,248,248,247,
+247,246,246,246,246,246,246,246,246,246,246,246,246,246,246,247,247,248,248,
+248,248,249,249,249,249,249,249,249,249,249,249,249,248,248,251,239,0,0,
+0,0,0,0,0,248,243,245,249,249,249,249,249,249,249,249,249,249,249,
+249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,
+246,247,0,0,0,242,241,249,249,249,249,249,249,246,247,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,246,246,249,249,249,249,249,249,249,249,249,249,249,
+249,249,249,249,249,249,249,249,249,249,249,248,248,248,247,247,246,246,246,
+246,246,246,246,246,246,246,246,247,247,248,248,249,249,249,249,249,249,249,
+249,249,247,248,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,
+249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,
+249,249,248,247,247,247,247,247,246,246,246,246,246,246,246,0,0,0,0,
+0,0,0,0,0,246,247,249,249,249,249,249,249,249,249,249,249,249,249,
+249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,248,248,248,248,
+247,247,246,246,246,246,246,246,246,246,246,246,246,246,246,246,246,247,247,
+248,248,248,248,249,249,249,249,249,249,249,249,249,249,249,249,249,249,254,
+0,0,0,0,0,0,251,245,244,249,249,249,249,249,249,249,249,249,249,
+249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,
+249,249,247,247,0,0,0,243,242,249,249,249,249,249,249,247,247,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,247,246,249,249,249,249,249,249,249,249,249,
+249,249,249,249,249,249,249,249,249,249,249,249,249,248,248,248,247,247,246,
+246,246,246,246,246,246,246,246,246,246,246,247,247,248,248,249,249,249,249,
+249,249,249,249,249,247,247,248,249,249,249,249,249,249,249,249,249,249,249,
+249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,
+249,249,249,249,249,249,248,248,247,247,247,247,246,246,246,246,247,0,0,
+0,0,0,0,0,0,0,247,249,249,249,249,249,249,249,249,249,249,249,
+249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,248,248,
+248,248,247,247,246,246,246,246,246,246,246,246,246,246,246,246,246,246,247,
+247,248,248,248,248,249,249,249,249,249,249,249,249,249,249,249,249,249,249,
+250,250,0,0,0,0,0,0,247,246,248,249,249,249,249,249,249,249,249,
+249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,
+249,249,249,249,247,248,0,0,0,244,243,249,249,249,249,249,249,247,248,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,247,247,249,249,249,249,249,249,249,
+249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,248,248,248,247,
+247,246,246,246,246,246,246,246,246,246,246,246,246,246,247,248,248,249,249,
+249,249,249,249,249,249,249,249,247,247,248,249,249,249,249,249,249,249,249,
+249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,
+249,249,249,249,249,249,249,249,248,248,248,247,247,247,245,246,246,247,247,
+0,0,0,0,0,0,0,0,0,249,249,249,249,249,249,249,249,249,249,
+249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,
+248,248,248,248,247,247,246,246,246,246,246,246,246,246,246,246,246,246,246,
+246,247,247,248,248,248,248,249,249,249,249,249,249,249,249,249,249,249,249,
+249,249,250,250,239,0,0,0,0,251,247,247,249,249,249,249,249,249,249,
+249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,
+249,249,249,249,249,249,248,248,0,0,0,245,244,249,249,249,249,249,249,
+248,248,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,248,247,249,249,249,249,249,
+249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,248,248,248,
+247,247,246,246,246,246,246,246,246,246,246,246,246,246,246,246,247,248,248,
+248,249,249,249,249,249,249,249,249,249,249,249,247,248,249,249,249,249,249,
+249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,
+249,249,249,249,249,249,249,249,249,249,249,249,248,247,247,245,245,245,246,
+247,248,0,0,0,0,0,0,0,0,0,249,238,237,237,236,236,235,235,
+234,234,233,233,234,234,248,249,249,249,249,249,249,247,232,232,232,232,232,
+232,232,236,236,235,235,234,234,233,233,234,234,235,235,236,236,237,238,239,
+238,237,237,236,236,235,235,234,234,233,234,235,235,236,236,235,249,249,249,
+249,249,249,249,249,249,251,0,0,0,0,248,248,237,237,237,237,237,237,
+237,237,236,236,236,235,235,234,234,233,234,235,236,237,238,239,238,237,237,
+236,236,235,235,234,234,234,233,233,249,0,0,0,245,245,249,249,249,249,
+249,249,248,249,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,248,238,238,237,237,
+236,236,235,235,234,234,233,233,234,234,234,249,249,249,249,249,249,249,238,
+238,237,237,236,236,235,235,234,233,233,235,235,236,239,239,238,238,237,237,
+236,236,232,235,235,249,249,249,249,249,249,249,249,249,249,247,248,247,235,
+235,234,234,235,235,235,235,235,234,234,235,235,236,236,237,237,238,238,249,
+249,249,249,249,249,249,234,234,234,233,233,234,234,234,235,235,236,236,237,
+237,238,238,248,0,0,0,0,0,0,0,0,0,238,237,237,236,236,235,
+235,234,234,233,233,234,234,248,248,249,249,249,249,249,249,247,247,232,232,
+232,232,232,232,232,236,236,235,235,234,234,233,233,234,234,235,235,236,237,
+238,239,238,237,236,236,235,235,234,234,233,234,235,235,236,236,235,235,232,
+249,249,249,249,249,249,249,248,248,0,0,0,0,248,237,237,237,237,237,
+237,237,237,237,237,236,236,236,235,235,234,234,233,234,235,236,237,238,239,
+238,237,237,236,236,235,235,234,234,234,233,233,0,0,0,246,245,249,249,
+249,249,249,249,249,249,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,237,237,238,
+238,237,237,236,236,235,235,234,234,233,233,234,252,249,249,249,249,249,249,
+249,245,238,237,236,236,235,235,234,233,233,235,235,236,239,239,238,238,237,
+237,236,236,235,235,235,234,234,235,249,249,249,249,249,249,249,249,249,247,
+247,249,234,235,235,235,236,235,236,236,235,233,234,235,235,236,236,237,238,
+245,249,249,249,249,249,249,249,252,234,233,233,234,234,235,235,235,236,236,
+237,237,238,238,237,237,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,247,248,249,249,249,249,249,249,247,247,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+232,232,232,249,249,249,249,249,249,246,246,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,246,246,
+249,249,249,249,249,249,249,248,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,252,252,249,249,249,249,
+249,249,249,245,245,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,245,243,250,250,250,249,249,249,233,233,233,249,249,249,249,249,249,249,
+249,249,247,247,249,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,245,245,249,249,249,249,249,249,249,252,252,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,246,247,249,249,249,249,249,249,
+247,248,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,232,232,249,249,249,249,249,249,232,232,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+247,246,249,249,249,249,249,249,248,248,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,252,252,249,249,
+249,249,249,249,249,246,245,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,248,243,250,249,249,249,249,249,249,249,249,233,233,249,249,249,249,
+249,249,249,249,249,247,247,249,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,245,246,249,249,249,249,249,249,249,252,252,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,245,246,249,249,249,249,
+249,249,248,249,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,243,244,232,249,249,249,249,249,249,232,232,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,247,247,249,249,249,249,249,249,248,247,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,252,252,
+249,249,249,249,249,249,249,246,246,0,0,0,0,0,0,0,0,0,0,
+0,0,0,251,245,244,249,249,249,249,249,249,249,249,249,249,234,234,249,
+249,249,249,249,249,249,249,249,247,247,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,246,246,249,249,249,249,249,249,249,252,252,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,245,245,249,249,
+249,249,249,249,249,250,0,0,0,0,0,0,0,0,0,0,0,0,0,
+241,247,247,246,246,245,245,244,244,245,246,247,248,249,250,251,252,251,250,
+249,249,248,247,246,245,244,242,248,249,249,249,249,249,249,235,232,0,0,
+0,0,241,242,243,243,244,244,245,245,246,246,247,247,248,248,247,247,246,
+246,245,245,244,244,243,243,244,244,245,249,252,0,0,0,0,0,0,0,
+0,0,0,0,248,247,249,249,249,249,249,249,247,247,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+252,252,249,249,249,249,249,249,249,247,246,0,0,0,0,0,0,0,0,
+0,0,0,0,0,247,246,248,249,249,249,249,249,249,249,249,251,251,0,
+234,234,249,249,249,249,249,249,249,249,249,246,247,0,0,0,0,0,0,
+0,0,0,0,0,0,0,246,247,249,249,249,249,249,249,249,252,252,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,244,245,
+249,249,249,249,249,249,250,250,0,0,0,0,0,0,0,0,0,0,0,
+0,0,242,241,246,246,245,245,244,244,245,246,247,248,248,249,250,251,252,
+251,250,250,249,249,248,247,246,245,247,249,249,249,249,249,249,249,235,237,
+0,0,0,0,232,242,242,243,243,244,244,245,245,246,246,247,247,248,248,
+247,246,246,245,244,244,243,243,244,244,245,245,246,246,249,254,0,0,0,
+0,0,0,0,0,0,248,248,249,249,249,249,249,249,246,246,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,252,251,249,249,249,249,249,249,249,247,247,0,0,0,0,0,0,
+0,0,0,0,0,0,0,247,247,249,249,249,249,249,249,249,249,251,251,
+0,0,0,237,235,249,249,249,249,249,249,249,249,248,244,246,0,0,0,
+0,0,0,0,0,0,0,0,0,247,247,249,249,249,249,249,249,249,251,
+252,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+243,244,249,249,249,249,249,249,250,251,0,0,0,0,0,0,0,0,0,
+0,0,0,0,243,242,246,246,246,246,246,246,247,247,248,248,248,248,249,
+249,247,246,246,246,246,246,246,246,247,248,249,249,249,249,249,249,249,234,
+235,239,0,0,0,0,238,232,232,249,249,249,249,249,249,249,249,249,249,
+249,249,249,249,249,249,249,249,249,249,249,249,249,249,248,247,247,248,251,
+0,0,0,0,0,0,0,0,249,248,249,249,249,249,249,249,247,247,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,251,251,249,249,249,249,249,249,249,248,247,0,0,0,0,
+0,0,0,0,0,0,0,0,0,248,249,249,249,249,249,249,249,249,251,
+251,0,0,0,0,0,236,236,249,249,249,249,249,249,249,249,248,244,247,
+0,0,0,0,0,0,0,0,0,0,0,247,248,249,249,249,249,249,249,
+249,251,251,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,243,243,249,249,249,249,249,249,251,251,0,0,0,0,0,0,0,
+0,0,0,0,0,0,244,243,246,246,246,246,246,246,247,247,248,248,248,
+248,249,249,248,247,246,246,246,246,246,246,246,247,248,249,249,249,249,249,
+249,234,236,0,0,0,0,0,0,232,232,249,249,249,249,249,249,249,249,
+249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,
+248,248,250,0,0,0,0,0,0,0,249,249,249,249,249,249,249,249,248,
+247,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,250,250,249,249,249,249,249,249,249,248,248,0,0,
+0,0,0,0,0,0,0,0,0,0,0,248,249,249,249,249,249,249,249,
+249,251,0,0,0,0,0,0,0,236,237,249,249,249,249,249,249,249,249,
+248,245,248,0,0,0,0,0,0,0,0,0,0,248,248,249,249,249,249,
+249,249,249,250,250,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,242,242,249,249,249,249,249,249,251,251,0,0,0,0,0,
+0,0,0,0,0,0,0,0,245,244,246,246,246,246,246,246,247,247,248,
+248,248,248,249,249,249,248,247,246,246,246,246,246,246,246,247,248,249,249,
+249,249,233,233,239,0,0,0,0,0,0,239,235,235,249,249,249,249,249,
+249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,
+249,249,249,248,250,251,0,0,0,0,0,0,250,250,249,249,249,249,249,
+249,248,248,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,250,250,249,249,249,249,249,249,249,248,248,
+0,0,0,0,0,0,0,0,0,0,0,0,0,248,249,249,249,249,249,
+249,249,249,251,0,0,0,0,0,0,0,0,237,237,249,249,249,249,249,
+249,249,248,245,248,0,0,0,0,0,0,0,0,0,0,248,248,249,249,
+249,249,249,249,249,250,250,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,241,241,249,249,249,249,249,249,251,250,0,0,0,
+0,0,0,0,0,0,0,0,0,0,246,245,246,246,246,246,246,247,247,
+248,248,248,248,249,249,249,249,248,248,247,247,246,246,246,246,246,246,247,
+248,248,249,232,234,236,0,0,0,0,0,0,0,0,238,235,232,249,249,
+249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,
+249,249,249,249,249,249,251,251,239,0,0,0,0,0,250,250,249,249,249,
+249,249,249,249,248,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,250,250,249,249,249,249,249,249,249,
+249,248,0,0,0,0,0,0,0,0,0,0,0,0,0,249,249,249,249,
+249,249,249,249,250,250,0,0,0,0,0,0,0,0,0,238,238,249,249,
+249,249,249,249,249,247,245,251,0,0,0,0,0,0,0,0,0,248,249,
+249,249,249,249,249,249,249,250,250,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,242,242,249,249,249,249,249,249,250,250,0,
+0,0,0,0,0,0,0,0,0,0,0,0,247,246,246,246,246,246,246,
+247,247,248,248,248,248,249,249,249,249,249,249,248,248,247,246,246,246,246,
+246,246,247,232,236,235,236,239,0,0,0,0,0,0,0,0,0,238,236,
+236,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,
+249,249,249,249,249,249,249,249,249,250,250,0,0,0,0,0,251,251,249,
+249,249,249,249,249,249,249,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,249,249,249,249,249,249,249,
+249,249,250,249,0,0,0,0,0,0,0,0,0,0,0,0,0,249,250,
+249,249,249,249,249,249,250,249,0,0,0,0,0,0,0,0,0,239,238,
+237,249,249,249,249,249,249,249,246,249,0,0,0,0,0,0,0,0,0,
+249,250,249,249,249,249,249,249,249,249,249,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,243,243,249,249,249,249,249,249,250,
+249,0,0,0,0,0,0,0,0,0,0,0,0,0,247,247,246,246,246,
+246,247,247,248,248,248,248,249,249,249,249,249,249,249,249,248,248,247,246,
+246,246,246,232,237,237,237,238,239,0,0,0,0,0,0,0,0,0,0,
+0,238,236,237,237,249,249,249,249,249,249,249,249,249,249,249,249,249,249,
+249,249,249,249,249,249,249,249,249,249,249,250,250,239,0,0,0,0,251,
+251,249,249,249,249,249,249,250,249,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,249,249,249,249,249,
+249,249,249,249,250,250,0,0,0,0,0,0,0,0,0,0,0,0,0,
+250,250,249,249,249,249,249,249,249,249,0,0,0,0,0,0,0,0,0,
+0,239,237,235,249,249,249,249,249,249,248,246,253,0,0,0,0,0,0,
+0,0,250,250,249,249,249,249,249,249,249,249,249,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,243,244,249,249,249,249,249,
+249,249,249,0,0,0,0,0,0,0,0,0,0,0,0,0,248,248,246,
+246,246,246,247,247,248,248,248,248,249,249,249,249,249,249,249,249,249,248,
+248,232,236,236,236,236,237,237,239,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,239,238,237,238,238,238,239,238,238,237,237,236,236,237,237,
+236,236,235,235,234,234,232,249,249,249,249,249,249,249,249,251,0,0,0,
+0,250,250,249,249,249,249,249,249,250,250,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,248,248,249,
+249,249,249,249,249,249,249,249,0,0,0,0,0,0,0,0,0,0,0,
+0,0,250,251,249,249,249,249,249,249,249,247,0,0,0,0,0,0,0,
+0,0,0,0,239,235,249,249,249,249,249,249,249,247,250,0,0,0,0,
+0,0,0,0,249,249,249,249,249,249,249,249,249,248,248,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,244,245,249,249,249,
+249,249,249,248,248,0,0,0,0,0,0,0,0,0,0,0,0,0,249,
+249,246,246,246,246,247,247,251,251,235,235,249,249,249,249,249,249,249,249,
+236,236,236,236,236,236,236,238,239,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,239,238,238,239,238,238,237,237,236,236,236,
+236,237,237,236,236,235,235,234,234,248,249,249,249,249,249,249,249,248,0,
+0,0,0,250,249,249,249,248,248,249,249,251,250,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,248,
+248,249,249,249,249,249,249,249,248,248,0,0,0,0,0,0,0,0,0,
+0,0,0,0,251,251,249,249,249,249,249,249,247,247,0,0,0,0,0,
+0,0,0,0,0,0,0,237,249,249,249,249,249,249,249,247,247,0,0,
+0,0,0,0,0,0,248,248,249,249,249,249,249,249,249,248,248,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,245,245,249,
+249,249,249,249,249,247,247,0,0,0,0,0,0,0,0,0,0,0,0,
+0,249,249,246,246,246,247,247,248,251,251,235,236,236,249,249,249,249,249,
+249,249,249,249,249,249,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,236,233,233,248,249,249,249,249,249,248,
+248,0,0,0,0,249,249,248,248,248,247,247,248,251,251,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,248,248,249,249,249,249,249,249,249,248,248,0,0,0,0,0,0,0,
+0,0,0,0,0,0,251,251,249,249,249,249,249,249,247,247,0,0,0,
+0,0,0,0,0,0,0,0,0,237,249,249,249,249,249,249,249,247,247,
+0,0,0,0,0,0,0,0,248,248,249,249,249,249,249,249,249,248,248,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,245,
+246,249,249,249,249,249,249,246,246,0,0,0,0,0,0,0,0,0,0,
+0,0,0,248,248,246,246,246,247,247,248,250,250,0,236,237,237,249,249,
+249,249,249,249,249,249,249,248,247,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,244,244,249,249,249,249,249,
+249,248,232,0,0,0,0,249,248,246,246,246,247,247,247,252,251,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,247,248,249,249,249,249,249,249,249,247,247,0,0,0,0,0,
+0,0,0,0,0,0,0,0,251,250,250,249,249,249,249,249,247,246,0,
+0,0,0,0,0,0,0,0,0,0,0,254,249,249,249,249,249,249,249,
+248,247,254,0,0,0,0,0,0,0,247,247,249,249,249,249,249,249,249,
+248,247,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,246,246,249,249,249,249,249,249,245,246,0,0,0,0,0,0,0,0,
+0,0,0,0,0,247,247,246,246,246,247,247,248,250,250,0,0,237,238,
+238,249,249,249,249,249,249,249,249,247,246,246,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,249,245,245,247,248,249,
+249,249,249,232,232,0,0,0,0,248,248,246,246,246,246,246,246,252,252,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,247,247,249,249,249,249,249,249,249,246,246,0,0,0,
+0,0,0,0,0,0,0,0,0,0,250,250,249,249,249,248,249,249,246,
+246,0,0,0,0,0,0,0,0,0,0,0,0,0,248,248,249,249,249,
+249,249,249,248,250,0,0,0,0,0,0,0,246,246,249,249,249,249,249,
+249,249,247,247,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,246,247,249,249,249,249,249,249,245,245,0,0,0,0,0,0,
+0,0,0,0,0,0,0,247,246,246,246,247,247,248,248,249,249,0,0,
+0,238,237,237,249,249,249,249,249,249,249,249,246,245,245,0,0,0,0,
+0,0,0,0,0,0,0,0,246,247,247,246,246,245,245,244,244,243,243,
+242,241,241,242,242,243,243,244,244,245,245,246,246,247,247,247,246,247,247,
+248,249,249,249,249,232,232,0,0,0,0,248,247,246,246,246,246,246,246,
+252,249,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,246,247,249,249,249,249,249,249,249,245,245,0,
+0,0,0,0,0,0,0,0,0,0,0,0,250,249,249,248,248,248,247,
+248,246,245,0,0,0,0,0,0,0,0,0,0,0,0,0,249,247,249,
+249,249,249,249,249,248,250,0,0,0,0,0,0,0,245,245,249,249,249,
+249,249,249,249,247,246,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,247,247,249,249,249,249,249,249,246,245,0,0,0,0,
+0,0,0,0,0,0,0,0,0,246,245,246,246,247,247,248,248,248,248,
+0,0,0,0,237,236,236,249,249,249,249,249,249,249,249,245,246,246,0,
+0,0,0,0,0,0,0,0,0,0,247,246,246,246,245,245,244,244,243,
+243,242,242,241,241,241,242,242,243,243,244,244,245,245,246,246,247,247,246,
+246,247,247,248,248,249,249,236,238,0,0,0,0,247,247,246,246,246,246,
+246,246,249,249,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,246,246,249,249,249,249,249,249,249,244,
+245,0,0,0,0,0,0,0,0,0,0,0,0,0,249,249,248,246,246,
+246,247,247,245,245,0,0,0,0,0,0,0,0,0,0,0,0,0,246,
+246,249,249,249,249,249,249,248,250,0,0,0,0,0,0,0,245,244,249,
+249,249,249,249,249,248,246,246,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,247,248,249,249,249,249,249,249,246,246,0,0,
+0,0,0,0,0,0,0,0,0,0,0,245,244,246,246,247,246,247,247,
+247,248,0,0,0,0,0,236,235,235,249,249,249,249,249,249,249,249,246,
+247,247,0,0,0,0,0,0,0,0,0,0,246,246,248,248,249,249,249,
+249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,247,
+247,246,247,247,247,247,247,248,237,236,239,0,0,0,0,247,246,246,246,
+246,246,246,246,249,247,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,246,246,249,249,248,248,249,248,
+249,244,244,0,0,0,0,0,0,0,0,0,0,0,0,0,249,247,247,
+246,246,246,246,246,245,244,0,0,0,0,0,0,0,0,0,0,0,0,
+0,246,247,249,249,249,249,249,249,248,250,0,0,0,0,0,0,0,244,
+244,249,248,248,249,249,248,248,246,246,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,248,248,249,249,249,249,249,249,247,246,
+0,0,0,0,0,0,0,0,0,0,0,0,0,244,245,246,246,247,245,
+246,246,246,247,0,0,0,0,0,0,235,235,232,249,249,249,249,249,249,
+249,249,247,247,247,0,0,0,0,0,0,0,0,0,246,245,248,248,249,
+249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,
+249,249,247,246,246,247,247,247,247,248,237,238,0,0,0,0,0,246,246,
+246,246,246,246,246,246,247,247,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,245,246,248,248,248,247,
+248,248,248,243,244,0,0,0,0,0,0,0,0,0,0,0,0,0,247,
+247,247,246,246,246,246,246,244,247,247,246,246,246,245,246,246,247,247,248,
+248,249,248,247,248,249,249,249,249,249,249,249,254,0,0,0,0,0,0,
+0,244,243,248,248,247,248,248,248,248,246,245,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,248,249,249,249,249,249,249,249,
+247,247,0,0,0,0,0,0,0,0,0,0,0,0,0,245,246,246,247,
+246,246,245,245,246,246,0,0,0,0,0,0,0,232,232,232,248,249,249,
+249,249,249,249,249,247,248,248,0,0,0,0,0,0,0,0,245,245,248,
+248,248,248,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,
+249,249,249,249,248,246,246,246,246,247,247,236,236,239,0,0,0,0,0,
+246,245,246,246,246,246,246,246,247,246,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,245,246,248,248,
+248,247,248,248,248,243,244,0,0,0,0,0,0,0,0,0,0,0,0,
+0,247,247,247,246,246,246,246,246,244,247,247,246,246,246,245,246,246,247,
+247,248,248,249,248,247,248,249,249,249,249,249,249,249,254,0,0,0,0,
+0,0,0,244,243,248,248,247,248,248,248,248,246,245,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,249,249,249,249,249,249,
+249,249,248,247,0,0,0,0,0,0,0,0,0,0,0,0,0,246,247,
+246,247,247,247,245,246,245,246,0,0,0,0,0,0,0,0,232,232,235,
+248,248,249,249,249,249,248,248,248,249,249,0,0,0,0,0,0,0,245,
+244,247,248,248,248,249,249,249,249,249,249,249,249,249,249,249,249,249,249,
+249,249,249,249,249,249,249,247,246,246,246,247,232,235,238,0,0,0,0,
+0,0,245,245,246,246,246,246,246,246,246,246,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,245,245,
+248,248,247,247,247,247,248,242,243,0,0,0,0,0,0,0,0,0,0,
+0,0,0,247,246,246,246,246,246,246,246,246,246,246,247,247,247,248,248,
+249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,249,0,0,0,
+0,0,0,0,0,243,242,248,247,247,247,247,248,248,245,245,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,249,249,249,249,
+249,249,249,249,248,248,0,0,0,0,0,0,0,0,0,0,0,0,0,
+247,248,246,247,246,247,246,246,245,245,0,0,0,0,0,0,0,0,0,
+232,232,235,248,248,248,248,248,248,248,248,249,250,250,0,0,0,0,0,
+0,244,244,247,248,248,249,249,249,249,249,249,249,249,249,249,249,249,249,
+249,249,249,249,248,249,249,249,249,248,247,246,246,234,235,237,0,0,0,
+0,0,0,0,245,246,246,246,246,246,246,246,246,247,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+245,245,247,247,247,246,247,247,247,241,242,0,0,0,0,0,0,0,0,
+0,0,0,0,0,246,246,246,246,246,246,246,246,246,246,246,247,247,247,
+248,248,249,249,249,249,249,249,249,249,249,249,249,249,249,249,236,237,0,
+0,0,0,0,0,0,0,242,241,247,247,246,247,247,247,247,245,245,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,249,249,
+249,249,249,249,249,249,249,248,0,0,0,0,0,0,0,0,0,0,0,
+0,0,248,249,246,247,247,248,247,247,246,245,0,0,0,0,0,0,0,
+0,0,0,232,232,235,248,248,248,248,248,249,248,248,250,250,249,0,0,
+0,0,0,244,243,248,248,248,249,249,249,249,249,249,249,249,249,249,249,
+249,249,249,249,249,249,249,248,248,248,249,248,248,233,234,234,237,0,0,
+0,0,0,0,0,0,246,247,246,246,246,246,246,247,247,248,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,244,245,246,246,246,246,246,246,246,242,241,0,0,0,0,0,0,
+0,0,0,0,0,0,0,246,245,245,246,246,246,246,246,246,246,246,246,
+247,247,248,248,248,248,249,249,249,249,249,249,249,249,249,249,249,235,236,
+238,0,0,0,0,0,0,0,0,241,242,246,246,246,246,246,246,246,245,
+244,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+249,234,234,235,236,237,238,238,237,249,0,0,0,0,0,0,0,0,0,
+0,0,0,0,249,235,234,233,235,236,237,237,246,246,0,0,0,0,0,
+0,0,0,0,0,0,232,232,235,248,248,249,249,249,249,249,248,249,249,
+249,0,0,0,0,243,243,238,237,237,236,236,235,235,234,234,233,233,234,
+234,235,235,236,236,237,237,236,236,235,235,234,234,233,233,233,236,239,0,
+0,0,0,0,0,0,0,0,247,233,233,234,234,235,235,236,236,248,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,244,244,246,246,246,246,246,246,246,243,242,0,0,0,0,
+0,0,0,0,0,0,0,0,0,245,245,246,246,246,246,246,246,246,247,
+247,247,247,247,247,248,248,249,249,249,249,249,249,249,249,249,249,249,234,
+233,237,0,0,0,0,0,0,0,0,0,242,243,246,246,246,246,246,246,
+246,244,244,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,234,234,235,235,236,237,238,239,238,237,0,0,0,0,0,0,0,
+0,0,0,0,0,0,235,234,233,234,235,236,236,237,237,246,0,0,0,
+0,0,0,0,0,0,0,0,0,232,235,234,248,249,249,249,248,249,249,
+247,249,249,248,0,0,0,243,239,237,237,236,236,235,235,234,234,234,233,
+233,234,234,234,235,235,236,236,237,237,236,236,235,235,234,234,236,239,0,
+0,0,0,0,0,0,0,0,0,0,233,233,234,234,235,235,236,236,237,
+237,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,244,244,246,246,246,246,246,246,246,244,243,0,0,
+0,0,0,0,0,0,0,0,0,0,0,245,245,247,246,246,246,246,247,
+247,248,248,248,248,248,248,248,248,249,249,249,249,249,249,249,249,249,249,
+236,235,237,0,0,0,0,0,0,0,0,0,0,243,244,246,246,246,246,
+246,246,246,244,244,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,232,235,234,248,249,248,249,
+248,248,248,247,248,248,248,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,244,244,246,246,246,246,246,246,246,244,243,
+0,0,0,0,0,0,0,0,0,0,0,0,0,245,245,247,246,246,246,
+246,247,247,248,248,248,248,248,248,248,248,249,249,249,249,249,249,249,249,
+237,237,236,235,237,0,0,0,0,0,0,0,0,0,0,243,244,246,246,
+246,246,246,246,246,244,244,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,235,235,234,248,
+248,248,248,248,248,248,247,248,248,247,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,244,233,234,235,236,237,237,238,238,
+239,244,0,0,0,0,0,0,0,0,0,0,0,0,0,245,234,234,235,
+235,236,236,237,237,238,238,239,238,238,237,237,236,236,237,238,238,239,239,
+238,238,238,237,238,239,0,0,0,0,0,0,0,0,0,0,0,244,244,
+239,238,237,237,236,235,234,233,244,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,235,
+234,233,248,248,248,248,247,247,247,247,247,247,247,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,233,234,234,235,236,236,237,
+237,238,238,239,0,0,0,0,0,0,0,0,0,0,0,0,0,234,234,
+235,235,236,236,237,237,238,238,239,238,238,238,237,237,236,236,237,237,238,
+238,239,239,238,239,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+244,239,238,237,237,236,236,235,234,234,233,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,235,234,233,247,247,247,247,247,247,247,247,246,246,246,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,234,234,233,246,246,246,246,247,247,247,247,245,245,245,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,233,233,238,239,238,237,236,235,234,233,234,
+235,245,245,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,238,239,238,237,236,236,235,234,
+233,234,234,235,235,245,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
+
+
+PicPalette : Array[1..22*4] Of Byte = 
+(232,31,25,23,
+233,28,22,19,
+234,25,19,16,
+235,22,16,12,
+236,19,14,9,
+237,16,12,7,
+238,13,10,5,
+239,10,8,3,
+241,46,47,63,
+242,40,42,60,
+243,35,38,56,
+244,30,34,53,
+245,25,30,50,
+246,21,28,47,
+247,17,25,44,
+248,14,22,41,
+249,11,20,38,
+250,8,19,34,
+251,5,16,31,
+252,3,15,28,
+253,1,13,25,
+254,0,12,22);
+
+
+Type  OneChar =Array[1..CharLength] Of Byte;
+
+
+Var   CharSet : Array[1..NumChars] Of OneChar;
+      Locs    : Array[1..NumCycles] Of Integer;
+      BarLocs : Array[1..4] Of Integer;
+
+
+  Procedure GetChars;
+
+    Var NumCounter,
+        ByteCounter,
+        MemCounter   :Integer;
+  
+    Begin { GetChars }
+      MemCounter:=0;
+      For NumCounter:=1 To NumChars Do
+        For ByteCounter:=1 To CharLength Do
+          Begin
+            CharSet[NumCounter][ByteCounter]:=Mem[CGA_CharSet_Seg:CGA_CharSet_Ofs+MemCounter];
+            Inc(MemCounter);
+          End;
+    End;  { GetChars }
+
+
+  Procedure VideoMode ( Mode : Byte );
+
+    Begin { VideoMode }
+      Asm
+        Mov  AH,00
+        Mov  AL,Mode
+        Int  10h
+      End;
+    End;  { VideoMode }
+
+
+  Procedure SetColor ( Color, Red, Green, Blue : Byte );
+
+    Begin { SetColor }
+      Port[$3C8] := Color;
+      Port[$3C9] := Red;
+      Port[$3C9] := Green;
+      Port[$3C9] := Blue;
+    End;  { SetColor }
+
+
+  Procedure DispVert ( Var CurrLine : Integer );
+
+    Var Letter : OneChar;
+        VertLine,
+        Count  : Integer;
+
+    Begin { DispVert }
+      Letter := CharSet[Ord(DispStr[(CurrLine Div 8)+1])+1];
+      VertLine := (CurrLine-1) Mod 8;
+      For Count := 1 To 8 Do
+        If Letter[Count] And ($80 Shr VertLine) = 0
+          Then Mem[VGA_Segment:185*320+(Count-1)*320+319] := 0
+          Else Mem[VGa_Segment:185*320+(Count-1)*320+319] := 181;
+    End;  { DispVert }
+
+
+  Procedure CalcLocs;
+
+    Var Count : Integer;
+
+    Begin { CalcLocs }
+      For Count := 1 To NumCycles Do
+        Locs[Count] := Round(Radius*Sin((2*Pi/NumCycles)*Count))+Radius+1;
+    End;  { CalcLocs }
+
+
+  Procedure DrawBar ( Var Bar : Integer );
+
+    Var Count,
+        PrevBar : Integer;
+
+    Begin { DrawBar }
+      If BarLocs[Bar] = 1
+        Then PrevBar := Locs[NumCycles]
+        Else PrevBar := Locs[BarLocs[Bar]-1];
+      Port[$3C8] := PrevBar;
+      For Count := 1 To 15*3 Do
+        Port[$3C9] := 0;
+      Port[$3C8] := Locs[BarLocs[Bar]];
+      For Count := 1 To 15*3 Do
+        Port[$3C9] := Colors[Count];
+      Inc(BarLocs[Bar]);
+    End;  { DrawBar }
+
+
+  Var CurrVert,
+      XCount,
+      Count     : Integer;
+      Key       : Char;
+      MemPos    : Word;
+
+  Begin { PaletteTricks }
+
+    VideoMode($13);
+    Port[$3C8] := 1;
+    For Count := 1 To 180 Do
+      SetColor(Count,0,0,0);
+    For Count := 1 To 23 Do
+      Begin
+        Port[$3C8] := PicPalette[(Count-1)*4+1];
+        Port[$3C9] := PicPalette[(Count-1)*4+2];
+        Port[$3C9] := PicPalette[(Count-1)*4+3];
+        Port[$3C9] := PicPalette[(Count-1)*4+4];
+      End;
+    MemPos := 0;
+    For Count := 1 To 180 Do
+      Begin
+        FillChar(Mem[VGA_Segment:MemPos],320,Chr(Count));
+        MemPos := MemPos + 320;
+      End;
+
+    For Count := 1 To 48 Do
+      For XCount := 1 To 287 Do
+        If Picture[(Count-1)*287+XCount] &lt;&gt; 0
+          Then Mem[VGA_Segment:50*320+(Count-1)*320+20+XCount] := Picture[(Count-1)*287+XCount];
+
+    SetColor(181,63,63,0);
+    CalcLocs;
+    For Count := 1 To 4 Do
+      BarLocs[Count] := Count*10;
+
+    GetChars;
+    CurrVert := 1;
+    Repeat
+      Repeat Until (Port[$3DA] And $08) = 0;
+      Repeat Until (Port[$3DA] And $08) &lt;&gt; 0;
+      For Count := 1 To 4 Do
+        Begin
+          DrawBar(Count);
+          If BarLocs[Count] &gt; NumCycles Then BarLocs[Count] := 1;
+        End;
+
+      For Count := 1 To 8 Do
+        Move(Mem[VGA_Segment:185*320+(Count-1)*320+1],
+             Mem[VGA_Segment:185*320+(Count-1)*320],319);
+      DispVert(CurrVert);
+      Inc(CurrVert);
+      If CurrVert &gt; Length(DispStr) * 8
+        Then CurrVert := 1;
+
+    Until Keypressed;
+    Key := ReadKey;
+    VideoMode(3);
+  End.  { PaletteTricks }
+</pre>
+</details>
+
+<nav class="ring">
+  <a href="index.html"><b>&laquo; PREVIOUS</b><span>Home &middot; the introduction</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
+  <a class="next" href="download.html"><b>NEXT &raquo;</b><span>02 &middot; Downloading at School</span></a>
+</nav>
+
+<script src="archive.js"></script>
+<script>
+'use strict';
+// Notes live in the markup as hidden siblings, so they are plain HTML with no
+// escaping and cannot break this script. This only flips which one is visible.
+// The cylinder note quotes the decoded scroll text. It is filled in from the
+// cipher at load rather than typed into the markup, so the page still shows the
+// decode being performed rather than asserting its result.
+function fillDecoded() {
+  const el2 = document.getElementById('cyl-plain');
+  if (el2) el2.textContent = CYL_PLAIN.trim().replace(/\s{2,}/g, ' · ');
+}
+
+function showNote(key) {
+  for (const n of document.getElementById('notes').children)
+    n.hidden = n.dataset.note !== String(key);
+}
+// ---------------------------------------------------------------------------
+// pas/PALETTE2.PAS and pas/PALETTE4.PAS -- "Program PaletteTricks", by Fred
+// Nietzche of CENTERPOINT! BBS, 1991. Four years older than anything the
+// archive's owner wrote, and sitting in the same download folder as
+// pas/CYLINDER.PAS, which is the same author's later, string-enciphered loader.
+//
+// The construction is the classic copper bar:
+//
+//   * fill scanline n with color index n+1, for 180 rows. Nothing else is ever
+//     written to video memory again.
+//   * keep a 200-entry sine table Locs[] and four phase counters BarLocs[].
+//   * every vertical retrace, for each of the four bars: write 45 zero bytes
+//     to port $3C9 starting at the register the bar was on last frame, then 45
+//     bytes of a fixed blue gradient starting at the register it is on now.
+//
+// Fifteen registers erased, fifteen written, four times: 120 OUT instructions
+// a frame, and four shaded bars glide up and down a 320x200 screen. The bars
+// are not pixels. They are palette entries.
+// ---------------------------------------------------------------------------
+
+const W = 320, H = 200;
+const el = id => document.getElementById(id);
+const ctx  = el('screen').getContext('2d');
+const img  = ctx.createImageData(W, H);
+const out  = new Uint32Array(img.data.buffer);
+const fb   = new Uint8Array(W * H);
+const paintStrip = paletteStrip('strip');
+
+const pal6 = new Uint8Array(768);                       // 6-bit DAC, 256 entries
+const from6 = v => Math.round((v & 63) * 255 / 63);
+
+// Const Colors : Array[1..15*3] Of Byte -- fifteen entries, R and G rising to
+// white and falling back with B pinned at 63. Copied verbatim into JBARS four
+// years later, as `i:array[1..45]of Byte`, same 45 numbers in the same order.
+const COLORS = [ 7, 7,63, 15,15,63, 23,23,63, 31,31,63, 39,39,63, 47,47,63,
+                55,55,63, 63,63,63, 55,55,63, 47,47,63, 39,39,63, 31,31,63,
+                23,23,63, 15,15,63,  7, 7,63];
+const NUMCYCLES = 200, RADIUS = 80;
+
+// Procedure CalcLocs. JBARS folds the constants: Round(80*Sin(0.0314*b)+81).
+const Locs = new Int16Array(NUMCYCLES + 1);
+for (let n = 1; n <= NUMCYCLES; n++)
+  Locs[n] = Math.round(RADIUS * Math.sin((2*Math.PI/NUMCYCLES)*n)) + RADIUS + 1;
+
+const BarLocs = new Int16Array(5);
+
+// --- an 8x8 font stand-in --------------------------------------------------
+// The original reads the real thing straight out of the BIOS at F000:FA6E --
+//   CharSet[n][b] := Mem[$F000:$FA6E + (n-1)*8 + (b-1)]
+// which is the IBM CGA ROM character generator. There is no ROM here, so each
+// glyph is rendered once to an offscreen canvas and thresholded. Shapes differ;
+// the mechanism does not.
+const GLYPH = new Uint8Array(256 * 8);
+(function buildFont() {
+  const c = document.createElement('canvas'), g = c.getContext('2d');
+  c.width = 8; c.height = 8;
+  for (let n = 32; n < 127; n++) {
+    g.clearRect(0,0,8,8);
+    g.font = '8px "Courier New", monospace'; g.textBaseline = 'top';
+    g.fillStyle = '#fff'; g.fillText(String.fromCharCode(n), 0, 0);
+    const d = g.getImageData(0,0,8,8).data;
+    for (let row = 0; row < 8; row++) {
+      let bits = 0;
+      for (let col = 0; col < 8; col++)
+        if (d[(row*8+col)*4+3] > 100) bits |= 0x80 >> col;
+      GLYPH[n*8 + row] = bits;
+    }
+  }
+})();
+
+const DISP = {
+  p2: '...LOADER BY FRED NIETZCHE     CALL CENTERPOINT! (301) 309-0144, 9600+ ONLY  NUP: TERMINEX' +
+      '           WHATEVER ELSE YOU WANT HERE...                         ',
+  p4: '...LOADER BY FRED NIETZCHE......ALBERT IS A WEENIE!......CALL CENTERPOINT! (301) 309-0144...'
+};
+
+// ===========================================================================
+// CYLINDER.PAS -- Program Cylinder_Scroll, same author, same board. Not a
+// copper-bar demo at all: a dot scroller wrapped around a horizontal cylinder,
+// with the advertising text enciphered so you cannot read it out of the .EXE.
+// ===========================================================================
+
+// DispStr : Array[1..149] Of Byte -- the enciphered message, verbatim.
+const CYL_ENC = [
+101,147,147,133,140,133,148,133,101,147,191,180,173,169,185,183,101,181,
+204,133,178,183,185,169,101,193,188,170,192,191,183,173,138,147,147,133,
+140,133,148,133,101,147,147,147,154,147,183,170,147,199,184,183,188,180,
+189,179,153,148,147,167,174,184,148,141,120,163,164,142,140,152,164,158,
+114,163,164,153,160,147,162,147,101,147,147,133,140,133,198,186,147,193,
+188,179,179,133,195,179,101,200,198,183,140,150,168,147,121,147,183,186,
+173,177,160,133,126,169,163,149,151,133,195,179,145,204,147,133,140,133,
+148,133,152,204,198,180,188,159,148,171,151,184,183,133,186,174,185,185,
+159,182,187,170,140 ];
+// Const PW = 'Esselete'. BuildCharArray does
+//   TempByte := DispStr[Count] - Ord(Password[((Count-1) Mod Length(Password))+1])
+// -- a repeating-key subtraction cipher, one byte per character, wrapping mod
+// 256 because TempByte is a Byte. Eight characters of key, and that is the whole
+// protection. It is not there to stop you; it is there to stop the next sysop
+// pulling the strings out with a hex editor and putting his own board's number in.
+const CYL_PW = 'Esselete';
+const CYL_PLAIN = CYL_ENC.map((b, i) =>
+  String.fromCharCode((b - CYL_PW.charCodeAt(i % CYL_PW.length)) & 255)).join('');
+
+const NUMDISP = 149, SCROLLY = 80, CYLRAD = 30, NUMSLICES = 90,
+      SPACING = 4, NUMX = 75, CHARCOLOR = 1;
+const ANGLEINC = 2*Math.PI / NUMSLICES;
+
+// Procedure BuildPath. For each of the 75 screen columns, eight y positions
+// taken from eight successive points on a sine; the next column then starts
+// one step further along (advance 8, step back 7). So the glyph's vertical
+// axis is mapped onto the circumference of a cylinder and the phase slides
+// across the screen -- the text is squashed flat where the sine turns over and
+// stretched where it is steep.
+const ScreenPath = new Int32Array(NUMX * 8);
+(function buildPath() {
+  let a = Math.PI, p = 0;
+  for (let x = 1; x <= NUMX; x++) {
+    for (let y = 1; y <= 8; y++) {
+      ScreenPath[p++] = (SCROLLY + Math.round(CYLRAD*Math.sin(a)))*W + (x-1)*SPACING + 1;
+      a += ANGLEINC;
+    }
+    a -= 7*ANGLEINC;
+  }
+})();
+
+// Procedure BuildCharArray -- decipher, then explode each glyph to 64 bytes,
+// stored COLUMN-major: index (char*64) + (xcol*8) + yrow.
+const DispChars = new Uint8Array(NUMDISP * 64);
+(function buildChars() {
+  let p = 0;
+  for (let c = 0; c < NUMDISP; c++) {
+    const t = (CYL_ENC[c] - CYL_PW.charCodeAt(c % CYL_PW.length)) & 255;
+    for (let xc = 0; xc < 8; xc++)
+      for (let yc = 0; yc < 8; yc++)
+        DispChars[p++] = (GLYPH[t*8 + yc] & (0x80 >> xc)) ? CHARCOLOR : 0;
+  }
+})();
+
+let currentLine = 0, currentArrayLoc = 0;
+
+// Procedure DrawString(XPos,YPos,Size,Color,Str) with Size=1.
+function drawString(xp, yp, col, str) {
+  const base = (yp-1)*W + (xp-1);
+  for (let i = 0; i < str.length; i++) {
+    const ch = str.charCodeAt(i);
+    for (let y = 0; y < 8; y++)
+      for (let x = 0; x < 8; x++)
+        if (GLYPH[ch*8 + y] & (0x80 >> x)) {
+          const o = base + y*W + i*8 + x;
+          if (o >= 0 && o < fb.length) fb[o] = col;
+        }
+  }
+}
+
+// Procedure Cycle, the BASM block. Clear rows 50..111, then walk 600
+// consecutive DispChars bytes starting at CurrentLine*8 and paint each nonzero
+// one at the matching ScreenPath position.
+function cylStep() {
+  fb.fill(0, (SCROLLY-CYLRAD)*W, (SCROLLY-CYLRAD)*W + 19840);
+  let bx = currentLine * 8, dx = bx;
+  for (let i = 0; i < NUMX*8; i++) {
+    if (DispChars[bx] !== 0) {
+      const k = bx - dx;
+      if (k >= 0 && k < ScreenPath.length) fb[ScreenPath[k]] = CHARCOLOR;
+    }
+    bx++;
+    // CMP BX,(NumDispChars-1)*8*8 / JNG -- wraps at 9472, and it zeroes DX too,
+    // so the tail of the message restarts at screen column 1 and overlaps the
+    // head for one pass. Visible once per loop as a stutter.
+    if (bx > (NUMDISP-1)*64) { bx = 0; dx = 0; }
+  }
+  // CurrentLine wraps at (NumDispChars-1)*8 = 1184, but there are 149*8 = 1192
+  // glyph columns. The last character never comes fully round.
+  if (++currentLine > (NUMDISP-1)*8) currentLine = 0;
+  // CurrentArrayLoc is incremented and wrapped at 73 and never read: everything
+  // that used it is inside the commented-out block in the middle of Cycle.
+  if (++currentArrayLoc > 73) currentArrayLoc = 0;
+}
+
+// --- setup -----------------------------------------------------------------
+let mode = 'p2', currVert = 1, frames = 0, last = 0;
+
+function reset() {
+  mode = el('mode').value;
+  pal6.fill(0);
+  fb.fill(0);
+  currVert = 1; frames = 0;
+
+  if (mode === 'cyl') {
+    // SetColor(1,63,63,63); SetColor(4,63,0,0); SetColor(5,63,63,63)
+    pal6[1*3] = pal6[1*3+1] = pal6[1*3+2] = 63;
+    pal6[4*3] = 63;
+    pal6[5*3] = pal6[5*3+1] = pal6[5*3+2] = 63;
+    drawString(64, 150, 4, 'Loader by Fred Nietzche');
+    drawString(16, 160, 5, 'Call CenterPoint! BBS (301) 309-0144');
+    currentLine = 0; currentArrayLoc = 0;
+    el('o-idx').classList.add('hidden');
+    el('idx').checked = false;   // it only ever blacks the screen here
+    el('stripcap').textContent =
+      'the 256 DAC registers: CYLINDER writes exactly three of them (1, 4, 5) and never touches them again';
+    showNote('cyl');
+    last = performance.now();
+    return;
+  }
+  el('o-idx').classList.remove('hidden');
+  el('stripcap').textContent =
+    'the 256 DAC registers: 1..180 are the 180 scanlines of the backdrop';
+
+  // For Count := 1 To 180 Do FillChar(Mem[VGA:MemPos],320,Chr(Count))
+  for (let row = 0; row < 180; row++) fb.fill(row + 1, row*W, row*W + W);
+  // SetColor(181,63,63,0) -- the scroller's yellow
+  pal6[181*3] = 63; pal6[181*3+1] = 63; pal6[181*3+2] = 0;
+
+  if (mode === 'p4') {
+    // For Count:=1 To 23 Do Port[$3C8] := PicPalette[(Count-1)*4+1]; ...
+    // PicPalette is declared Array[1..22*4] -- 88 bytes -- and the loop reads
+    // up to byte 92. Turbo Pascal has range checking OFF by default, so the
+    // 23rd iteration sets a register from four bytes of whatever follows.
+    for (let i = 0; i + 3 < PICPAL.length; i += 4) {
+      const r = PICPAL[i];
+      pal6[r*3] = PICPAL[i+1]; pal6[r*3+1] = PICPAL[i+2]; pal6[r*3+2] = PICPAL[i+3];
+    }
+    // Mem[VGA:50*320+(Count-1)*320+20+XCount] := Picture[(Count-1)*287+XCount]
+    // -- 287x48 at (21,50), and zero is treated as transparent, so the bars
+    // keep moving underneath it.
+    for (let r = 0; r < 48; r++)
+      for (let x = 0; x < 287; x++) {
+        const v = PICTURE[r*287 + x];
+        if (v !== 0) fb[(50+r)*W + 21 + x] = v;
+      }
+  }
+
+  for (let b = 1; b <= 4; b++) BarLocs[b] = b * 10;
+  showNote(mode);
+  last = performance.now();
+}
+
+// --- the bar cycle ---------------------------------------------------------
+// Procedure DoCycle (PALETTE2, pure BASM) / DrawBar (PALETTE4, Pascal). Same
+// thing, and JBARS keeps the BASM version with every hex constant rewritten in
+// decimal: Port[968] for $3C8, Port[969] for $3C9, MOV DX,986 for $3DA.
+function doCycle() {
+  for (let b = 1; b <= 4; b++) {
+    const prev = (BarLocs[b] === 1) ? Locs[NUMCYCLES] : Locs[BarLocs[b] - 1];
+    const now  = Locs[BarLocs[b]];
+    for (let i = 0; i < 45; i++) pal6[(prev*3 + i) % 768] = 0;
+    for (let i = 0; i < 45; i++) pal6[(now*3 + i) % 768] = COLORS[i];
+    if (++BarLocs[b] > NUMCYCLES) BarLocs[b] = 1;
+  }
+}
+
+// --- the scroller ----------------------------------------------------------
+// Eight rows at y=185..192 are shifted left one pixel per frame with a Move,
+// and one new column is generated at x=319 from the font.
+function scrollStep() {
+  for (let r = 0; r < 8; r++) {
+    const base = (185 + r) * W;
+    fb.copyWithin(base, base + 1, base + W);
+  }
+  const s = DISP[mode];
+  // Procedure DispVert, exactly as written -- and it has an off-by-one:
+  //   Letter   := CharSet[Ord(DispStr[(CurrLine Div 8)+1])+1]
+  //   VertLine := (CurrLine-1) Mod 8
+  // The character index advances on CurrLine=8,16,24..., the bit column on
+  // CurrLine=9,17,25... So column 8 of every glyph is taken from the NEXT
+  // glyph. Every letter loses its last column and borrows one.
+  const ch = s.charCodeAt(((currVert / 8) | 0) % s.length) || 32;
+  const vertLine = (currVert - 1) % 8;
+  for (let row = 0; row < 8; row++) {
+    const on = (GLYPH[ch*8 + row] & (0x80 >> vertLine)) !== 0;
+    fb[(185 + row) * W + 319] = on ? 181 : 0;
+  }
+  if (++currVert > s.length * 8) currVert = 1;
+}
+
+// --- render ----------------------------------------------------------------
+function render() {
+  const lut = new Uint32Array(256);
+  for (let i = 0; i < 256; i++)
+    lut[i] = (255<<24) | (from6(pal6[i*3+2])<<16) | (from6(pal6[i*3+1])<<8) | from6(pal6[i*3]);
+  if (el('idx').checked)
+    for (let i = 0; i < fb.length; i++) { const g = fb[i];
+      out[i] = (255<<24)|(g<<16)|(g<<8)|g; }
+  else
+    for (let i = 0; i < fb.length; i++) out[i] = lut[fb[i]];
+  ctx.putImageData(img, 0, 0);
+  paintStrip(x => lut[x]);
+}
+// --- driver ----------------------------------------------------------------
+const modeEl = el('mode');
+modeEl.addEventListener('change', reset);
+el('next').addEventListener('click', () => {
+  modeEl.selectedIndex = (modeEl.selectedIndex+1) % modeEl.length; reset(); });
+el('prev').addEventListener('click', () => {
+  modeEl.selectedIndex = (modeEl.selectedIndex+modeEl.length-1) % modeEl.length; reset(); });
+el('rate').addEventListener('input', () => el('rateLabel').textContent = el('rate').value);
+el('idx').addEventListener('change', render);
+
+function frame() {
+  requestAnimationFrame(frame);
+  const now = performance.now();
+  const due = now - last >= +el('rate').value;
+  if (due) { last = now; frames++; }
+
+  if (mode === 'cyl') {
+    if (due) cylStep();
+    render();
+    const ch = ((currentLine / 8) | 0) % NUMDISP;
+    el('status').textContent =
+      `frame ${w(frames,7)}   CurrentLine ${w(currentLine,4)}/1184   ` +
+      `at character ${w(ch + 1,3)}/149 - “${wl(CYL_PLAIN.slice(ch, ch + 10).replace(/ /g, '·'), 10)}”` +
+      `   ·   pixels written this frame: 19,840 cleared + up to 600 plotted` +
+      `   ·   DAC registers rewritten: 0`;
+    return;
+  }
+
+  if (due) {
+    doCycle();
+    scrollStep();
+  }
+  render();
+  el('status').textContent =
+    `frame ${w(frames,7)}   bar phases ${[1,2,3,4].map(b=>BarLocs[b]).join(' ')}` +
+    `   → rows ${[1,2,3,4].map(b=>Locs[BarLocs[b]]).join(' ')}` +
+    `   ·   pixels written this frame: ` +
+    '8 (the scroller column)' +
+    `   ·   DAC registers rewritten: 120`;
+}
+
+const PICPAL = [232,31,25,23,233,28,22,19,234,25,19,16,235,22,16,12,236,19,14,9,237,16,12,7,238,13,10,5,239,10,8,3,241,46,47,63,242,40,42,60,243,35,38,56,244,30,34,53,245,25,30,50,246,21,28,47,247,17,25,44,248,14,22,41,249,11,20,38,250,8,19,34,251,5,16,31,252,3,15,28,253,1,13,25,254,0,12,22];
+const PICTURE = (()=>{const b=atob("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8fX19fX19vb39/j4+fn6+vn5+Pj39/b29fX09PPz8vLx8fLy8/T09fX29vf3+Pj5+fr6+/v8/Pv6+fj39vX29/vvAAAAAAAAAAAAAAAAAAAAAAD69vT09fX29vf3+Pj5+fn5+fj49/f39vb29fX19fIAAAD09/j4+fj39vXyAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9Pb19fT08/Pz8vLx8fLy8/Pz8/Tz9PT19fb29/f4+Pn5+vr7+/r6+fn4+Pj5/u8AAAAAAAAA+fn09Pb29/f4+Pn5+vr7+/r5+Pj39/b29fX09PPz8/Pz8/Ly8fHy8vLz8/P09PX19vQAAAAAAAAAAADy8fX19fX19vb39/j4+fn6+vn5+Pj39/b29fX09PPz8vLx8fLz9PT19fb29/j4+fn6+vv7/Pz7+vn49/b19PT09fj77wAAAAAAAAAAAAAAAAD69vPz8/T09fX29vf3+Pj5+fn5+fj49/f39vb29fXz9AAAAPP09/j5+Pb18/QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD39Pb19fT08/Pz8vLx8fLy8/P09PT09fX29vf3+Pj5+fr6+/v6+vn5+Pj19vf3+Pn7/u/v+fn18/P09fb29/f4+Pn5+vr7+/n5+Pj39/b29fX09PT08/Py8vHx8vLz8/Pz9PT19fb09wAAAAAAAAAAAPPy+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fj4+Pj39/b29vb29vb29vb29vb29vb39/j4+Pj5+fn5+Pf19vb57wAAAAAAAAAAAAAA9/Ly9Pb5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fT2AAAA8vP5+fn5+fn09gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPb1+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn4+Pj39/b29vb29vb29vf3+Pj5+fn5+fn39/f7+/n5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn49/f39/b29vb29vX2AAAAAAAAAAAA9PP5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+Pj4+Pf39vb29vb29vb29vb29vb29/f4+Pj4+fn5+fn5+fn49/f67wAAAAAAAAAAAPXy8/b5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn59vYAAADx8vn5+fn5+fb2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9vb5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+Pj49/f29vb29vb29vb29vf3+Pj5+fn5+fn59/f4+/n5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fj39/f39/b29vb29vYAAAAAAAAAAAD19fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn4+Pj49/f29vb29vb29vb29vb29vf3+Pj4+Pn5+fn5+fn5+fn5+Pj77wAAAAAAAAD48/X5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn29wAAAPLx+fn5+fn59vcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD29vn5+fn5+fn5+fn5+fn5+fn5+fn5+fn4+Pj39/b29vb29vb29vb29/f4+Pn5+fn5+fn5+ff4+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+Pf39/f39vb29vb29gAAAAAAAAAAAPb3+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+Pj4+Pf39vb29vb29vb29vb29vb29/f4+Pj4+fn5+fn5+fn5+fn5+fn+AAAAAAAA+/X0+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+ff3AAAA8/L5+fn5+fn39wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPf2+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fj4+Pf39vb29vb29vb29vb29/f4+Pn5+fn5+fn5+ff3+Pn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fj49/f39/b29vb3AAAAAAAAAAAA9/n5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn4+Pj49/f29vb29vb29vb29vb29vf3+Pj4+Pn5+fn5+fn5+fn5+fn5+voAAAAAAAD39vj5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn59/gAAAD08/n5+fn5+ff4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9/f5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+Pj49/f29vb29vb29vb29vb29/j4+fn5+fn5+fn5+ff3+Pn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+Pj49/f39fb29/cAAAAAAAAAAAD5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fj4+Pj39/b29vb29vb29vb29vb29/f4+Pj4+fn5+fn5+fn5+fn5+fn6+u8AAAAA+/f3+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn4+AAAAPX0+fn5+fn5+PgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD49/n5+fn5+fn5+fn5+fn5+fn5+fn5+fj4+Pf39vb29vb29vb29vb29vb3+Pj4+fn5+fn5+fn5+fn3+Pn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fj39/X19fb3+AAAAAAAAAAAAPnu7e3s7Ovr6urp6erq+Pn5+fn5+ffo6Ojo6Ojo7Ozr6+rq6enq6uvr7Ozt7u/u7e3s7Ovr6urp6uvr7Ozr+fn5+fn5+fn5+wAAAAD4+O3t7e3t7e3t7Ozs6+vq6unq6+zt7u/u7e3s7Ovr6urq6en5AAAA9fX5+fn5+fn4+QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPju7u3t7Ozr6+rq6enq6ur5+fn5+fn57u7t7ezs6+vq6enr6+zv7+7u7e3s7Ojr6/n5+fn5+fn5+fn3+Pfr6+rq6+vr6+vq6uvr7Ozt7e7u+fn5+fn5+erq6unp6urq6+vs7O3t7u74AAAAAAAAAAAA7u3t7Ozr6+rq6enq6vj4+fn5+fn59/fo6Ojo6Ojo7Ozr6+rq6enq6uvr7O3u7+7t7Ozr6+rq6err6+zs6+vo+fn5+fn5+fj4AAAAAPjt7e3t7e3t7e3t7Ozs6+vq6unq6+zt7u/u7e3s7Ovr6urq6ekAAAD29fn5+fn5+fn5AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA7e3u7u3t7Ozr6+rq6enq/Pn5+fn5+fn17u3s7Ovr6unp6+vs7+/u7u3t7Ozr6+vq6uv5+fn5+fn5+fn39/nq6+vr7Ovs7Ovp6uvr7Ozt7vX5+fn5+fn5/Orp6erq6+vr7Ozt7e7u7e0AAAAAAAAAAAAAAAAAAAAAAAAAAAAA9/j5+fn5+fn39wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA6Ojo+fn5+fn59vYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPb2+fn5+fn5+fgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPz8+fn5+fn5+fX1AAAAAAAAAAAAAAAAAAAA9fP6+vr5+fnp6en5+fn5+fn5+fn39/kAAAAAAAAAAAAAAAAAAAD19fn5+fn5+fn8/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD29/n5+fn5+ff4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA6Oj5+fn5+fno6AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9/b5+fn5+fn4+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/Pz5+fn5+fn59vUAAAAAAAAAAAAAAAAAAPjz+vn5+fn5+fn56en5+fn5+fn5+fn39/kAAAAAAAAAAAAAAAAAAPX2+fn5+fn5+fz8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPX2+fn5+fn5+PkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPP06Pn5+fn5+ejoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD39/n5+fn5+fj3AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD8/Pn5+fn5+fn29gAAAAAAAAAAAAAAAAD79fT5+fn5+fn5+fn56ur5+fn5+fn5+fn39wAAAAAAAAAAAAAAAAAA9vb5+fn5+fn5/PwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9fX5+fn5+fn5+gAAAAAAAAAAAAAAAADx9/f29vX19PT19vf4+fr7/Pv6+fn49/b19PL4+fn5+fn56+gAAAAA8fLz8/T09fX29vf3+Pj39/b29fX09PPz9PT1+fwAAAAAAAAAAAAAAPj3+fn5+fn59/cAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPz8+fn5+fn5+ff2AAAAAAAAAAAAAAAAAPf2+Pn5+fn5+fn5+/sA6ur5+fn5+fn5+fn29wAAAAAAAAAAAAAAAAD29/n5+fn5+fn8/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD09fn5+fn5+fr6AAAAAAAAAAAAAAAAAPLx9vb19fT09fb3+Pj5+vv8+/r6+fn49/b19/n5+fn5+fnr7QAAAADo8vLz8/T09fX29vf3+Pj39vb19PTz8/T09fX29vn+AAAAAAAAAAAA+Pj5+fn5+fn29gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/Pv5+fn5+fn59/cAAAAAAAAAAAAAAAAA9/f5+fn5+fn5+fv7AAAA7ev5+fn5+fn5+fj09gAAAAAAAAAAAAAAAPf3+fn5+fn5+fv8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPP0+fn5+fn5+vsAAAAAAAAAAAAAAAAA8/L29vb29vb39/j4+Pj5+ff29vb29vb29/j5+fn5+fn56uvvAAAAAO7o6Pn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fj39/j7AAAAAAAAAAD5+Pn5+fn5+ff3AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD7+/n5+fn5+fn49wAAAAAAAAAAAAAAAAD4+fn5+fn5+fn7+wAAAAAA7Oz5+fn5+fn5+fj09wAAAAAAAAAAAAAA9/j5+fn5+fn5+/sAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8/P5+fn5+fn7+wAAAAAAAAAAAAAAAAD08/b29vb29vf3+Pj4+Pn5+Pf29vb29vb29/j5+fn5+fnq7AAAAAAAAOjo+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+Pj6AAAAAAAAAPn5+fn5+fn5+PcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPr6+fn5+fn5+fj4AAAAAAAAAAAAAAAAAPj5+fn5+fn5+fsAAAAAAAAA7O35+fn5+fn5+fj1+AAAAAAAAAAAAAD4+Pn5+fn5+fn6+gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADy8vn5+fn5+fv7AAAAAAAAAAAAAAAAAPX09vb29vb29/f4+Pj4+fn5+Pf29vb29vb29/j5+fn56envAAAAAAAA7+vr+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+Pr7AAAAAAAA+vr5+fn5+fn4+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA+vr5+fn5+fn5+PgAAAAAAAAAAAAAAAAA+Pn5+fn5+fn5+wAAAAAAAAAA7e35+fn5+fn5+PX4AAAAAAAAAAAAAPj4+fn5+fn5+fr6AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPHx+fn5+fn5+/oAAAAAAAAAAAAAAAAA9vX29vb29vf3+Pj4+Pn5+fn4+Pf39vb29vb29/j4+ejq7AAAAAAAAAAA7uvo+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+/vvAAAAAAD6+vn5+fn5+fn4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD6+vn5+fn5+fn5+AAAAAAAAAAAAAAAAAD5+fn5+fn5+fr6AAAAAAAAAAAA7u75+fn5+fn59/X7AAAAAAAAAAAA+Pn5+fn5+fn5+voAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8vL5+fn5+fn6+gAAAAAAAAAAAAAAAAD39vb29vb29/f4+Pj4+fn5+fn5+Pj39vb29vb29+js6+zvAAAAAAAAAAAA7uzs+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+voAAAAAAPv7+fn5+fn5+fkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPn5+fn5+fn5+fr5AAAAAAAAAAAAAAAAAPn6+fn5+fn5+vkAAAAAAAAAAADv7u35+fn5+fn59vkAAAAAAAAAAAD5+vn5+fn5+fn5+QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADz8/n5+fn5+fr5AAAAAAAAAAAAAAAAAPf39vb29vf3+Pj4+Pn5+fn5+fn5+Pj39vb29ujt7e3u7wAAAAAAAAAAAAAA7uzt7fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn6+u8AAAAA+/v5+fn5+fn6+QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA+fn5+fn5+fn5+voAAAAAAAAAAAAAAAAA+vr5+fn5+fn5+QAAAAAAAAAAAADv7ev5+fn5+fn49v0AAAAAAAAAAPr6+fn5+fn5+fn5AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPP0+fn5+fn5+fkAAAAAAAAAAAAAAAAA+Pj29vb29/f4+Pj4+fn5+fn5+fn5+Pjo7Ozs7O3t7wAAAAAAAAAAAAAAAAAA7+7t7u7u7+7u7e3s7O3t7Ozr6+rq6Pn5+fn5+fn5+wAAAAD6+vn5+fn5+fr6AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD4+Pn5+fn5+fn5+QAAAAAAAAAAAAAAAAD6+/n5+fn5+fn3AAAAAAAAAAAAAADv6/n5+fn5+fn3+gAAAAAAAAAA+fn5+fn5+fn5+PgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9PX5+fn5+fn4+AAAAAAAAAAAAAAAAAD5+fb29vb39/v76+v5+fn5+fn5+ezs7Ozs7Ozu7wAAAAAAAAAAAAAAAAAAAAAAAO/u7u/u7u3t7Ozs7O3t7Ozr6+rq+Pn5+fn5+fn4AAAAAPr5+fn4+Pn5+/oAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPj4+fn5+fn5+fj4AAAAAAAAAAAAAAAAAPv7+fn5+fn59/cAAAAAAAAAAAAAAADt+fn5+fn5+ff3AAAAAAAAAAD4+Pn5+fn5+fn4+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD19fn5+fn5+ff3AAAAAAAAAAAAAAAAAPn59vb29/f4+/vr7Oz5+fn5+fn5+fn5+QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA7Onp+Pn5+fn5+PgAAAAA+fn4+Pj39/j7+wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA+Pj5+fn5+fn5+PgAAAAAAAAAAAAAAAAA+/v5+fn5+fn39wAAAAAAAAAAAAAAAO35+fn5+fn59/cAAAAAAAAAAPj4+fn5+fn5+fj4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPX2+fn5+fn59vYAAAAAAAAAAAAAAAAA+Pj29vb39/j6+gDs7e35+fn5+fn5+fn49wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9PT5+fn5+fn46AAAAAD5+Pb29vf39/z7AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD3+Pn5+fn5+fn39wAAAAAAAAAAAAAAAAD7+vr5+fn5+ff2AAAAAAAAAAAAAAAA/vn5+fn5+fn49/4AAAAAAAAA9/f5+fn5+fn5+PcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9vb5+fn5+fn19gAAAAAAAAAAAAAAAAD39/b29vf3+Pr6AADt7u75+fn5+fn5+ff29gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPn19ff4+fn5+ejoAAAAAPj49vb29vb2/PwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPf3+fn5+fn5+fb2AAAAAAAAAAAAAAAAAPr6+fn5+Pn59vYAAAAAAAAAAAAAAAAA+Pj5+fn5+fn4+gAAAAAAAAD29vn5+fn5+fn39wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD29/n5+fn5+fX1AAAAAAAAAAAAAAAAAPf29vb39/j4+fkAAADu7e35+fn5+fn5+fb19QAAAAAAAAAAAAAAAPb39/b29fX09PPz8vHx8vLz8/T09fX29vf39/b39/j5+fn56OgAAAAA+Pf29vb29vb8+QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9vf5+fn5+fn59fUAAAAAAAAAAAAAAAAA+vn5+Pj49/j29QAAAAAAAAAAAAAAAAD59/n5+fn5+fj6AAAAAAAAAPX1+fn5+fn5+ff2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPf3+fn5+fn59vUAAAAAAAAAAAAAAAAA9vX29vf3+Pj4+AAAAADt7Oz5+fn5+fn5+fX29gAAAAAAAAAAAAAA9/b29vX19PTz8/Ly8fHx8vLz8/T09fX29vf39vb39/j4+fns7gAAAAD39/b29vb29vn5AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD29vn5+fn5+fn09QAAAAAAAAAAAAAAAAD5+fj29vb39/X1AAAAAAAAAAAAAAAAAPb2+fn5+fn5+PoAAAAAAAAA9fT5+fn5+fn49vYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9/j5+fn5+fn29gAAAAAAAAAAAAAAAAD19Pb29/b39/f4AAAAAADs6+v5+fn5+fn5+fb39wAAAAAAAAAAAAD29vj4+fn5+fn5+fn5+fn5+fn5+fn5+fn59/f29/f39/f47ezvAAAAAPf29vb29vb2+fcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPb2+fn4+Pn4+fT0AAAAAAAAAAAAAAAAAPn39/b29vb29fQAAAAAAAAAAAAAAAAA9vf5+fn5+fn4+gAAAAAAAAD09Pn4+Pn5+Pj29gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD4+Pn5+fn5+ff2AAAAAAAAAAAAAAAAAPT19vb39fb29vcAAAAAAADr6+j5+fn5+fn5+ff39wAAAAAAAAAAAPb1+Pj5+fn5+fn5+fn5+fn5+fn5+fn5+fn59/b29/f39/jt7gAAAAAA9vb29vb29vb39wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9fb4+Pj3+Pj48/QAAAAAAAAAAAAAAAAA9/f39vb29vb09/f29vb19vb39/j4+fj3+Pn5+fn5+fn+AAAAAAAAAPTz+Pj3+Pj4+Pb1AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPj5+fn5+fn59/cAAAAAAAAAAAAAAAAA9fb29/b29fX29gAAAAAAAADo6Oj4+fn5+fn5+ff4+AAAAAAAAAAA9fX4+Pj4+fn5+fn5+fn5+fn5+fn5+fn5+fn49vb29vf37OzvAAAAAAD29fb29vb29vf2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD19vj4+Pf4+Pjz9AAAAAAAAAAAAAAAAAD39/f29vb29vT39/b29vX29vf3+Pj5+Pf4+fn5+fn5+f4AAAAAAAAA9PP4+Pf4+Pj49vUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA+fn5+fn5+fn49wAAAAAAAAAAAAAAAAD29/b39/f19vX2AAAAAAAAAADo6Ov4+Pn5+fn4+Pj5+QAAAAAAAAD19Pf4+Pj5+fn5+fn5+fn5+fn5+fn5+fn5+fn39vb29+jr7gAAAAAAAPX19vb29vb29vYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPX1+Pj39/f3+PLzAAAAAAAAAAAAAAAAAPf29vb29vb29vb29/f3+Pj5+fn5+fn5+fn5+fn5+fn5AAAAAAAAAADz8vj39/f3+Pj19QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD5+fn5+fn5+fj4AAAAAAAAAAAAAAAAAPf49vf29/b29fUAAAAAAAAAAADo6Ov4+Pj4+Pj4+Pn6+gAAAAAAAPT09/j4+fn5+fn5+fn5+fn5+fn5+fn4+fn5+fj39vbq6+0AAAAAAAAA9fb29vb29vb29wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9fX39/f29/f38fIAAAAAAAAAAAAAAAAA9vb29vb29vb29vb39/f4+Pn5+fn5+fn5+fn5+fn57O0AAAAAAAAAAPLx9/f29/f39/X1AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPn5+fn5+fn5+fgAAAAAAAAAAAAAAAAA+Pn29/f49/f29QAAAAAAAAAAAADo6Ov4+Pj4+Pn4+Pr6+QAAAAAA9PP4+Pj5+fn5+fn5+fn5+fn5+fn5+fn4+Pj5+Pjp6urtAAAAAAAAAAD29/b29vb29/f4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD09fb29vb29vby8QAAAAAAAAAAAAAAAAD29fX29vb29vb29vb39/j4+Pj5+fn5+fn5+fn5+evs7gAAAAAAAAAA8fL29vb29vb29fQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA+erq6+zt7u7t+QAAAAAAAAAAAAAAAAD56+rp6+zt7fb2AAAAAAAAAAAAAADo6Ov4+Pn5+fn5+Pn5+QAAAADz8+7t7ezs6+vq6unp6urr6+zs7e3s7Ovr6urp6ens7wAAAAAAAAAAAPfp6erq6+vs7PgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPT09vb29vb29vPyAAAAAAAAAAAAAAAAAPX19vb29vb29vf39/f39/j4+fn5+fn5+fn5+fnq6e0AAAAAAAAAAADy8/b29vb29vb09AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADq6uvr7O3u7+7tAAAAAAAAAAAAAAAAAOvq6err7Ozt7fYAAAAAAAAAAAAAAADo6+r4+fn5+Pn59/n5+AAAAPPv7e3s7Ovr6urq6enq6urr6+zs7e3s7Ovr6urs7wAAAAAAAAAAAAAA6enq6uvr7Ozt7QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9PT29vb29vb29PMAAAAAAAAAAAAAAAAA9fX39vb29vf3+Pj4+Pj4+Pj5+fn5+fn5+fn57OvtAAAAAAAAAAAAAPP09vb29vb29vT0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADo6+r4+fj5+Pj49/j4+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD09Pb29vb29vb08wAAAAAAAAAAAAAAAAD19ff29vb29/f4+Pj4+Pj4+Pn5+fn5+fn57e3s6+0AAAAAAAAAAAAA8/T29vb29vb29PQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADr6+r4+Pj4+Pj49/j49wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPTp6uvs7e3u7u/0AAAAAAAAAAAAAAAAAPXq6uvr7Ozt7e7u7+7u7e3s7O3u7u/v7u7u7e7vAAAAAAAAAAAAAAD09O/u7e3s6+rp9AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADr6un4+Pj49/f39/f39wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA6erq6+zs7e3u7u8AAAAAAAAAAAAAAAAA6urr6+zs7e3u7u/u7u7t7ezs7e3u7u/v7u8AAAAAAAAAAAAAAAAAAPTv7u3t7Ozr6urpAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADr6un39/f39/f39/b29gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADq6un29vb29/f39/X19QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADp6e7v7u3s6+rp6uv19QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADu7+7t7Ozr6unq6uvr9QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");const u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u;})();
+
+fillDecoded();   // after CYL_PLAIN exists
+reset();
+frame();
+
+document.getElementById('restart').addEventListener('click', reset);
+</script>
+</body>
+</html>

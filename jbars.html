@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>03 &middot; Copper Bars: Palette Cycling 101</title>
+<link rel="stylesheet" href="archive.css">
+<style>
+
+  #screen{width:min(94vw,640px)}
+</style>
+</head>
+<body>
+
+<nav class="ring">
+  <a href="download.html"><b>&laquo; PREVIOUS</b><span>02 &middot; Downloading at School</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
+  <a class="next" href="modex.html"><b>NEXT &raquo;</b><span>04 &middot; Enter Mode X</span></a>
+</nav>
+
+<header class="entry">
+  <div class="num">03</div>
+  <h1>Copper Bars: Palette Cycling 101</h1>
+  <div class="lede">
+    This is the first one of my own files, and you'll want to have a look at the code itself at the
+    very bottom. I had an unfortunate habit of minification, so this program is really just
+    one of the Centerpoint samples from entry 01, stripping out the advertisement, and then renaming
+    everything to single character names and removing all unneeded whitespace. I'm not sure how much
+    I really understood of the code at this time.
+  </div>
+  <details class="meta">
+    <summary>Details</summary>
+    <dl>
+      <dt>File</dt><dd><code>JBARS.PAS</code>, 1,172 bytes, saved <b>1995-05-06 14:14:20</b></dd>
+      <dt>Also</dt><dd><code>pas/AD.EXE</code>, the same program compiled, <b>1995-05-06 13:22:58</b></dd>
+      <dt>Source</dt><dd><code>pas/PALETTE2.PAS</code>, 1991-07-30, by Fred Nietzche, a loader for CENTERPOINT! BBS</dd>
+      <dt>Provenance</dt><dd><b>My reduction of someone else's program.</b> The effect, the palette and the assembly are all Nietzche's.</dd>
+    </dl>
+  </details>
+</header>
+
+<div class="demo">
+
+<canvas id="screen" width="320" height="200"></canvas>
+<canvas id="strip" width="256" height="16"></canvas>
+<div class="cap">the 256 DAC registers: 1&ndash;180 <i>are</i> the 180 scanlines.</div>
+
+<div class="panel">
+  <label>bars <input id="bars" type="range" min="1" max="8" value="4">
+    <span id="barsLabel">4</span></label>
+  <label>phase gap <input id="gap" type="range" min="2" max="50" value="10">
+    <span id="gapLabel">10</span></label>
+</div>
+
+<div class="panel">
+  <label><input id="fix" type="checkbox"> rebuild the whole palette each frame (removes the overlap notch)</label>
+</div>
+
+<div id="status"></div>
+</div>
+
+<div class="prose">
+
+<h2>What it does</h2>
+<p>The screen is painted <b>once</b>, at startup: scanline <i>n</i> is filled
+entirely with color index <i>n</i>+1, 180 rows of 320 identical bytes. After
+that not one pixel is ever written again. The bars move because the program
+rewrites DAC registers, and because each register owns exactly one scanline,
+changing register 60 repaints row 59 and nothing else.</p>
+<p>Per frame the original issues four bars &times; 90 = <b>360 <code>OUT</code>
+instructions and touches zero video memory</b>. On a 386 that is free, which is
+the whole reason the technique existed. It is also the technique that ties this
+archive together: seven of the seventeen programs here write no pixels at all
+after setup.</p>
+
+<h2>Where it came from</h2>
+<p>Back on <a href="palette.html">entry 01</a> you'll find everything about
+the original inspiration.</p>
+
+<h2>What I did to it</h2>
+<code>JBARS</code> is a transcription of <code>PALETTE2</code>'s
+<code>DoCycle</code>, instruction for instruction, with the labels
+<code>Wait / Retr / BarLoop / PrevIsLast / Continue1 / Rep1</code> renamed to
+<code>k / n / o / j / d / p</code>.
+Identifiers go to single letters, hex is converted to decimal
+(<code>$3C8</code> &rarr; <code>Port[968]</code>, <code>MOV DX,3DAh</code> &rarr;
+<code>MOV DX,986</code>, <code>VideoMode($13)</code> &rarr; <code>r(19)</code>),
+and every constant expression is folded by hand:
+<code>Locs[(NumCycles-1)*2]</code> becomes <code>l[398]</code>,
+<code>MOV CX,15*3</code> becomes <code>MOV CX,45</code>, and
+<code>Round(Radius*Sin((2*Pi/NumCycles)*Count))+Radius+1</code> becomes
+<code>Round(g*Sin(0.0314*b)+81)</code>.</p>
+<p>That last one is the only substantive change in the file. <b>2&pi;/200 is
+0.031416, and I had 0.0314</b>, a truncation, so the sine table drifts
+about half a row short of a full period over its 200 entries. You cannot see it;
+it is just the one place where the transcription stopped being exact.</p>
+
+<h2>The notch</h2>
+<p>Watch two bars cross and the lower one loses a slice. The loop handles bars
+one at a time - blank fifteen registers at this bar's <i>previous</i>
+position, then write the gradient at its current one - so a bar that has
+already been drawn can be partly erased by the next bar's blanking pass. The
+checkbox rebuilds the whole palette instead, clearing every register before
+drawing any bar, which removes the notch. <b>That is not what the file does</b>,
+and at four bars ten rows apart you rarely catch it. Nietzche's original has it
+too.</p>
+
+</div>
+
+<details class="source">
+<summary>JBARS.PAS: the original, all 1,172 bytes of it</summary>
+<p class="cap">As on disk. The line breaks are the editor wrapping at 128 columns, not mine.</p>
+<pre>uses crt;Const e=$A000;f=200;g=80;i:array[1..45]Of Byte=(7,7,63,15,15,63,23,23,63,31,31,63,39,39,63,47,47,63,55,55,63,63,63,63,
+55,55,63,47,47,63,39,39,63,31,31,63,23,23,63,15,15,63,7,7,63);Var l:Array[1..f]Of integer;m:Array[1..4]Of integer;Procedure r(s
+:Byte);Begin Asm Mov ah,0;Mov AL,s;Int 16 End;End;Var b:Integer;c:Word;Label k,n,o,j,d,h,p,q;begin r(19);Port [968]:=1;For b:=1
+To 180Do begin Port[968]:=b;Port[969]:=0;Port[969]:=0;Port[969]:=0 End;c:=0;For b:=1To 180Do Begin FillChar(Mem[e:c],320,Chr(b)
+);c:=c+320;End;For b:=1To f Do l[b]:=Round(g*Sin(0.0314*b)+81);For b:=1To 4Do m[b]:=b*10;Repeat Asm MOV DX,986;k:IN AL,DX;
+TEST AL,8;JZ k;n:IN AL,DX;TEST AL,8;JNZ n;MOV BX,0;o:PUSH BX;MOV AX,Word Ptr m[BX];MOV BX,AX;DEC BX;SHL BX,1;
+MOV AX,Word Ptr l[BX];PUSH AX;CMP BX,0;JE j;DEC BX;DEC BX;MOV AX,Word Ptr l[BX];JMP d;j:MOV AX,Word Ptr l[398];d:MOV DX,968;
+OUT DX,AL;INC DX;MOV CX,45;MOV AL,0;p:OUT DX,AL;LOOP p;DEC DX;POP AX;OUT DX,AL;INC DX;MOV CX,45;XOR BX,BX;q:
+MOV AL,Byte Ptr i[BX];OUT DX,AL;INC BX;LOOP q;POP BX;INC Word Ptr m[BX];CMP Word Ptr m[BX],f;JNG h;Mov Word Ptr m[BX],1;h:
+INC BX;INC BX;CMP BX,8;JNE o;End; Until Keypressed;r(3)End.</pre>
+</details>
+
+<nav class="ring">
+  <a href="download.html"><b>&laquo; PREVIOUS</b><span>02 &middot; Downloading at School</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
+  <a class="next" href="modex.html"><b>NEXT &raquo;</b><span>04 &middot; Enter Mode X</span></a>
+</nav>
+
+<script src="archive.js"></script>
+<script>
+// ---------------------------------------------------------------------------
+// JBARS.PAS -- copper bars. The screen is painted ONCE at startup: scanline n
+// is filled entirely with color index n+1. After that not a single pixel is
+// ever written. The bars move because the program rewrites DAC registers, and
+// because each register owns exactly one scanline, changing register 60 repaints
+// row 59 and nothing else.
+//
+// Per frame the original issues 4 bars x 90 = 360 OUT instructions and touches
+// zero video memory.
+// ---------------------------------------------------------------------------
+
+const W = 320, H = 200, ROWS = 180;   // only rows 0..179 were ever filled
+const canvas = document.getElementById('screen');
+const ctx  = canvas.getContext('2d');
+const img  = ctx.createImageData(W, H);
+const out  = new Uint32Array(img.data.buffer);
+
+// const i:array[1..45] of Byte -- fifteen RGB triples. Blue held at full while
+// red and green ramp 7 -> 63 -> 7: a blue bar with a white specular core.
+const GRAD = [7,7,63, 15,15,63, 23,23,63, 31,31,63, 39,39,63, 47,47,63,
+              55,55,63, 63,63,63, 55,55,63, 47,47,63, 39,39,63, 31,31,63,
+              23,23,63, 15,15,63, 7,7,63];
+const BAR_H = GRAD.length / 3;        // 15 registers = 15 scanlines
+
+// The 256 DAC registers. Registers 1..180 start black; the screen is already
+// painted with them, so this array IS the picture.
+const DAC = new Uint32Array(256);
+const paintStrip = paletteStrip('strip');
+const c6 = v => Math.round(Math.min(63, Math.max(0, v)) * 255 / 63);
+function setDac(reg, r, g, b) {
+  if (reg < 0 || reg > 255) return;
+  DAC[reg] = (255 << 24) | (c6(b) << 16) | (c6(g) << 8) | c6(r);
+}
+
+// l[b] := Round(80*Sin(0.0314*b)+81) -- 0.0314 is pi/100, so b = 1..200 walks
+// exactly one full period. Built once; the loop only ever indexes it.
+const L = new Array(201);
+for (let b = 1; b <= 200; b++) L[b] = Math.round(80*Math.sin(0.0314*b) + 81);
+
+let m = [];      // m[bar] -- each bar's index into the sine table
+function reset() {
+  const n = +document.getElementById('bars').value;
+  const gap = +document.getElementById('gap').value;
+  m = Array.from({length: n}, (_, k) => ((k+1) * gap - 1) % 200 + 1);
+  for (let r = 0; r < 256; r++) DAC[r] = 0xff000000;
+}
+
+let writes = 0;
+function frame() {
+  requestAnimationFrame(frame);
+  const fixed = document.getElementById('fix').checked;
+  writes = 0;
+
+  if (fixed) {
+    // Clear every bar register first, then paint them all. No bar can erase
+    // another, because all the erasing happens before any of the drawing.
+    for (let r = 1; r <= ROWS; r++) { DAC[r] = 0xff000000; writes += 3; }
+    for (const mi of m) {
+      const cur = L[mi];
+      for (let k = 0; k < BAR_H; k++)
+        setDac(cur + k, GRAD[k*3], GRAD[k*3+1], GRAD[k*3+2]);
+      writes += 45;
+    }
+  } else {
+    // The original, in order: for each bar, blank 15 registers at the bar's
+    // PREVIOUS position, then write the gradient at its current one.
+    for (let bi = 0; bi < m.length; bi++) {
+      const cur  = L[m[bi]];
+      const prev = m[bi] === 1 ? L[200] : L[m[bi] - 1];
+      for (let k = 0; k < BAR_H; k++) setDac(prev + k, 0, 0, 0);
+      for (let k = 0; k < BAR_H; k++)
+        setDac(cur + k, GRAD[k*3], GRAD[k*3+1], GRAD[k*3+2]);
+      writes += 90;
+    }
+  }
+
+  for (let i = 0; i < m.length; i++) {          // INC m[BX]; CMP f; JNG h
+    m[i]++;
+    if (m[i] > 200) m[i] = 1;
+  }
+
+  // Scanline n shows DAC register n+1. That is the entire renderer.
+  for (let y = 0; y < H; y++) {
+    const c = y < ROWS ? DAC[y + 1] : DAC[0];
+    out.fill(c, y*W, y*W + W);
+  }
+  ctx.putImageData(img, 0, 0);
+  paintStrip(x => DAC[x]);
+
+  document.getElementById('status').textContent =
+    `${w(writes,4)} port writes/frame   0 pixels written   bars at rows ` +
+    m.map(mi => L[mi]).join(', ');
+}
+
+for (const id of ['bars','gap'])
+  document.getElementById(id).addEventListener('input', () => {
+    document.getElementById('barsLabel').textContent =
+      document.getElementById('bars').value;
+    document.getElementById('gapLabel').textContent =
+      document.getElementById('gap').value;
+    reset();
+  });
+
+reset();
+frame();
+</script>
+</body>
+</html>

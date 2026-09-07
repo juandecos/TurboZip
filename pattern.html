@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>11 &middot; Doodling With Lines</title>
+<link rel="stylesheet" href="archive.css">
+<style>
+
+  #screen{width:min(94vw,660px)}
+  #mat{color:#c9a;white-space:pre;font-size:12px}
+  kbd{background:#222;border:1px solid #555;border-radius:3px;padding:0 4px}
+</style>
+</head>
+<body>
+
+<nav class="ring">
+  <a href="mydemo.html"><b>&laquo; PREVIOUS</b><span>10 &middot; My Awful Demo</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
+  <a class="next" href="fun.html"><b>NEXT &raquo;</b><span>12 &middot; Random Walking</span></a>
+</nav>
+
+<header class="entry">
+  <div class="num">11</div>
+  <h1>Doodling With Lines</h1>
+  <div class="lede">
+    Back in the 1980s I had a <a href="https://en.wikipedia.org/wiki/Spirograph">Spirograph</a>, a toy that lets you draw various designs based on repeating geometry,
+    and here it seems I figured out that I could get a similar effect by tweaking the earlier rotating cubes code. The first two demos set up the geometry, and the
+    third finishes it.
+  </div>
+  <details class="meta">
+    <summary>Details</summary>
+    <dl>
+      <dt>Files</dt><dd><code>PATTERN1.PAS</code> 1,929 B (1995-09-22 01:28) &middot; <code>JUAN.PAS</code> 1,869 B (14:17) &middot; <code>DOODLE.PAS</code> 1,236 B (15:20)</dd>
+      <dt>Provenance</dt><dd>Mine</dd>
+      <dt>Demo</dt><dd>All three saves of the day, in order</dd>
+    </dl>
+  </details>
+</header>
+
+<div class="demo">
+<div class="panel selector">
+  <button id="prev">&larr;</button>
+  <select id="stage">
+      <option value="pattern1">PATTERN1: 22 Sep 1995, 01:28, the z's commented out</option>
+      <option value="juan">JUAN: 22 Sep 1995, 14:17, the z's put back</option>
+      <option value="doodle">DOODLE: 22 Sep 1995, 15:20, minified, and it stops erasing</option>
+    </select>
+  <button id="next">&rarr;</button>
+  <button id="restart">restart</button>
+</div>
+
+<canvas id="screen" width="640" height="480"></canvas>
+
+<div id="mat"></div>
+
+
+<div class="panel">
+  <label>degrees/frame <input id="step" type="range" min="1" max="30" value="6">
+    <span id="stepLabel">6</span></label>
+  <label>ms/frame <input id="rate" type="range" min="8" max="200" value="16">
+    <span id="rateLabel">16</span></label>
+  <label id="o-erase"><input id="erase" type="checkbox" checked> bar() erase</label>
+  <label id="o-guides"><input id="guides" type="checkbox"> show bar() rect &amp; the collapsed vertex</label>
+  <label id="o-border"><input id="border" type="checkbox" checked> show the viewport</label>
+</div>
+
+<div id="keys"></div>
+
+<div id="status"></div>
+
+<div id="notes">
+<div class="note" data-note="pattern1" hidden>
+<b>PATTERN1.PAS: 1,929 bytes, 01:28.</b> Four points, four edges, BGI, a
+bar() erase and a double-edge retrace wait. With the Z portion of
+SetPoints commented out, the fourth edge collapses to length zero.
+</div>
+<div class="note" data-note="juan" hidden>
+<b>JUAN.PAS: 1,869 bytes, 14:17, thirteen hours later.</b> Byte for byte the
+same program with the four braces removed. Points 1 and 2 separate, all four
+edges have length, the determinant can go negative and the shape turns through
+itself. I have no idea why this file name, of all of them, bears my own first
+name.
+</div>
+<div class="note" data-note="doodle" hidden>
+<b>DOODLE.PAS: 1,236 bytes, 15:20, an hour after that.</b> The minified one,
+and it is a different program in three ways.
+<b>(1)</b> bar() becomes <b>setviewport(215,135,425,345,clipon)</b> and the
+helper <b>g()</b> offsets every point by +105 instead of ±320/239∓, so the
+figure is drawn inside the viewport's own coordinates. Incidentally,
+y is no longer flipped, so it turns the other way.
+<b>(2)</b> clearing is now behind <b>if d then clearviewport</b>, and d is a
+global boolean that is never assigned, so Turbo Pascal starts it false. The
+screen never clears and the figure accumulates. That is the doodle, and press
+<kbd>D</kbd> to switch it off.
+<b>(3)</b> the retrace wait loses its first edge (one <b>repeat until</b>
+instead of two) so it can catch the tail of a blank rather than the start.
+One more artifact of the compression: <b>if RegisterBGIDriver(…)&lt;0 then;</b> -
+the halt was deleted and the empty <b>then</b> left behind. And the wrap test
+fires at 361 with a step of 6, so the cycle is 61 frames and the 6° orientation
+is drawn twice running.
+</div>
+</div>
+</div>
+
+<details class="source">
+<summary>PATTERN1.PAS: 1,929 bytes</summary>
+<p class="cap">01:28. The z values are the commented-out ones.</p>
+<pre>uses crt,graph,bgidriv;var c,ci:array[1..4,1..3]of integer;
+  rotation: ARRAY[1..3,1..3] OF real;
+  driver, mode: integer;
+  x, y, k: integer;
+  ch: char;
+  incx, incy: boolean;
+
+PROCEDURE Rotatec;VAR a,b:byte;BEGIN FOR b:=1TO 4DO FOR a:=1TO 3DO
+ci[b,a]:=Trunc((rotation[a,1]*c[b,1])+(rotation[a,2]*c[b,2])
++(rotation[a,3]*c[b,3]));END;
+
+PROCEDURE SetRotation (xangle, yangle: integer);
+VAR x, y: real;
+BEGIN
+  x:=xangle*(pi/180);y:=yangle*(pi/180);
+  rotation[1,1]:=cos(y);rotation[1,2]:=0;
+  rotation[1,3]:=-sin(y);rotation[2,1]:=sin(x)*sin(y);
+  rotation[2,2]:=cos(x);rotation[2,3]:=sin(x)*cos(y);
+  rotation[3,1]:=cos(x)*sin(y);
+  rotation[3,2]:=-sin(x);
+  rotation[3,3]:=cos(x)*cos(y);
+END;
+
+PROCEDURE Line3d (x1, y1, x2, y2: integer);
+BEGIN Line(x1+320,239-y1,x2+320,239-y2);
+END;
+
+PROCEDURE SetPoints;
+BEGIN
+  c[1,1]:=-60;c[1,2]:=-60;{c[1,3]:=-60;}
+  c[2,1]:=-60;c[2,2]:=-60;{c[2,3]:=60;}
+  c[3,1]:=60;c[3,2]:=-60;{c[3,3]:=-60;}
+  c[4,1]:=-60;c[4,2]:=60;{c[4,3]:=-60;}
+END;
+
+PROCEDURE Drawc;
+BEGIN  setcolor(15);
+repeat until(port[$3da]and 8)=0;repeat until(port[$3da]and 8)&lt;&gt;0;
+      Line3d(ci[1,1],ci[1,2],ci[2,1],ci[2,2]);
+      Line3d(ci[2,1],ci[2,2],ci[3,1],ci[3,2]);
+      Line3d(ci[3,1],ci[3,2],ci[4,1],ci[4,2]);
+      Line3d(ci[4,1],ci[4,2],ci[1,1],ci[1,2]);END;
+
+BEGIN ClrScr;
+  if RegisterBGIDriver(@EGAVGADriverProc) &lt; 0 then halt(1);
+  driver:=detect;Initgraph(driver,mode,&#x27;&#x27;);
+  SetPoints;setfillstyle(0,0);
+  x:=0; y:=0; ch:=&#x27; &#x27;;
+  incx:=true; incy:=true;
+  REPEAT
+    IF x&gt;=361 THEN x:=0; IF INCX=true THEN Inc(x,6);
+    IF y&gt;=361 THEN y:=0; IF INCY=true THEN Inc(y,6);
+    SetRotation(x,y);
+    Rotatec;
+    bar(215,135,425,345);
+    Drawc;
+    IF Keypressed THEN
+      BEGIN
+        ch:=readkey;
+        case (UpCase(ch))of &#x27;X&#x27;:INCX:=NOT(INCX);&#x27;Y&#x27;:INCY:=NOT(INCY);end;
+      END;
+  UNTIL Ord(ch)=27;  CloseGraph;  TextMode(co80);  ClrScr;END.</pre>
+</details>
+<details class="source">
+<summary>JUAN.PAS: 1,869 bytes</summary>
+<p class="cap">14:17. Identical but for those four values.</p>
+<pre>uses crt,graph,bgidriv;
+const p=4;
+var c,ci:array[1..p,1..3]of integer;
+  rotation: ARRAY[1..3,1..3] OF real;
+  driver, mode: integer;
+  x, y, k: integer;
+  ch: char;
+  incx, incy: boolean;
+
+PROCEDURE Rotatec;VAR a,b:byte;BEGIN FOR b:=1TO p DO FOR a:=1TO 3DO
+ci[b,a]:=Trunc((rotation[a,1]*c[b,1])+(rotation[a,2]*c[b,2])
++(rotation[a,3]*c[b,3]));END;
+
+PROCEDURE SetRotation (xangle, yangle: integer);
+VAR x, y: real;
+BEGIN
+  x:=xangle*(pi/180);y:=yangle*(pi/180);
+  rotation[1,1]:=cos(y);rotation[1,2]:=0;
+  rotation[1,3]:=-sin(y);rotation[2,1]:=sin(x)*sin(y);
+  rotation[2,2]:=cos(x);rotation[2,3]:=sin(x)*cos(y);
+  rotation[3,1]:=cos(x)*sin(y);
+  rotation[3,2]:=-sin(x);
+  rotation[3,3]:=cos(x)*cos(y);
+END;
+
+PROCEDURE Line3d (x1, y1, x2, y2: integer);
+BEGIN Line(x1+320,239-y1,x2+320,239-y2);
+END;
+
+PROCEDURE SetPoints;
+BEGIN
+  c[1,1]:=-60;c[1,2]:=-60;c[1,3]:=-60;
+  c[2,1]:=-60;c[2,2]:=-60;c[2,3]:=60;
+  c[3,1]:=60;c[3,2]:=-60;c[3,3]:=-60;
+  c[4,1]:=-60;c[4,2]:=60;c[4,3]:=-60;
+END;
+
+PROCEDURE Drawc;
+BEGIN  setcolor(15);
+repeat until(port[$3da]and 8)=0;repeat until(port[$3da]and 8)&lt;&gt;0;
+      Line3d(ci[1,1],ci[1,2],ci[2,1],ci[2,2]);
+      Line3d(ci[2,1],ci[2,2],ci[3,1],ci[3,2]);
+      Line3d(ci[3,1],ci[3,2],ci[4,1],ci[4,2]);
+      Line3d(ci[4,1],ci[4,2],ci[1,1],ci[1,2]);END;
+
+BEGIN ClrScr;if RegisterBGIDriver(@EGAVGADriverProc)&lt;0 then halt(1);
+driver:=detect;Initgraph(driver,mode,&#x27;&#x27;);SetPoints;setfillstyle(0,0);
+x:=0;y:=0;ch:=&#x27; &#x27;;incx:=true;incy:=true;REPEAT IF x&gt;=361 THEN x:=0;
+IF INCX=true THEN Inc(x,6);IF y&gt;=361 THEN y:=0; IF INCY=true THEN Inc(y,6);
+SetRotation(x,y);Rotatec;bar(215,135,425,345);Drawc;IF Keypressed THEN
+      BEGIN
+        ch:=readkey;
+        case (UpCase(ch))of &#x27;X&#x27;:INCX:=NOT(INCX);&#x27;Y&#x27;:INCY:=NOT(INCY);end;
+      END;UNTIL Ord(ch)=27;  CloseGraph;  TextMode(co80);  ClrScr;END.</pre>
+</details>
+<details class="source">
+<summary>DOODLE.PAS: 1,236 bytes</summary>
+<p class="cap">15:20. <code>if d then</code> - and <code>d</code> is never set.</p>
+<pre>uses crt,graph,bgidriv;var c,p:array[1..4,1..3]of integer;r:ARRAY[1..3,1..3]OF
+real;x,y,k,l:integer;ch:char;a,b,d:boolean;v,w:real;PROCEDURE g(a,b,c,d:
+integer);BEGIN Line(a+105,b+105,c+105,d+105);END;BEGIN if RegisterBGIDriver(
+@EGAVGADriverProc)&lt;0 then;x:=detect;Initgraph(x,y,&#x27;&#x27;);c[1,1]:=-60;c[1,2]:=-60;
+c[1,3]:=-60;c[2,1]:=-60;c[2,2]:=-60;c[2,3]:=60;c[3,1]:=60;c[3,2]:=-60;c[3,3]:=
+-60;c[4,1]:=-60;c[4,2]:=60;c[4,3]:=-60;setcolor(15);x:=0;y:=0;ch:=&#x27; &#x27;;a:=true;
+b:=true;REPEAT IF x&gt;=361THEN x:=0;IF a THEN inc(x,6);IF y&gt;360THEN y:=0;IF b
+THEN Inc(y,6);v:=x*(pi/180);w:=y*(pi/180);r[1,1]:=cos(w);r[1,2]:=0;r[1,3]:=
+-sin(w);r[2,1]:=sin(v)*sin(w);r[2,2]:=cos(v);r[2,3]:=sin(v)*cos(w);r[3,1]:=cos
+(v)*sin(w);r[3,2]:=-sin(v);r[3,3]:=cos(v)*cos(w);FOR l:=1TO 4DO FOR k:=1TO 3DO
+p[l,k]:=Trunc((r[k,1]*c[l,1])+(r[k,2]*c[l,2])+(r[k,3]*c[l,3]));setviewport(215
+,135,425,345,clipon);if d then clearviewport;repeat until(port[$3da]and 8)&lt;&gt;0;
+g(p[1,1],p[1,2],p[2,1],p[2,2]);g(p[2,1],p[2,2],p[3,1],p[3,2]);g(p[3,1],p[3,2],
+p[4,1],p[4,2]);g(p[4,1],p[4,2],p[1,1],p[1,2]);IF Keypressed THEN BEGIN ch:=
+readkey;case(UpCase(ch))of &#x27;X&#x27;:a:=NOT(a);&#x27;Y&#x27;:b:=not(b);&#x27;D&#x27;:d:=not(d);end;END;
+UNTIL ord(ch)=27;asm mov ah,0;mov al,3;int 16;end;END.</pre>
+</details>
+
+<nav class="ring">
+  <a href="mydemo.html"><b>&laquo; PREVIOUS</b><span>10 &middot; My Awful Demo</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
+  <a class="next" href="fun.html"><b>NEXT &raquo;</b><span>12 &middot; Random Walking</span></a>
+</nav>
+
+<script src="archive.js"></script>
+<script>
+'use strict';
+// Notes live in the markup as hidden siblings, so they are plain HTML with no
+// escaping and cannot break this script. This only flips which one is visible.
+function showNote(key) {
+  for (const n of document.getElementById('notes').children)
+    n.hidden = n.dataset.note !== String(key);
+}
+// ---------------------------------------------------------------------------
+// One program, three saves, 22 September 1995 -- the tail of a twenty-one-hour
+// run that had already produced JTEST, MYDEMO, BOX and BOX2.
+//
+// PATTERN1 is JUAN with four comment braces added:
+//
+//   c[1,1]:=-60;c[1,2]:=-60;{c[1,3]:=-60;}
+//   c[2,1]:=-60;c[2,2]:=-60;{c[2,3]:=60;}
+//   c[3,1]:=60;c[3,2]:=-60;{c[3,3]:=-60;}
+//   c[4,1]:=-60;c[4,2]:=60;{c[4,3]:=-60;}
+//
+// and PATTERN1 is thirteen hours EARLIER, so the flattening came first and the
+// third dimension was switched on afterwards. Turbo Pascal zeroes globals, so
+// with those lines commented every z is 0 -- which is why the braces produce a
+// working program rather than a crash.
+// ---------------------------------------------------------------------------
+
+const W = 640, H = 480;
+const canvas = document.getElementById('screen');
+const ctx = canvas.getContext('2d');
+const img = ctx.createImageData(W, H);
+const out = new Uint32Array(img.data.buffer);
+const fb  = new Uint8Array(W * H);
+
+const PAL = new Uint32Array(256);
+PAL[0]  = 255 << 24;
+PAL[8]  = (255<<24)|(0x4a<<16)|(0x4a<<8)|0x4a;              // viewport border
+PAL[15] = 0xffffffff;                                       // BGI color 15
+PAL[40] = (255<<24)|(30<<16)|(60<<8)|90;                    // guide: bar rect
+PAL[41] = (255<<24)|(230<<16)|(60<<8)|60;                   // guide: dead vertex
+
+// setfillstyle(0,0) / setviewport(215,135,425,345,clipon) -- the same 211x211
+// rectangle in all three files, and the same one BOX.PAS erased with bar().
+const VX0 = 215, VY0 = 135, VX1 = 425, VY1 = 345, OFF = 105;
+
+// PROCEDURE SetPoints. One cube corner and its three neighbors -- not a closed
+// shape, so joining them 1-2-3-4-1 doubles back over itself.
+const PTS = [[-60,-60,-60], [-60,-60,60], [60,-60,-60], [-60,60,-60]];
+
+// PROCEDURE SetRotation -- the two-axis matrix, identical to Setr in ASMBOX2,
+// ASMBOX3 and WINGS. DOODLE inlines it into the main loop with v and w for the
+// radian temporaries.
+const rot = [[0,0,0],[0,0,0],[0,0,0]];
+function setRotation(xa, ya) {
+  const x = xa*Math.PI/180, y = ya*Math.PI/180;
+  const cx=Math.cos(x), sx=Math.sin(x), cy=Math.cos(y), sy=Math.sin(y);
+  rot[0][0]=cy;     rot[0][1]=0;    rot[0][2]=-sy;
+  rot[1][0]=sx*sy;  rot[1][1]=cx;   rot[1][2]=sx*cy;
+  rot[2][0]=cx*sy;  rot[2][1]=-sx;  rot[2][2]=cx*cy;
+}
+
+function px(x, y, c) { if (x>=0 && x<W && y>=0 && y<H) fb[y*W + x] = c; }
+function line(x0, y0, x1, y1, c, clip) {
+  x0|=0; y0|=0; x1|=0; y1|=0;
+  const dx = Math.abs(x1-x0), sx = x0<x1 ? 1 : -1;
+  const dy = -Math.abs(y1-y0), sy = y0<y1 ? 1 : -1;
+  let err = dx + dy;
+  for (;;) {
+    if (!clip || (x0>=VX0 && x0<=VX1 && y0>=VY0 && y0<=VY1)) px(x0, y0, c);
+    if (x0===x1 && y0===y1) break;
+    const e2 = 2*err;
+    if (e2 >= dy) { err += dy; x0 += sx; }
+    if (e2 <= dx) { err += dx; y0 += sy; }
+  }
+}
+
+const el = id => document.getElementById(id);
+const OPTS = {
+  pattern1: ['o-erase','o-guides'],
+  juan:     ['o-erase','o-guides'],
+  doodle:   ['o-border']
+};
+let stage = 'pattern1';
+let xa = 0, ya = 0, incx = true, incy = true, clearing = false, last = 0, frames = 0;
+
+function reset() {
+  xa = 0; ya = 0; incx = true; incy = true; frames = 0; last = 0;
+  clearing = false;                    // DOODLE's d starts false
+  fb.fill(0);
+  for (const g of Object.values(OPTS)) g.forEach(id => el(id).classList.add('hidden'));
+  OPTS[stage].forEach(id => el(id).classList.remove('hidden'));
+  buildKeys();          // the D button only exists for DOODLE
+  showNote(stage);
+  el('stage').value = stage;
+}
+
+const selStage = el('stage');
+selStage.addEventListener('change', () => { stage = selStage.value; reset(); });
+el('next').addEventListener('click', () => {
+  selStage.selectedIndex = (selStage.selectedIndex+1) % selStage.length;
+  stage = selStage.value; reset(); });
+el('prev').addEventListener('click', () => {
+  selStage.selectedIndex = (selStage.selectedIndex+selStage.length-1) % selStage.length;
+  stage = selStage.value; reset(); });
+el('restart').addEventListener('click', reset);
+el('erase').addEventListener('change', () => fb.fill(0));
+for (const [r, l] of [['step','stepLabel'],['rate','rateLabel']])
+  el(r).addEventListener('input', () => { el(l).textContent = el(r).value; fb.fill(0); });
+
+// All three programs read the keyboard with ReadKey inside the main loop. The
+// buttons below are that same interface, clickable -- and they light up while
+// their effect is active, which the old static <kbd> hints could not show.
+const KEYS = [
+  { k:'X', hint:'x axis',   lit:() => incx,     all:true  },
+  { k:'Y', hint:'y axis',   lit:() => incy,     all:true  },
+  { k:'D', hint:'clearing', lit:() => clearing, all:false },   // DOODLE only
+];
+function buildKeys() {
+  const host = el('keys');
+  host.innerHTML = '';
+  for (const spec of KEYS) {
+    if (!spec.all && stage !== 'doodle') continue;
+    const btn = document.createElement('button');
+    btn.className = 'keybtn';
+    btn.dataset.key = spec.k;
+    btn.innerHTML = `<b>${spec.k}</b><span>${spec.hint}</span>`;
+    btn.addEventListener('click', () => { handleKey(spec.k); btn.blur(); });
+    host.appendChild(btn);
+  }
+  paintKeys();
+}
+function paintKeys() {
+  for (const btn of el('keys').querySelectorAll('.keybtn')) {
+    const spec = KEYS.find(s2 => s2.k === btn.dataset.key);
+    if (spec) btn.classList.toggle('on', !!spec.lit());
+  }
+}
+function handleKey(k) {
+  if (k === 'X') incx = !incx;
+  else if (k === 'Y') incy = !incy;
+  else if (k === 'D' && stage === 'doodle') clearing = !clearing;
+  else return false;
+  paintKeys();
+  return true;
+}
+addEventListener('keydown', e => {
+  if (e.target && /^(INPUT|SELECT|BUTTON)$/.test(e.target.tagName)) return;
+  if (handleKey(e.key.toUpperCase())) e.preventDefault();
+});
+
+function frame() {
+  requestAnimationFrame(frame);
+  const now = performance.now();
+  if (now - last < +el('rate').value) return;
+  last = now;
+
+  const st = +el('step').value;
+  const useZ = (stage !== 'pattern1');
+  const doodle = (stage === 'doodle');
+
+  // IF x>=361 THEN x:=0; IF INCX THEN Inc(x,6);  (DOODLE writes IF y>360, same thing)
+  if (xa >= 361) xa = 0;  if (incx) xa += st;
+  if (ya >= 361) ya = 0;  if (incy) ya += st;
+
+  setRotation(xa, ya);
+
+  // PROCEDURE Rotatec. Trunc, and only rows 1 and 2 ever reach the screen --
+  // row 3 is computed every frame in all three files and thrown away.
+  const ci = PTS.map(p => {
+    const pz = useZ ? p[2] : 0;
+    return [ Math.trunc(rot[0][0]*p[0] + rot[0][1]*p[1] + rot[0][2]*pz),
+             Math.trunc(rot[1][0]*p[0] + rot[1][1]*p[1] + rot[1][2]*pz) ];
+  });
+
+  if (doodle) {
+    if (clearing) fb.fill(0);
+  } else if (el('erase').checked) {
+    for (let y = VY0; y <= VY1; y++) for (let x = VX0; x <= VX1; x++) fb[y*W+x] = 0;
+  }
+
+  if (!doodle && el('guides').checked) {
+    for (let x = VX0; x <= VX1; x += 4) { px(x,VY0,40); px(x,VY1,40); }
+    for (let y = VY0; y <= VY1; y += 4) { px(VX0,y,40); px(VX1,y,40); }
+  }
+
+  for (let i = 0; i < 4; i++) {
+    const a = ci[i], b = ci[(i+1) % 4];
+    if (doodle)   // g(a,b,c,d) -> Line(a+105, b+105, ...) inside the viewport: no y flip
+      line(a[0]+VX0+OFF, a[1]+VY0+OFF, b[0]+VX0+OFF, b[1]+VY0+OFF, 15, true);
+    else          // Line3d -> Line(x+320, 239-y, ...)
+      line(a[0]+320, 239-a[1], b[0]+320, 239-b[1], 15, false);
+  }
+  frames++;
+
+  if (!doodle && el('guides').checked) {
+    const cx = ci[0][0] + 320, cy = 239 - ci[0][1];
+    for (let d = -4; d <= 4; d++) { px(cx+d, cy, 41); px(cx, cy+d, 41); }
+  }
+  if (doodle && el('border').checked) {
+    for (let x = VX0; x <= VX1; x++) { fb[VY0*W+x] = 8; fb[VY1*W+x] = 8; }
+    for (let y = VY0; y <= VY1; y++) { fb[y*W+VX0] = 8; fb[y*W+VX1] = 8; }
+  }
+
+  for (let i = 0; i < fb.length; i++) out[i] = PAL[fb[i]];
+  ctx.putImageData(img, 0, 0);
+
+  const det = Math.cos(xa*Math.PI/180) * Math.cos(ya*Math.PI/180);
+  let ext = 0;
+  for (const p of ci) ext = Math.max(ext, Math.abs(p[0]), Math.abs(p[1]));
+  const edge12 = Math.hypot(ci[0][0]-ci[1][0], ci[0][1]-ci[1][1]);
+
+  el('status').textContent =
+    `x=${w(xa,3)} ${incx?'running':'FROZEN'}   y=${w(ya,3)} ${incy?'running':'FROZEN'}` +
+    `   period ${w(Math.ceil(361/st),3)} frames   extent ${w(ext,3)}px (the box covers ${w(OFF,3)})` +
+    (doodle ? `   clearing ${clearing?'on':'off'}   frame ${w(frames,7)}` : '');
+  el('mat').textContent = useZ
+    ? `full 3×3 active   ·   projected det = ${det.toFixed(3)}` +
+      (det < 0 ? '   ← negative: the figure has turned inside out' : '') +
+      `   ·   edge 1–2 length ${edge12.toFixed(1)}`
+    : `[ ${rot[0][0].toFixed(3).padStart(6)}   0.000 ]   det = ${det.toFixed(3)}` +
+      `   ·   edge 1–2 length ${edge12.toFixed(1)}  ← always 0\n` +
+      `[ ${rot[1][0].toFixed(3).padStart(6)}  ${rot[1][1].toFixed(3).padStart(6)} ]`;
+}
+
+reset();
+frame();
+</script>
+</body>
+</html>
