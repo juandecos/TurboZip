@@ -1,0 +1,1111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>08 &middot; Spinning Cubes</title>
+<link rel="stylesheet" href="archive.css">
+<style>
+
+  #screen{height:min(58vh,460px)}
+</style>
+</head>
+<body>
+
+<nav class="ring">
+  <a href="pcx.html"><b>&laquo; PREVIOUS</b><span>07 &middot; PCX + Plasma</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
+  <a class="next" href="all.html"><b>NEXT &raquo;</b><span>09 &middot; More Fun With Palette Cycling</span></a>
+</nav>
+
+<header class="entry">
+  <div class="num">08</div>
+  <h1>Spinning Cubes</h1>
+  <div class="lede">
+    <p>
+    Another demo scene staple was simulating 3D objects on 2D hardware, so here are some rotating cubes.
+    </p>
+    <p>
+    I've struggled
+    to attribute the first one in this collection - the timestamp seems to place it before I started these experiments, and the text doesn't feel like my
+    own, although 30 years make this hazy. I've found copies of many of the other external influences on the internet,
+    but haven't found this one, and there are other anomalies mentioned below. I highly suspect it
+    isn't mine, but can't figure out the true author. Any leads are appreciated.
+    </p>
+  </div>
+  <details class="meta">
+    <summary>Details</summary>
+    <dl>
+      <dt>First</dt><dd><code>BOX.EXE</code> <b>1994-07-24 01:26:52</b> &middot; <code>BOX.PAS</code> 7,069 B (re-saved 1995-09-21 23:47)</dd>
+      <dt>Then</dt><dd><code>ASMBOX</code> 08-19 23:05 &middot; <code>ASMBOX3</code> 08-21 00:35 &middot; <code>WINGS</code> 08-21 00:50 &middot; <code>ASMBOX2</code> 09-02 11:14 &middot; <code>BOX2</code> 09-22 00:27</dd>
+      <dt>Provenance</dt><dd><b><code>BOX</code> is uncertain.</b> The other five are mine.</dd>
+      <dt>Demo</dt><dd>All six, in the order the code was written</dd>
+    </dl>
+  </details>
+</header>
+
+<div class="demo">
+<div class="panel selector">
+  <button id="prev">&larr;</button>
+  <select id="mode">
+      <option value="box">1994-07-24 01:26 &nbsp; BOX: BGI 640&times;480, sorted faces</option>
+      <option value="asmbox">1995-08-19 23:05 &nbsp; ASMBOX: wireframe, three axes</option>
+      <option value="asmbox3">1995-08-21 00:35 &nbsp; ASMBOX3: minified; velocity + zoom</option>
+      <option value="wings">1995-08-21 00:50 &nbsp; WINGS: same engine, new points</option>
+      <option value="asmbox2">1995-09-02 11:14 &nbsp; ASMBOX2: expanded again, plus pan</option>
+      <option value="box2">1995-09-22 00:27 &nbsp; BOX2: BOX back in Mode X</option>
+    </select>
+  <button id="next">&rarr;</button>
+  <button id="restart">restart</button>
+</div>
+
+<canvas id="screen" width="360" height="480"></canvas>
+
+<div class="panel" id="opts">
+  <label id="o-flicker"><input id="flicker" type="checkbox" checked> no retrace wait, as written (flickers)</label>
+  <label id="o-h"><input id="hbug" type="checkbox"> revert h:=0 bug fix</label>
+  <label id="o-edges">edges
+    <select id="edges">
+      <option value="cube">cube topology (as written)</option>
+      <option value="poly">18-gon outline</option>
+      <option value="web">every chord</option>
+    </select></label>
+  <label id="o-dots"><input id="dots" type="checkbox"> mark all 18 points</label>
+  <label id="o-zoombug"><input id="zoombug" type="checkbox" checked> ASMBOX2 starts at z:=1 (0.1&times;)</label>
+  <label id="o-bar"><input id="showbar" type="checkbox"> show BOX's erase rectangle</label>
+</div>
+
+<div id="keys"></div>
+
+<div id="status"></div>
+
+<div id="notes">
+<div class="note" data-note="asmbox" hidden>
+<b>ASMBOX.PAS, 19 Aug 1995, 2,233 bytes.</b> The first of the five 1995 files,
+and the only one that turns on all three axes at once.
+Eight points, twelve edges, no sorting, no zoom, no velocity - press X, Y or Z
+to stop and start an axis. Its rotation matrix came straight out of BOX and its
+depth sort did not, which is the argument in the commentary below.
+There is no retrace wait: the loop body draws the cube, reads the keyboard,
+and then calls clear_vga_screen(0), so the erase lands wherever in the frame
+it lands, which is the flicker you are looking at. Untick the box to hold it
+still; the file itself has no way to do that.
+Also note the angle wrap: <b>IF x=361 THEN x:=0</b> is tested <i>before</i> the
+increment, so the counter runs 1..361 and 361° is drawn as a repeat of 1°.
+One duplicated frame per revolution, in all six files.
+</div>
+<div class="note" data-note="asmbox3" hidden>
+<b>ASMBOX3.PAS, 21 Aug 1995, 1,756 bytes, thirty hours later.</b> The whole
+program is now fourteen lines with every procedure renamed to a single letter
+(k, f, g, m, h). Three things are new and all three stick: a proper double-edge
+retrace wait, an integer zoom <b>z</b> applied as *z/10 inside the rotate loop,
+and velocity instead of on/off: I/K/J/M nudge the per-frame angle step rather
+than toggling it, clamped to ±50. The z axis is gone; the matrix is the same one
+with zangle fixed at 0.
+Both this file and ASMBOX2 start <i>at rest</i> (nothing moves until you press a
+key) so the demo opens them at pitch 1, yaw 1 instead, which is two keystrokes
+from where the original starts you. I/M and K/J adjust from there; W and S zoom.
+</div>
+<div class="note" data-note="wings" hidden>
+<b>WINGS.PAS, 21 Aug 1995 00:50, fifteen minutes after ASMBOX3.</b> I had
+started working on some enhancements to ASMBOX and a bug resulted in this
+weird wing shape. It wasn't intentional, but I liked it enough to save a
+separate file for it. It seems that I kept working and managed to break
+it, with the archive version rendering a single point. The demo here sneaks
+a bug fix in to show the wing shape, but you can check the box to remove the
+fix.
+There were a few issues with this code:
+<b>(1)</b> the main block reads <b>SetPoints;h:=50;</b> but h is a global, so it is
+still 0 when the points are generated, and all eighteen land on the origin.
+<b>(2)</b> Drawc was never touched: it still draws the cube's twelve edges over
+points 1..8, so points 9..18 are computed every frame and never referenced.
+</div>
+<div class="note" data-note="asmbox2" hidden>
+<b>ASMBOX2.PAS, 2 Sep 1995, 2,042 bytes.</b> Chronologically last of the three,
+but I would guess that I wanted to add more features, and the minified ASMBOX3
+would be a pain to work with so I went back to this one to do so.
+Drawc takes a center (j,k) so
+R/D/F/C pan the cube, and the zoom is a <b>real</b> rather than an integer.
+That last change carries a bug: ASMBOX3 initialized z:=10 and divided by 10, so
+it started at 1.0×. ASMBOX2 kept the /10 and set <b>z:=1</b>, so it starts at
+0.1×, a twelve-pixel cube, and you have to press W nine times to get back to
+where you were. Untick the box to start it at 1.0× instead.
+</div>
+<div class="note" data-note="box" hidden>
+<b>BOX.PAS and BOX.EXE, 24 July 1994 01:26:52. 7,069 bytes.</b>
+<b>This one is unattributed.</b> The compiled binary is thirteen
+months older than ASMBOX and is built from this source; it holds all eight of
+the file's string literals, in order, byte for byte. So the cube came first, and
+BOX.PAS's 1995-09-21 date is a re-save.
+<i>Why</i> it is unattributed rather than mine, and what the later files
+took from it, is in the commentary below.
+The odd one out on every axis: 640×480 through BGI rather than 360×480
+through jmodex, fully spelled-out names, comments, a help screen, and six faces
+instead of twelve edges.
+The new machinery is SETPRIORITIES, a home-made depth sort, and the rule
+<b>IF (order&lt;4)</b> - only the three nearest faces are drawn at all. That is
+not back-face culling; there are no normals anywhere in the file. It is
+"a convex cube shows exactly three faces, so draw three." With no fill routine
+each face gets its two diagonals in its own color, which is as close to shading
+as BGI would get you for free.
+Two details worth pointing at. The erase rectangle <b>bar(215,135,425,345)</b>
+is 320±105, and the cube's furthest corner is 60√3 = 103.9, sized by hand, and
+tight. And the program ends with <b>FOR x:=1 TO 6 DO Writeln(priority[x])</b>,
+left in: debug output for the sort, printed to a text screen the moment you quit.
+The help text along the top and bottom is the program's own, drawn once
+before the loop, including the footer, which is worth reading before the
+commentary below.
+</div>
+<div class="note" data-note="box2" hidden>
+<b>BOX2.PAS, 22 Sep 1995 00:27, forty minutes after BOX.PAS was re-saved.</b>
+This is the year-old BOX being opened and worked on. The same program
+in Mode X: BGI and its Line3d/setcolor go, jmodex and a one-line helper
+<b>L(a,b,c,d,e)</b> come in, the six SetPoints faces collapse from 72 commented
+assignments to one dense procedure named <b>a</b>, and the color Case becomes
+<b>1:c:=4; 2:c:=1; 3:c:=7;</b>… SETPRIORITIES and RotateCube and SetRotation
+survive with only the variable names shortened: s for side, ci for CubeImage.
+The loop drops the dirty-rect bar for a whole-screen clear, drops the Delay, and
+starts with all three axes turning. The Writeln debug line is gone too.
+This is the minification habit caught mid-stroke: the interesting half of the
+file is preserved exactly and everything around it is compressed.
+</div>
+</div>
+</div>
+
+<div class="prose">
+<h2>Who wrote BOX cannot be recovered, and this page does not guess</h2>
+<p>This is the one entry in the collection that declines to answer its own
+question, so it is worth setting out what the answer rests on. The dating is not
+in doubt (the note under the BOX demo above has it) and neither is
+the consequence: <b>the cube is the oldest original program here</b>, thirteen
+months older than anything else in this family.</p>
+<p>Three facts bear on it, and they do not agree with each other. That
+disagreement is the answer.</p>
+<p><b>Against it being mine: it points at a directory that never existed here.</b>
+Of seventy-odd files, <code>BOX</code> is the only one that hands
+<code>InitGraph</code> a non-empty path. Every other program, mine and borrowed
+alike, passes <code>''</code>. That path is a fossil of a machine where Turbo
+Pascal lived at <code>C:\TP\</code>; this archive lived at
+<code>C:\turbo\</code>. It is inert either way, because
+<code>RegisterBGIDriver</code> runs two lines above it and
+<code>InitGraph</code> never goes to disk at all, which is precisely why it
+survived unnoticed.</p>
+<p><b>Also against: July 1994 is inside a school year with no computer in the
+house.</b> Whatever machine compiled <code>BOX.EXE</code> at 1:26 in the morning,
+it was not one I had.</p>
+<p><b>For it being mine: the file is unsigned.</b> Every borrowed thing in this
+collection carries a credit block, a handle or a copyright notice, without
+exception across six acquisitions: ZSoft, Frank Jan S&oslash;rensen, Matt
+Pritchard, Scott Wyatt, Fred Nietzche, Brian Baynes. <code>BOX</code> carries
+nothing. A file addressed to &ldquo;all you demo programmers&rdquo; with no name
+on it does not look like something that came off a BBS.</p>
+<p>So the honest position is <b>unattributed</b>: not &ldquo;probably mine&rdquo;,
+which risks claiming someone else's work, and not &ldquo;probably not&rdquo;,
+which risks disowning my own.</p>
+
+<h2>What is certain is everything downstream</h2>
+<p><code>ASMBOX</code>'s rotation matrix is character-identical to
+<code>BOX</code>'s, down to idiosyncrasies like <code>cos(y)*(-sin(z))</code>,
+so it was copied, not re-derived. But it took only the trigonometry.
+<b><code>SETPRIORITIES</code>, the cleverest thing in the family, appears in
+exactly two files</b>, <code>BOX</code> and <code>BOX2</code>, and never in
+anything written from scratch. I likely didn't understand it and kept the parts I did.</p>
+</div>
+
+<details class="source">
+<summary>BOX.PAS: 7,069 bytes</summary>
+<p class="cap">The 1994 file. Verbose, commented, BGI at 640&times;480, six sorted faces.</p>
+<pre>USES crt, graph, bgidriv;
+VAR
+  Cube: ARRAY[1..6,1..3,1..4] OF integer;
+  CubeImage: ARRAY[1..6,1..3,1..4] OF integer;
+  rotation: ARRAY[1..3,1..3] OF real;
+  Priority: ARRAY[1..6] OF BYTE;
+  DrawOrder: ARRAY[1..6] OF Byte;
+  driver, mode: integer;
+  x, y, z, d: integer;
+  ch: char;
+  incx, incy, incz: boolean;
+
+
+PROCEDURE SETPRIORITIES;
+VAR Z:ARRAY[1..6] OF REAL;
+    SIDE: INTEGER;
+    SIDE2: INTEGER;
+    order, x, y, a: integer;
+    count: ARRAY[1..6] OF byte;
+BEGIN
+  FOR SIDE:=1 TO 6 DO
+      Z[SIDE]:=(CUBEIMAGE[SIDE,3,1]+CUBEIMAGE[SIDE,3,2]+CUBEIMAGE[SIDE,3,3]
+                +CUBEIMAGE[SIDE,3,4]) / 4;
+  FOR SIDE:=1 TO 6 DO PRIORITY[SIDE]:=1;
+  FOR SIDE2:=1 TO 6 DO
+    FOR SIDE:=1 TO 6 DO
+        IF Z[SIDE2]&gt;Z[SIDE] THEN INC(PRIORITY[side2]);
+REPEAT
+ FOR x:=1 TO 6 DO count[x]:=0;
+   FOR x:=1 TO 6 DO
+    FOR side:=1 TO 6 DO
+     IF Priority[side]=x THEN Inc(count[x]);
+ a:=0;
+ REPEAT Inc(a) UNTIL (a=6) OR (count[a]=0);
+ IF (count[a]=0) THEN
+   BEGIN
+     x:=0;
+     REPEAT Inc(x) UNTIL (count[x]&gt;1);
+     y:=0;
+     REPEAT Inc(y) UNTIL Priority[y]=x;
+     Priority[y]:=a;
+   END;
+UNTIL (count[a]=1) AND (a=6);
+  FOR side:=1 TO 6 DO DrawOrder[Priority[side]]:=side;
+END;
+
+
+
+PROCEDURE RotateCube;
+VAR row, column, side: byte;
+BEGIN
+  FOR side:=1 TO 6 DO
+   FOR row:=1 TO 3 DO
+    FOR column:=1 TO 4 DO
+     CubeImage[side,row,column]:=Trunc((rotation[row,1]*Cube[side,1,column])
+                                      +(rotation[row,2]*Cube[side,2,column])
+                                      +(rotation[row,3]*Cube[side,3,column]));
+END; {PROCEDURE RotateCube}
+
+
+
+
+
+PROCEDURE SetRotation (xangle, yangle, zangle: integer);
+VAR x, y, z: real;
+BEGIN
+  x:=xangle*(pi/180);
+  y:=yangle*(pi/180);
+  z:=zangle*(pi/180);
+  rotation[1,1]:=cos(y)*cos(z);
+  rotation[1,2]:=cos(y)*(-sin(z));
+  rotation[1,3]:=(-sin(y));
+  rotation[2,1]:=cos(x)*sin(z)+sin(x)*sin(y)*cos(z);
+  rotation[2,2]:=cos(x)*cos(z)+sin(x)*sin(y)*(-sin(z));
+  rotation[2,3]:=sin(x)*cos(y);
+  rotation[3,1]:=sin(z)*(-sin(x))+cos(x)*sin(y)*cos(z);
+  rotation[3,2]:=(-sin(x))*cos(z)+cos(x)*sin(y)*(-sin(z));
+  rotation[3,3]:=cos(x)*cos(y);
+END;
+
+
+
+
+PROCEDURE Line3d (x1, y1, z1, x2, y2, z2: integer);
+BEGIN
+  y1:=479-y1;
+  y2:=479-y2;
+  Line (x1, y1,
+        x2, y2);
+END;
+
+
+
+
+PROCEDURE SetPoints;
+BEGIN
+  Cube[1,1,1]:=-60; Cube[1,2,1]:=-60; Cube[1,3,1]:=-60;   {front face}
+  Cube[1,1,2]:=60; Cube[1,2,2]:=-60; Cube[1,3,2]:=-60;
+  Cube[1,1,3]:=60; Cube[1,2,3]:=60; Cube[1,3,3]:=-60;
+  Cube[1,1,4]:=-60; Cube[1,2,4]:=60; Cube[1,3,4]:=-60;
+
+  Cube[2,1,1]:=-60; Cube[2,2,1]:=-60; Cube[2,3,1]:=60;   {back face}
+  Cube[2,1,2]:=60; Cube[2,2,2]:=-60; Cube[2,3,2]:=60;
+  Cube[2,1,3]:=60; Cube[2,2,3]:=60; Cube[2,3,3]:=60;
+  Cube[2,1,4]:=-60; Cube[2,2,4]:=60; Cube[2,3,4]:=60;
+
+  Cube[3,1,1]:=60; Cube[3,2,1]:=-60; Cube[3,3,1]:=-60;   {right face}
+  Cube[3,1,2]:=60; Cube[3,2,2]:=60; Cube[3,3,2]:=-60;
+  Cube[3,1,3]:=60; Cube[3,2,3]:=60; Cube[3,3,3]:=60;
+  Cube[3,1,4]:=60; Cube[3,2,4]:=-60; Cube[3,3,4]:=60;
+
+  Cube[4,1,1]:=-60; Cube[4,2,1]:=-60; Cube[4,3,1]:=-60;   {left face}
+  Cube[4,1,2]:=-60; Cube[4,2,2]:=60; Cube[4,3,2]:=-60;
+  Cube[4,1,3]:=-60; Cube[4,2,3]:=60; Cube[4,3,3]:=60;
+  Cube[4,1,4]:=-60; Cube[4,2,4]:=-60; Cube[4,3,4]:=60;
+
+  Cube[5,1,1]:=-60; Cube[5,2,1]:=60; Cube[5,3,1]:=-60;   {top face}
+  Cube[5,1,2]:=60; Cube[5,2,2]:=60; Cube[5,3,2]:=-60;
+  Cube[5,1,3]:=60; Cube[5,2,3]:=60; Cube[5,3,3]:=60;
+  Cube[5,1,4]:=-60; Cube[5,2,4]:=60; Cube[5,3,4]:=60;
+
+  Cube[6,1,1]:=-60; Cube[6,2,1]:=-60; Cube[6,3,1]:=-60;   {bottom face}
+  Cube[6,1,2]:=60; Cube[6,2,2]:=-60; Cube[6,3,2]:=-60;
+  Cube[6,1,3]:=60; Cube[6,2,3]:=-60; Cube[6,3,3]:=60;
+  Cube[6,1,4]:=-60; Cube[6,2,4]:=-60; Cube[6,3,4]:=60;
+END;
+
+
+
+PROCEDURE DrawCube(x, y, z: integer; color:byte);
+VAR side, order: byte;
+    centerx, centery: integer;
+BEGIN
+  FOR order:=6 DOWNTO 1 DO
+    BEGIN
+      setcolor(color);
+      side:=DrawOrder[order];
+      IF (order&lt;4) THEN
+      BEGIN
+      Line3d( CubeImage[side,1,1]+x, CubeImage[side,2,1]+y, CubeImage[side,3,1]+z,
+              CubeImage[side,1,2]+x, CubeImage[side,2,2]+y, CubeImage[side,3,2]+z);
+      Line3d( CubeImage[side,1,2]+x, CubeImage[side,2,2]+y, CubeImage[side,3,2]+z,
+              CubeImage[side,1,3]+x, CubeImage[side,2,3]+y, CubeImage[side,3,3]+z);
+      Line3d( CubeImage[side,1,3]+x, CubeImage[side,2,3]+y, CubeImage[side,3,3]+z,
+              CubeImage[side,1,4]+x, CubeImage[side,2,4]+y, CubeImage[side,3,4]+z);
+      Line3d( CubeImage[side,1,4]+x, CubeImage[side,2,4]+y, CubeImage[side,3,4]+z,
+              CubeImage[side,1,1]+x, CubeImage[side,2,1]+y, CubeImage[side,3,1]+z);
+      END;
+      IF (order&lt;4) THEN
+      BEGIN
+        centerx:=Round ((CubeImage[side,1,1]+CubeImage[side,1,3]) / 2);
+        centery:=Round ((CubeImage[side,2,1]+CubeImage[side,2,3]) / 2);
+        IF color&lt;&gt;black then
+        Case Side OF
+         1: Setcolor(red);
+         2: setcolor(blue);
+         3: setcolor(lightgray);
+         4: setcolor(yellow);
+         5: setcolor(green);
+         6: setcolor(magenta);
+        END;
+        Line3d(cubeimage[side,1,1]+x,cubeimage[side,2,1]+y,cubeimage[side,3,1],
+               cubeimage[side,1,3]+x,cubeimage[side,2,3]+y,cubeimage[side,3,3]);
+        Line3d(cubeimage[side,1,2]+x,cubeimage[side,2,2]+y,cubeimage[side,3,2],
+               cubeimage[side,1,4]+x,cubeimage[side,2,4]+y,cubeimage[side,3,4]);
+      END;
+    END;
+END;
+
+
+
+
+BEGIN {main program}
+  ClrScr;
+  if RegisterBGIDriver(@EGAVGADriverProc) &lt; 0 then halt(1);
+  driver:=VGA; mode:=VGAhi; Initgraph (driver,mode,&#x27;C:\TP\BGI&#x27;);
+  OutTextXY(10,10,&#x27;This is a rotating cube.  Cool, isn&#x27;&#x27;t it?&#x27;);
+  OutTextXY(10,30,&#x27;Press the &lt; or &gt; keys to increase/decrease animation rate.&#x27;);
+  OuttextXY(10,50,&#x27;Press X, Y, or Z to start/stop rotation on the respective axis.&#x27;);
+  OutTextXY(10,70,&#x27;Press &lt;Escape&gt; to quit.&#x27;);
+  OutTextXY(10,430,&#x27;Remember all you demo programmers: this is written PURELY in Turbo Pascal&#x27;);
+  OutTextXY(10,450,&#x27;so of course it runs slow and is not flood-filled.  Maybe after I learn some&#x27;);
+  OutTextXY(10,470,&#x27;assembley...&#x27;);
+  SetPoints;
+  x:=0; y:=0; z:=0; d:=0; ch:=&#x27; &#x27;;
+  incx:=false; incy:=false; incz:=true;
+  REPEAT
+    IF x=361 THEN x:=0; IF INCX=true THEN Inc(x);
+    IF y=361 THEN y:=0; IF INCY=true THEN Inc(y);
+    IF z=361 THEN z:=0; IF INCZ=true THEN Inc(z);
+    SetRotation(x,y,z);
+    RotateCube;
+    SetPriorities;
+    setfillstyle(0,0);
+    bar(215,135,425,345);
+    DrawCube (320, 240, 0, white);
+    Delay(d);
+    IF Keypressed THEN
+      BEGIN
+        ch:=readkey;
+        IF ch=&#x27;.&#x27; THEN Inc(d);
+        IF (ch=&#x27;,&#x27;) AND (d&gt;0) THEN dec(d);
+        IF (UpCase(ch)=&#x27;X&#x27;) THEN INCX:=NOT(INCX);
+        IF (UpCase(ch)=&#x27;Y&#x27;) THEN INCY:=NOT(INCY);
+        IF (UpCase(ch)=&#x27;Z&#x27;) THEN INCZ:=NOT(INCZ);
+      END;
+  UNTIL Ord(ch)=27;
+  CloseGraph;
+  TextMode(co80);
+  ClrScr;
+  FOR x:=1 TO 6 DO Writeln(priority[x]);
+END. {main program}</pre>
+</details>
+<details class="source">
+<summary>ASMBOX.PAS: 2,233 bytes</summary>
+<p class="cap">Thirteen months later: eight points, twelve edges, Mode X. Same matrix.</p>
+<pre>USES crt,JMODEX;VAR C,i:ARRAY[1..8,1..3]OF integer;r:ARRAY[1..3,1..3]OF real;
+x,y,z,q:integer;ch:char;p,d:array[1..8]of byte;incx,incy,incz:boolean;
+
+PROCEDURE k;VAR a,b:byte;BEGIN FOR b:=1TO 8DO FOR a:=1TO 3DO i[b,a]:=
+Trunc((r[a,1]*c[b,1])+(r[a,2]*c[b,2])+(r[a,3]*c[b,3]));END;
+
+PROCEDURE Setr(m,n,o:integer);VAR x,y,z:real;BEGIN x:=m*(pi/180);
+y:=n*(pi/180);z:=o*(pi/180);r[1,1]:=cos(y)*cos(z);r[1,2]:=cos(y)*(-sin(z));
+r[1,3]:=(-sin(y));r[2,1]:=cos(x)*sin(z)+sin(x)*sin(y)*cos(z);
+r[2,2]:=cos(x)*cos(z)+sin(x)*sin(y)*(-sin(z));r[2,3]:=sin(x)*cos(y);
+r[3,1]:=sin(z)*(-sin(x))+cos(x)*sin(y)*cos(z);
+r[3,2]:=(-sin(x))*cos(z)+cos(x)*sin(y)*(-sin(z));r[3,3]:=cos(x)*cos(y);END;
+
+PROCEDURE SetPoints;const v:array[1..24]of integer=(-60,-60,-60,60,-60,-60,60,
+60,-60,-60,60,-60,-60,-60,60,60,-60,60,60,60,60,-60,60,60);var a,b,d:integer;
+begin d:=1;for a:=1to 8do for b:=1to 3do begin c[a,b]:=v[d];inc(d);end;END;
+
+PROCEDURE Drawc;BEGIN
+draw_line(i[1,1]+180,239-i[1,2],i[2,1]+180,239-i[2,2],15);
+draw_line(i[1,1]+180,239-i[1,2],i[4,1]+180,239-i[4,2],15);
+draw_line(i[1,1]+180,239-i[1,2],i[5,1]+180,239-i[5,2],15);
+draw_line(i[3,1]+180,239-i[3,2],i[2,1]+180,239-i[2,2],15);
+draw_line(i[3,1]+180,239-i[3,2],i[7,1]+180,239-i[7,2],15);
+draw_line(i[3,1]+180,239-i[3,2],i[4,1]+180,239-i[4,2],15);
+draw_line(i[6,1]+180,239-i[6,2],i[2,1]+180,239-i[2,2],15);
+draw_line(i[6,1]+180,239-i[6,2],i[5,1]+180,239-i[5,2],15);
+draw_line(i[6,1]+180,239-i[6,2],i[7,1]+180,239-i[7,2],15);
+draw_line(i[8,1]+180,239-i[8,2],i[4,1]+180,239-i[4,2],15);
+draw_line(i[8,1]+180,239-i[8,2],i[5,1]+180,239-i[5,2],15);
+draw_line(i[8,1]+180,239-i[8,2],i[7,1]+180,239-i[7,2],15);END;
+
+BEGIN if set_vga_modex(7,360,480,1)=0 then halt(0);clear_vga_screen(0);
+SetPoints;x:=0;y:=0;z:=0;ch:=&#x27; &#x27;;incx:=false;incy:=true;incz:=true;
+setr(x,y,z);k;REPEAT IF x=361 THEN x:=0;IF INCX=true THEN
+Inc(x);IF y=361 THEN y:=0;IF INCY=true THEN Inc(y);IF z=361 THEN z:=0;
+IF INCZ=true THEN Inc(z);drawc;Setr(x,y,z);k;
+IF Keypressed THEN BEGIN ch:=readkey;IF(UpCase(ch)=&#x27;X&#x27;)THEN INCX:=NOT(INCX);
+IF(UpCase(ch)=&#x27;Y&#x27;)THEN INCY:=NOT(INCY);IF(UpCase(ch)=&#x27;Z&#x27;)THEN INCZ:=NOT(INCZ)
+END;clear_vga_screen(0);UNTIL Ord(ch)=27;asm mov ah,0;mov al,3;int 16;end;END.</pre>
+</details>
+<details class="source">
+<summary>ASMBOX3.PAS: 1,756 bytes</summary>
+<p class="cap">Fourteen lines. Retrace wait, zoom, velocity.</p>
+<pre>USES crt,JMODEX;VAR C,i:ARRAY[1..8,1..3]OF integer;r:ARRAY[1..3,1..3]OF real;x,y,z,q,a,b:integer;j:char;PROCEDURE k;VAR b:byte;
+BEGIN FOR b:=1TO 8DO begin i[b,1]:=Trunc(((r[1,1]*c[b,1])+(r[1,2]*c[b,2])+(r[1,3]*c[b,3]))*z/10)+180;i[b,2]:=239-Trunc(((r[2,1]
+*c[b,1])+(r[2,2]*c[b,2])+(r[2,3]*c[b,3]))*z/10);END;end;PROCEDURE f(m,n:integer);VAR x,y:real;BEGIN x:=m*(pi/180);y:=n*(pi/180)
+;r[1,1]:=cos(y);r[1,2]:=0;r[1,3]:=-sin(y);r[2,1]:=sin(x)*sin(y);r[2,2]:=cos(x);r[2,3]:=sin(x)*cos(y);r[3,1]:=cos(x)*sin(y);r[3,
+2]:=-sin(x);r[3,3]:=cos(x)*cos(y);END;PROCEDURE g;const v:array[1..24]of integer=(-60,-60,-60,60,-60,-60,60,60,-60,-60,60,-60,
+-60,-60,60,60,-60,60,60,60,60,-60,60,60);var a,b,d:integer;begin d:=1;for a:=1to 8do for b:=1to 3do begin c[a,b]:=v[d];inc(d);
+end;END;Procedure m(a,b,c,d:integer);begin draw_line(a,b,c,d,15);end;PROCEDURE h;BEGIN m(i[1,1],i[1,2],i[2,1],i[2,2]);m(i[1,1],
+i[1,2],i[4,1],i[4,2]);m(i[1,1],i[1,2],i[5,1],i[5,2]);m(i[3,1],i[3,2],i[2,1],i[2,2]);m(i[3,1],i[3,2],i[7,1],i[7,2]);m(i[3,1],i[3
+,2],i[4,1],i[4,2]);m(i[6,1],i[6,2],i[2,1],i[2,2]);m(i[6,1],i[6,2],i[5,1],i[5,2]);m(i[6,1],i[6,2],i[7,1],i[7,2]);m(i[8,1],i[8,2]
+,i[4,1],i[4,2]);m(i[8,1],i[8,2],i[5,1],i[5,2]);m(i[8,1],i[8,2],i[7,1],i[7,2]);END;BEGIN if set_vga_modex(7,360,480,1)=0then
+halt(0);g;x:=0;y:=0;z:=10;j:=&#x27; &#x27;;a:=0;b:=0;f(x,y);k;REPEAT IF x=361THEN x:=0;Inc(x,a);IF y=361THEN y:=0;Inc(y,b);if a&gt;50then a
+:=50;if a&lt;-50then a:=-50;if b&gt;50then b:=50;if b&lt;-50then b:=-50;if z&gt;20then z:=20;if z&lt;1then z:=1;repeat until(port[$3da]and 8)
+&lt;&gt;0;h;f(x,y);k;IF Keypressed THEN BEGIN j:=readkey;case upcase(j)of&#x27;I&#x27;:a:=a+1;&#x27;K&#x27;:b:=b+1;&#x27;J&#x27;:b:=b-1;&#x27;M&#x27;:a:=a-1;&#x27;W&#x27;:z:=z+1;&#x27;S&#x27;:z
+:=z-1;end;END;clear_vga_screen(0);UNTIL Ord(j)=27;asm mov ah,0;mov al,3;int 16;end;END.</pre>
+</details>
+<details class="source">
+<summary>WINGS.PAS: 1,968 bytes</summary>
+<p class="cap">Fifteen minutes after ASMBOX3.</p>
+<pre>USES crt,JMODEX;VAR C,i:ARRAY[1..18,1..3]OF integer;r:ARRAY[1..3,1..3]OF real;
+x,y,q,z,h:integer;ch:char;incx,incy:shortint;
+
+PROCEDURE k;VAR a,b:byte;BEGIN FOR b:=1TO 18DO FOR a:=1TO 3DO i[b,a]:=
+Trunc(((r[a,1]*c[b,1])+(r[a,2]*c[b,2])+(r[a,3]*c[b,3]))*z/10);END;
+
+PROCEDURE Setr(m,n:integer);VAR x,y:real;BEGIN x:=m*(pi/180);y:=n*(pi/180);
+r[1,1]:=cos(y);r[1,2]:=0;r[1,3]:=-sin(y);r[2,1]:=sin(x)*sin(y);r[2,2]:=cos(x);
+r[2,3]:=sin(x)*cos(y);r[3,1]:=cos(x)*sin(y);r[3,2]:=-sin(x);
+r[3,3]:=cos(x)*cos(y);END;
+
+PROCEDURE SetPoints;var a,b:integer;begin for a:=1to 18do begin
+c[a,1]:=trunc(h*sin(a*pi/9));c[a,2]:=trunc(h*cos(a*pi/9));end;
+for a:=1to 18do c[a,3]:=0;end;
+
+PROCEDURE Drawc;BEGIN
+draw_line(i[1,1]+180,239-i[1,2],i[2,1]+180,239-i[2,2],15);
+draw_line(i[1,1]+180,239-i[1,2],i[4,1]+180,239-i[4,2],15);
+draw_line(i[1,1]+180,239-i[1,2],i[5,1]+180,239-i[5,2],15);
+draw_line(i[3,1]+180,239-i[3,2],i[2,1]+180,239-i[2,2],15);
+draw_line(i[3,1]+180,239-i[3,2],i[7,1]+180,239-i[7,2],15);
+draw_line(i[3,1]+180,239-i[3,2],i[4,1]+180,239-i[4,2],15);
+draw_line(i[6,1]+180,239-i[6,2],i[2,1]+180,239-i[2,2],15);
+draw_line(i[6,1]+180,239-i[6,2],i[5,1]+180,239-i[5,2],15);
+draw_line(i[6,1]+180,239-i[6,2],i[7,1]+180,239-i[7,2],15);
+draw_line(i[8,1]+180,239-i[8,2],i[4,1]+180,239-i[4,2],15);
+draw_line(i[8,1]+180,239-i[8,2],i[5,1]+180,239-i[5,2],15);
+draw_line(i[8,1]+180,239-i[8,2],i[7,1]+180,239-i[7,2],15);END;
+
+BEGIN if set_vga_modex(7,360,480,1)=0 then halt(0);clear_vga_screen(0);
+SetPoints;h:=50;x:=0;y:=0;z:=10;ch:=&#x27; &#x27;;incx:=0;incy:=0;setr(x,y);k;REPEAT IF x=361
+THEN x:=0;Inc(x,incx);IF y=361 THEN y:=0;Inc(y,incy);if z&gt;20 then z:=20;
+if z&lt;1 then z:=1;repeat until(port[$3da]and 8)&lt;&gt;0;drawc;Setr(x,y);k;
+IF Keypressed THEN BEGIN ch:=readkey;case upcase(ch) of &#x27;I&#x27;:INCX:=INCX+1;
+&#x27;K&#x27;:INCY:=INCY+1;&#x27;J&#x27;:INCY:=INCY-1;&#x27;M&#x27;:INCX:=INCX-1;&#x27;W&#x27;:z:=z+1;&#x27;S&#x27;:z:=z-1;
+end;
+END;clear_vga_screen(0);UNTIL Ord(ch)=27;asm mov ah,0;mov al,3;int 16;end;END.</pre>
+</details>
+<details class="source">
+<summary>ASMBOX2.PAS: 2,042 bytes</summary>
+<p class="cap">ASMBOX3 un-minified, plus panning and the zoom bug.</p>
+<pre>USES crt,JMODEX;VAR C,i:ARRAY[1..8,1..3]OF integer;r:ARRAY[1..3,1..3]OF real;
+j,k,x,y,q:integer;ch:char;p,d:array[1..8]of byte;incx,incy:shortint;z:real;
+
+PROCEDURE m;VAR a,b:byte;BEGIN FOR b:=1TO 8DO FOR a:=1TO 3DO i[b,a]:=
+Trunc(((r[a,1]*c[b,1])+(r[a,2]*c[b,2])+(r[a,3]*c[b,3]))*z/10);END;
+
+PROCEDURE Setr(m,n:integer);VAR x,y:real;BEGIN x:=m*(pi/180);y:=n*(pi/180);
+r[1,1]:=cos(y);r[1,2]:=0;r[1,3]:=(-sin(y));r[2,1]:=sin(x)*sin(y);
+r[2,2]:=cos(x);r[2,3]:=sin(x)*cos(y);r[3,1]:=cos(x)*sin(y);r[3,2]:=(-sin(x));
+r[3,3]:=cos(x)*cos(y);END;
+
+PROCEDURE SetPoints;const v:array[1..24]of integer=(-60,-60,-60,60,-60,-60,60,
+60,-60,-60,60,-60,-60,-60,60,60,-60,60,60,60,60,-60,60,60);var a,b,d:integer;
+begin d:=1;for a:=1to 8do for b:=1to 3do begin c[a,b]:=v[d];inc(d);end;END;
+
+PROCEDURE Drawc(j,k:integer);BEGIN
+draw_line(i[1,1]+j,k-i[1,2],i[2,1]+j,k-i[2,2],15);
+draw_line(i[1,1]+j,k-i[1,2],i[4,1]+j,k-i[4,2],15);
+draw_line(i[1,1]+j,k-i[1,2],i[5,1]+j,k-i[5,2],15);
+draw_line(i[3,1]+j,k-i[3,2],i[2,1]+j,k-i[2,2],15);
+draw_line(i[3,1]+j,k-i[3,2],i[7,1]+j,k-i[7,2],15);
+draw_line(i[3,1]+j,k-i[3,2],i[4,1]+j,k-i[4,2],15);
+draw_line(i[6,1]+j,k-i[6,2],i[2,1]+j,k-i[2,2],15);
+draw_line(i[6,1]+j,k-i[6,2],i[5,1]+j,k-i[5,2],15);
+draw_line(i[6,1]+j,k-i[6,2],i[7,1]+j,k-i[7,2],15);
+draw_line(i[8,1]+j,k-i[8,2],i[4,1]+j,k-i[4,2],15);
+draw_line(i[8,1]+j,k-i[8,2],i[5,1]+j,k-i[5,2],15);
+draw_line(i[8,1]+j,k-i[8,2],i[7,1]+j,k-i[7,2],15);END;
+
+BEGIN if set_vga_modex(7,360,480,1)=0 then halt(0);clear_vga_screen(0);
+SetPoints;j:=180;k:=239;x:=0;y:=0;z:=1;ch:=&#x27; &#x27;;incx:=0;incy:=0;setr(x,y);m;REPEAT IF x=361
+THEN x:=0;Inc(x,incx);IF y=361 THEN y:=0;Inc(y,incy);if z&gt;20 then z:=20;
+if z&lt;1 then z:=1;repeat until(port[$3da]and 8)&lt;&gt;0;drawc(j,k);Setr(x,y);m;
+IF Keypressed THEN BEGIN ch:=readkey;case upcase(ch) of &#x27;I&#x27;:inc(INCX);
+&#x27;K&#x27;:inc(INCY);&#x27;J&#x27;:INCY:=INCY-1;&#x27;M&#x27;:INCX:=INCX-1;&#x27;W&#x27;:z:=z+1;&#x27;S&#x27;:z:=z-1;
+&#x27;R&#x27;:k:=k-5;&#x27;D&#x27;:j:=j-5;&#x27;F&#x27;:j:=j+5;&#x27;C&#x27;:k:=k+5;end;
+END;clear_vga_screen(0);UNTIL Ord(ch)=27;asm mov ah,0;mov al,3;int 16;end;END.</pre>
+</details>
+<details class="source">
+<summary>BOX2.PAS: 3,929 bytes</summary>
+<p class="cap">BOX caught halfway through the minification pass.</p>
+<pre>uses crt,jmodex;var c,ci:array[1..6,1..3,1..4]of integer;
+  rotation: ARRAY[1..3,1..3] OF real;
+  Priority,DrawOrder: ARRAY[1..6] OF Byte;
+  x, y, z,  k: integer;
+  ch: char;
+  incx, incy, incz: boolean;
+
+
+PROCEDURE SETPRIORITIES;
+VAR Z:ARRAY[1..6] OF REAL;
+    s: INTEGER;
+    s2: INTEGER;
+    order, x, y, a: integer;
+    count: ARRAY[1..6] OF byte;
+BEGIN
+  FOR s:=1TO 6DO begin Z[s]:=(ci[s,3,1]+ci[s,3,2]+ci[s,3,3]+ci[s,3,4])/4;
+PRIORITY[s]:=1;end;
+  FOR S2:=1TO 6DO FOR S:=1TO 6DO IF Z[S2]&gt;Z[S] THEN INC(PRIORITY[s2]);
+REPEAT
+ FOR x:=1 TO 6 DO count[x]:=0;
+   FOR x:=1 TO 6 DO
+    FOR s:=1 TO 6 DO
+     IF Priority[s]=x THEN Inc(count[x]);
+ a:=0;
+ REPEAT Inc(a) UNTIL (a=6) OR (count[a]=0);
+ IF (count[a]=0) THEN
+   BEGIN
+     x:=0;
+     REPEAT Inc(x) UNTIL (count[x]&gt;1);
+     y:=0;
+     REPEAT Inc(y) UNTIL Priority[y]=x;
+     Priority[y]:=a;
+   END;
+UNTIL (count[a]=1) AND (a=6);
+  FOR s:=1 TO 6 DO DrawOrder[Priority[s]]:=s;
+END;
+
+
+
+PROCEDURE RotateCube;
+VAR row, column, s: byte;
+BEGIN
+  FOR s:=1 TO 6 DO
+   FOR row:=1 TO 3 DO
+    FOR column:=1 TO 4 DO
+     ci[s,row,column]:=Trunc((rotation[row,1]*c[s,1,column])
+                                      +(rotation[row,2]*c[s,2,column])
+                                      +(rotation[row,3]*c[s,3,column]));
+END;
+
+PROCEDURE SetRotation (xangle, yangle, zangle: integer);
+VAR x, y, z: real;
+BEGIN
+  x:=xangle*(pi/180);
+  y:=yangle*(pi/180);
+  z:=zangle*(pi/180);
+  rotation[1,1]:=cos(y)*cos(z);
+  rotation[1,2]:=cos(y)*(-sin(z));
+  rotation[1,3]:=(-sin(y));
+  rotation[2,1]:=cos(x)*sin(z)+sin(x)*sin(y)*cos(z);
+  rotation[2,2]:=cos(x)*cos(z)+sin(x)*sin(y)*(-sin(z));
+  rotation[2,3]:=sin(x)*cos(y);
+  rotation[3,1]:=sin(z)*(-sin(x))+cos(x)*sin(y)*cos(z);
+  rotation[3,2]:=(-sin(x))*cos(z)+cos(x)*sin(y)*(-sin(z));
+  rotation[3,3]:=cos(x)*cos(y);
+END;
+
+PROCEDURE L(a,b,c,d,e:integer);BEGIN draw_line(a+180,239-b,c+180,239-d,e);END;
+
+PROCEDURE a;BEGIN c[1,1,1]:=-60;c[1,2,1]:=-60;c[1,3,1]:=-60;c[1,1,2]:=60;c[1,2
+,2]:=-60;c[1,3,2]:=-60;c[1,1,3]:=60;c[1,2,3]:=60;c[1,3,3]:=-60;c[1,1,4]:=-60;c
+[1,2,4]:=60;c[1,3,4]:=-60;c[2,1,1]:=-60;c[2,2,1]:=-60;c[2,3,1]:=60;c[2,1,2]:=
+60;c[2,2,2]:=-60;c[2,3,2]:=60;c[2,1,3]:=60;c[2,2,3]:=60;c[2,3,3]:=60;c[2,1,4]
+:=-60;c[2,2,4]:=60;c[2,3,4]:=60;c[3,1,1]:=60;c[3,2,1]:=-60;c[3,3,1]:=-60;c[3,1
+,2]:=60;c[3,2,2]:=60;c[3,3,2]:=-60;c[3,1,3]:=60;c[3,2,3]:=60;c[3,3,3]:=60;c[3,
+1,4]:=60;c[3,2,4]:=-60;c[3,3,4]:=60;c[4,1,1]:=-60;c[4,2,1]:=-60;c[4,3,1]:=-60;
+c[4,1,2]:=-60;c[4,2,2]:=60;c[4,3,2]:=-60;c[4,1,3]:=-60;c[4,2,3]:=60;c[4,3,3]:=
+60;c[4,1,4]:=-60;c[4,2,4]:=-60;c[4,3,4]:=60;c[5,1,1]:=-60;c[5,2,1]:=60;c[5,3,1
+]:=-60;c[5,1,2]:=60;c[5,2,2]:=60;c[5,3,2]:=-60;c[5,1,3]:=60;c[5,2,3]:=60;c[5,3
+,3]:=60;c[5,1,4]:=-60;c[5,2,4]:=60;c[5,3,4]:=60;c[6,1,1]:=-60;c[6,2,1]:=-60;c[
+6,3,1]:=-60;c[6,1,2]:=60;c[6,2,2]:=-60;c[6,3,2]:=-60;c[6,1,3]:=60;c[6,2,3]:=
+-60;c[6,3,3]:=60;c[6,1,4]:=-60;c[6,2,4]:=-60;c[6,3,4]:=60;END;
+
+PROCEDURE DrawCube;VAR s,c:byte;BEGIN FOR k:=3 DOWNTO 1 DO BEGIN s:=DrawOrder
+[k];l(ci[s,1,1],ci[s,2,1],ci[s,1,2],ci[s,2,2],15);l(ci[s,1,2],ci[s,2,2],ci[s,1
+,3],ci[s,2,3],15);l(ci[s,1,3],ci[s,2,3],ci[s,1,4],ci[s,2,4],15);l(ci[s,1,4],ci
+[s,2,4],ci[s,1,1],ci[s,2,1],15);Case s of 1:c:=4;2:c:=1;3:c:=7;4:c:=14;5:c:=2;
+6:c:=5;END;l(ci[s,1,1],ci[s,2,1],ci[s,1,3],ci[s,2,3],c);l(ci[s,1,2],ci[s,2,2],
+ci[s,1,4],ci[s,2,4],c);END;END;
+
+BEGIN if set_vga_modex(7,360,480,1)=0 then halt(0);clear_vga_screen(0);
+a;x:=0;y:=0;z:=0;ch:=&#x27; &#x27;;incx:=true;incy:=true;incz:=true;REPEAT
+IF x=361 THEN x:=0;IF INCX THEN Inc(x);IF y=361 THEN y:=0;IF INCY THEN Inc(y);
+IF z=361 THEN z:=0;IF INCZ THEN Inc(z);SetRotation(x,y,z);RotateCube;
+SetPriorities;clear_vga_screen(0);DrawCube;
+IF Keypressed THEN BEGIN ch:=readkey;case upcase(ch)of&#x27;X&#x27;:INCX:=NOT(INCX);
+&#x27;Y&#x27;:INCY:=NOT(INCY);&#x27;Z&#x27;:INCZ:=NOT(INCZ);end;END;UNTIL Ord(ch)=27;
+asm mov ah,0;mov al,3;int 16;end;END.</pre>
+</details>
+
+<nav class="ring">
+  <a href="pcx.html"><b>&laquo; PREVIOUS</b><span>07 &middot; PCX + Plasma</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
+  <a class="next" href="all.html"><b>NEXT &raquo;</b><span>09 &middot; More Fun With Palette Cycling</span></a>
+</nav>
+
+<script src="archive.js"></script>
+<script>
+'use strict';
+// Notes live in the markup as hidden siblings, so they are plain HTML with no
+// escaping and cannot break this script. This only flips which one is visible.
+function showNote(key) {
+  for (const n of document.getElementById('notes').children)
+    n.hidden = n.dataset.note !== String(key);
+}
+// ---------------------------------------------------------------------------
+// Six files. Five of them span five weeks in Aug-Sep 1995; the sixth, BOX, is
+// thirteen months older than any of them -- BOX.EXE is stamped 1994-07-24
+// 01:26:52 and is compiled from BOX.PAS (the binary carries all eight of that
+// file's string literals, in source order). BOX.PAS's own 1995-09-21 mtime is a
+// re-save, forty minutes before BOX2. So the dropdown is in the order the code
+// was written, which is NOT the order of the .PAS timestamps.
+//
+// Where BOX came from is not recoverable, and this page does not guess: see its
+// note in the dropdown.
+//
+// One thing worth knowing before reading any of them: none of the three ASMBOX
+// files contains inline assembly, beyond the two instructions
+//
+//     asm mov ah,0; mov al,3; int 16; end
+//
+// that reset the text mode on exit -- and those two instructions end almost
+// every file in the archive, BOX2 and WINGS included. The "ASM" is the jmodex
+// unit being assembly-backed (it links MODEX2.OBJ), not the program. Which
+// means BOX's footer -- "Maybe after I learn some assembley..." -- is not
+// modest or evasive. It is simply true, and it was true of ASMBOX too.
+// ---------------------------------------------------------------------------
+
+const canvas = document.getElementById('screen');
+const ctx    = canvas.getContext('2d', { willReadFrequently: true });
+
+// The 16-color EGA/VGA text palette. Mode X programs here only ever use 15
+// (white) plus the six face colors; BOX asks BGI for the same indices.
+const EGA = [[0,0,0],[0,0,170],[0,170,0],[0,170,170],[170,0,0],[170,0,170],
+             [170,85,0],[170,170,170],[85,85,85],[85,85,255],[85,255,85],
+             [85,255,255],[255,85,85],[255,85,255],[255,255,85],[255,255,255]];
+const PAL = new Uint32Array(256);
+EGA.forEach(([r,g,b], i) => PAL[i] = (255<<24)|(b<<16)|(g<<8)|r);
+PAL[16] = (255<<24)|(0x33<<16)|(0x66<<8)|0x33;   // guide green, not in the original
+
+let W = 360, H = 480, CX = 180, CY = 239;
+let img, out, vram;
+function setSize(w, h) {
+  W = w; H = h; CX = (w === 640) ? 320 : 180; CY = 239;
+  canvas.width = w; canvas.height = h;
+  img  = ctx.createImageData(W, H);
+  out  = new Uint32Array(img.data.buffer);
+  vram = new Uint8Array(W * H);
+}
+
+// jmodex's draw_line / BGI's Line. Bresenham, because a canvas line is
+// antialiased and these were never anything but single pixels.
+function drawLine(x0, y0, x1, y1, c) {
+  x0|=0; y0|=0; x1|=0; y1|=0;
+  const dx = Math.abs(x1-x0), sx = x0<x1 ? 1 : -1;
+  const dy = -Math.abs(y1-y0), sy = y0<y1 ? 1 : -1;
+  let err = dx + dy;
+  for (;;) {
+    if (x0>=0 && x0<W && y0>=0 && y0<H) vram[y0*W + x0] = c;
+    if (x0===x1 && y0===y1) break;
+    const e2 = 2*err;
+    if (e2 >= dy) { err += dy; x0 += sx; }
+    if (e2 <= dx) { err += dx; y0 += sy; }
+  }
+}
+function rect(x1, y1, x2, y2, c) {   // BGI's Bar with fillstyle 0 = solid fill
+  for (let y = Math.max(0,y1); y <= Math.min(H-1,y2); y++)
+    for (let x = Math.max(0,x1); x <= Math.min(W-1,x2); x++) vram[y*W+x] = c;
+}
+function frameRect(x1, y1, x2, y2, c) {
+  drawLine(x1,y1,x2,y1,c); drawLine(x2,y1,x2,y2,c);
+  drawLine(x2,y2,x1,y2,c); drawLine(x1,y2,x1,y1,c);
+}
+
+// BGI's OutTextXY with the default 8x8 stroke... actually bitmap... font.
+// Approximated by thresholding a small offscreen canvas.
+function text(s, x0, y0, col) {
+  const c = document.createElement('canvas'), g = c.getContext('2d');
+  c.width = s.length * 8 + 16; c.height = 12;
+  g.font = '9px "Courier New", monospace'; g.textBaseline = 'top';
+  g.fillStyle = '#fff'; g.fillText(s, 0, 1);
+  const d = g.getImageData(0, 0, c.width, c.height).data;
+  for (let y = 0; y < c.height; y++)
+    for (let x = 0; x < c.width; x++)
+      if (d[(y*c.width + x)*4 + 3] > 110 && x0+x >= 0 && x0+x < W && y0+y >= 0 && y0+y < H)
+        vram[(y0+y)*W + x0+x] = col;
+}
+
+// ---------------------------------------------------------------------------
+// Geometry, shared by all six.
+// ---------------------------------------------------------------------------
+
+// The same 24 integers appear in ASMBOX/ASMBOX3/ASMBOX2 as a typed constant
+// and in BOX/BOX2 as 72 hand-written assignments.
+const V = [[-60,-60,-60],[60,-60,-60],[60,60,-60],[-60,60,-60],
+           [-60,-60,60],[60,-60,60],[60,60,60],[-60,60,60]];
+// PROCEDURE Drawc -- twelve edges, written out longhand as twelve draw_line
+// calls in ASMBOX and as twelve calls to a one-line helper `m` in ASMBOX3.
+const EDGES = [[0,1],[0,3],[0,4],[2,1],[2,6],[2,3],[5,1],[5,4],[5,6],[7,3],[7,4],[7,6]];
+
+// PROCEDURE SetPoints in BOX -- six faces of four corners, in this order.
+const FACES = [
+  [[-60,-60,-60],[60,-60,-60],[60,60,-60],[-60,60,-60]],   // 1 front
+  [[-60,-60,60],[60,-60,60],[60,60,60],[-60,60,60]],       // 2 back
+  [[60,-60,-60],[60,60,-60],[60,60,60],[60,-60,60]],       // 3 right
+  [[-60,-60,-60],[-60,60,-60],[-60,60,60],[-60,-60,60]],   // 4 left
+  [[-60,60,-60],[60,60,-60],[60,60,60],[-60,60,60]],       // 5 top
+  [[-60,-60,-60],[60,-60,-60],[60,-60,60],[-60,-60,60]]    // 6 bottom
+];
+// BOX: Case Side Of 1:red 2:blue 3:lightgray 4:yellow 5:green 6:magenta
+// BOX2 minifies the same table to  1:c:=4; 2:c:=1; 3:c:=7; 4:c:=14; 5:c:=2; 6:c:=5
+const FACE_COLOR = [4, 1, 7, 14, 2, 5];
+
+// PROCEDURE SetRotation -- the full XYZ Euler matrix. Identical, character for
+// character, in ASMBOX, BOX and BOX2. Checked against a reference: orthonormal
+// with determinant +1 at every angle.
+function setRotation3(xd, yd, zd) {
+  const x = xd*Math.PI/180, y = yd*Math.PI/180, z = zd*Math.PI/180;
+  const cx=Math.cos(x), sx=Math.sin(x), cy=Math.cos(y),
+        sy=Math.sin(y), cz=Math.cos(z), sz=Math.sin(z);
+  return [[ cy*cz,               cy*(-sz),                -sy    ],
+          [ cx*sz + sx*sy*cz,    cx*cz + sx*sy*(-sz),     sx*cy  ],
+          [ sz*(-sx) + cx*sy*cz, (-sx)*cz + cx*sy*(-sz),  cx*cy  ]];
+}
+// PROCEDURE Setr(m,n) / f(m,n) -- the z column dropped, in ASMBOX3, ASMBOX2
+// and WINGS. Still orthonormal; it is the same matrix with zangle fixed at 0.
+function setRotation2(xd, yd) {
+  const x = xd*Math.PI/180, y = yd*Math.PI/180;
+  const cx=Math.cos(x), sx=Math.sin(x), cy=Math.cos(y), sy=Math.sin(y);
+  return [[ cy,     0,   -sy   ],
+          [ sx*sy,  cx,   sx*cy],
+          [ cx*sy, -sx,   cx*cy]];
+}
+// PROCEDURE k / RotateCube. Trunc, not Round -- so everything biases toward
+// zero. No perspective divide anywhere in the family; z is only ever used for
+// depth sorting, and in the wireframes it is not used at all.
+function rot(r, p, scale) {
+  return [ Math.trunc((r[0][0]*p[0] + r[0][1]*p[1] + r[0][2]*p[2]) * scale),
+           Math.trunc((r[1][0]*p[0] + r[1][1]*p[1] + r[1][2]*p[2]) * scale),
+           Math.trunc((r[2][0]*p[0] + r[2][1]*p[1] + r[2][2]*p[2]) * scale) ];
+}
+
+// PROCEDURE SETPRIORITIES -- BOX's own depth sort, and the one genuinely new
+// idea in the file. Rank each face by mean z; then, because ties are common
+// (all four side faces tie at angle 0), a REPEAT block hunts for an unused
+// rank and steals a face off whichever rank has more than one. It is not a
+// standard algorithm and it does not always terminate cleanly, which is
+// presumably why the program ends by printing the priority array.
+function setPriorities(ci) {
+  const Z = ci.map(f => (f[0][2] + f[1][2] + f[2][2] + f[3][2]) / 4);
+  const priority = new Array(7).fill(1);
+  for (let s2 = 1; s2 <= 6; s2++)
+    for (let s = 1; s <= 6; s++)
+      if (Z[s2-1] > Z[s-1]) priority[s2]++;
+
+  for (let guard = 0; guard < 24; guard++) {
+    const count = new Array(8).fill(0);
+    for (let x = 1; x <= 6; x++)
+      for (let s = 1; s <= 6; s++) if (priority[s] === x) count[x]++;
+    let a = 0;
+    do { a++; } while (!(a === 6 || count[a] === 0));
+    if (count[a] === 0) {
+      let x = 0; do { x++; } while (x < 7 && !(count[x] > 1));
+      let y = 0; do { y++; } while (y < 7 && priority[y] !== x);
+      if (y > 6) break;
+      priority[y] = a;
+    }
+    if (count[a] === 1 && a === 6) break;
+  }
+  const order = new Array(8);
+  for (let s = 1; s <= 6; s++) order[priority[s]] = s;
+  return order;      // order[1] nearest ... order[6] farthest
+}
+
+// ---------------------------------------------------------------------------
+// State
+// ---------------------------------------------------------------------------
+let mode = 'box';
+let ax = 0, ay = 0, az = 0;                  // the Pascal x, y, z angle counters
+let incx = false, incy = true, incz = true;  // boolean flags in ASMBOX/BOX/BOX2
+let velx = 0, vely = 0;                      // shortint velocities in ASMBOX2/3
+let zoom = 10, panx = 0, pany = 0;
+let d = 0;                                   // BOX's Delay(d)
+let wraps = 0, stalled = false;
+
+const el = id => document.getElementById(id);
+const OPTS = {
+  asmbox:  ['o-flicker'],
+  asmbox3: [],
+  wings:   ['o-h','o-edges','o-dots'],
+  asmbox2: ['o-zoombug'],
+  box:     ['o-bar'],
+  box2:    []
+};
+// The keys each program actually reads, as clickable buttons as well. `lit`
+// marks a key whose state should show as on/off; `label` is what goes on it.
+const AXES = [ {k:'X', label:'X', hint:'x axis',  lit:() => incx},
+               {k:'Y', label:'Y', hint:'y axis',  lit:() => incy},
+               {k:'Z', label:'Z', hint:'z axis',  lit:() => incz} ];
+const TURN = [ {k:'I', label:'I', hint:'pitch +'}, {k:'M', label:'M', hint:'pitch -'},
+               {k:'K', label:'K', hint:'yaw +'},   {k:'J', label:'J', hint:'yaw -'},
+               {k:'W', label:'W', hint:'zoom in'}, {k:'S', label:'S', hint:'zoom out'} ];
+const PAN  = [ {k:'R', label:'R', hint:'pan up'},   {k:'C', label:'C', hint:'pan down'},
+               {k:'D', label:'D', hint:'pan left'}, {k:'F', label:'F', hint:'pan right'} ];
+const KEYS = {
+  asmbox:  AXES,
+  asmbox3: TURN,
+  wings:   TURN,
+  asmbox2: TURN.concat(PAN),
+  box:     AXES.concat([{k:',', label:',', hint:'faster'}, {k:'.', label:'.', hint:'slower'}]),
+  box2:    AXES
+};
+function reset() {
+  ax = ay = az = 0; velx = vely = 0; panx = pany = 0; d = 0;
+  wraps = 0; stalled = false;
+  zoom = 10;
+  // Opening states. Where these differ from the file it is only ever a starting
+  // position the keys can reach in a keystroke or two -- not a change to how any
+  // program behaves. Deliberate; do not "fix" them back.
+  switch (mode) {
+    case 'asmbox':  incx = false; incy = true;  incz = true;  break;
+    case 'box':     incx = true;  incy = false; incz = true;  break;  // file: X off
+    case 'box2':    incx = true;  incy = true;  incz = true;  break;
+    case 'asmbox3': velx = 1; vely = 1;  break;                       // file: at rest
+    case 'asmbox2': zoom = el('zoombug').checked ? 1 : 10;
+                    velx = 1; vely = 1;  break;                       // file: at rest
+    case 'wings':   velx = 1; vely = 2;  break;                       // file: at rest
+  }
+  setSize(mode === 'box' ? 640 : 360, 480);
+  if (mode === 'box') {
+    // OutTextXY, drawn once before the loop and never erased -- the bar only
+    // ever covers the middle 211x211.
+    text('This is a rotating cube.  Cool, isn\'t it?', 10, 10, 15);
+    text('Press the < or > keys to increase/decrease animation rate.', 10, 30, 15);
+    text('Press X, Y, or Z to start/stop rotation on the respective axis.', 10, 50, 15);
+    text('Press <Escape> to quit.', 10, 70, 15);
+    text('Remember all you demo programmers: this is written PURELY in Turbo Pascal', 10, 430, 15);
+    text('so of course it runs slow and is not flood-filled.  Maybe after I learn some', 10, 450, 15);
+    text('assembley...', 10, 468, 15);
+  }
+  for (const g of Object.values(OPTS)) g.forEach(id => el(id).classList.add('hidden'));
+  OPTS[mode].forEach(id => el(id).classList.remove('hidden'));
+  buildKeys();
+  showNote(mode);
+}
+
+// WINGS: PROCEDURE SetPoints -- eighteen points on a circle in the z=0 plane.
+function wingPoints(h) {
+  const c = [];
+  for (let a = 1; a <= 18; a++)
+    c.push([Math.trunc(h*Math.sin(a*Math.PI/9)), Math.trunc(h*Math.cos(a*Math.PI/9)), 0]);
+  return c;
+}
+const POLY_EDGES = Array.from({length:18}, (_, i) => [i, (i+1)%18]);
+const WEB_EDGES  = (() => { const e=[];
+  for (let a=0;a<18;a++) for (let b=a+1;b<18;b++) e.push([a,b]); return e; })();
+
+const selMode = el('mode');
+selMode.addEventListener('change', () => { mode = selMode.value; reset(); });
+el('next').addEventListener('click', () => {
+  selMode.selectedIndex = (selMode.selectedIndex+1) % selMode.length;
+  mode = selMode.value; reset(); });
+el('prev').addEventListener('click', () => {
+  selMode.selectedIndex = (selMode.selectedIndex+selMode.length-1) % selMode.length;
+  mode = selMode.value; reset(); });
+el('restart').addEventListener('click', reset);
+el('zoombug').addEventListener('change', reset);
+
+// Every program here reads its keyboard with ReadKey inside the main loop, so
+// the buttons below are not an addition to the interface -- they are the same
+// interface, clickable, because a canvas that only responds to typing is easy
+// to walk past.
+function buildKeys() {
+  const host = el('keys');
+  host.innerHTML = '';
+  for (const spec of KEYS[mode]) {
+    const btn = document.createElement('button');
+    btn.className = 'keybtn';
+    btn.dataset.key = spec.k;
+    btn.innerHTML = `<b>${spec.label}</b><span>${spec.hint}</span>`;
+    btn.addEventListener('click', () => { handleKey(spec.k); btn.blur(); });
+    host.appendChild(btn);
+  }
+  paintKeys();
+}
+function paintKeys() {
+  for (const btn of el('keys').querySelectorAll('.keybtn')) {
+    const spec = KEYS[mode].find(s2 => s2.k === btn.dataset.key);
+    if (spec && spec.lit) btn.classList.toggle('on', !!spec.lit());
+  }
+}
+
+function handleKey(k) {
+  if (mode === 'asmbox' || mode === 'box' || mode === 'box2') {
+    switch (k) {
+      case 'X': incx = !incx; break;
+      case 'Y': incy = !incy; break;
+      case 'Z': incz = !incz; break;
+      case '.': case '>': if (mode === 'box') d++; else return; break;
+      case ',': case '<': if (mode === 'box' && d > 0) d--; else return; break;
+      default: return;
+    }
+  } else {
+    switch (k) {
+      case 'I': velx++; break;   case 'M': velx--; break;
+      case 'K': vely++; break;   case 'J': vely--; break;
+      case 'W': zoom++; break;   case 'S': zoom--; break;
+      case 'R': if (mode==='asmbox2') pany -= 5; else return; break;
+      case 'C': if (mode==='asmbox2') pany += 5; else return; break;
+      case 'D': if (mode==='asmbox2') panx -= 5; else return; break;
+      case 'F': if (mode==='asmbox2') panx += 5; else return; break;
+      default: return;
+    }
+    velx = Math.max(-50, Math.min(50, velx));
+    vely = Math.max(-50, Math.min(50, vely));
+    zoom = Math.max(1, Math.min(20, zoom));
+  }
+  paintKeys();
+  return true;
+}
+
+addEventListener('keydown', e => {
+  if (e.target && /^(INPUT|SELECT|BUTTON)$/.test(e.target.tagName)) return;
+  if (handleKey(e.key.toUpperCase())) e.preventDefault();
+});
+
+// IF x=361 THEN x:=0 ... Inc(x) -- tested before the increment, hence 1..361.
+function bump(v, step) {
+  if (v === 361) { v = 0; stalled = true; wraps++; }
+  return v + step;
+}
+
+let tick = 0;
+function frame() {
+  requestAnimationFrame(frame);
+  tick++;
+  stalled = false;
+
+  // BOX's Delay(d) is in milliseconds; approximate by skipping frames.
+  if (mode === 'box' && d > 0 && (tick % (1 + Math.min(20, d))) !== 0) {
+    ctx.putImageData(img, 0, 0);
+    return;
+  }
+
+  const twoAxis = (mode === 'asmbox3' || mode === 'asmbox2' || mode === 'wings');
+  let r, scale = 1, ox = CX, oy = CY;
+
+  if (twoAxis) {
+    ax = bump(ax, velx); ay = bump(ay, vely);
+    if (ax < 0) ax += 361; if (ay < 0) ay += 361;
+    r = setRotation2(ax, ay);
+    scale = zoom / 10;
+    ox = CX + panx; oy = CY + pany;
+  } else {
+    ax = bump(ax, incx ? 1 : 0);
+    ay = bump(ay, incy ? 1 : 0);
+    az = bump(az, incz ? 1 : 0);
+    r = setRotation3(ax, ay, az);
+  }
+
+  if (mode === 'box') {
+    // setfillstyle(0,0); bar(215,135,425,345) -- a dirty rect, not a full clear.
+    rect(215, 135, 425, 345, 0);
+    if (el('showbar').checked) frameRect(215, 135, 425, 345, 16);
+  } else if (mode !== 'asmbox' || !el('flicker').checked) {
+    vram.fill(0);
+  }
+
+  if (mode === 'box' || mode === 'box2') {
+    const ci = FACES.map(f => f.map(p => rot(r, p, 1)));
+    const order = setPriorities(ci);
+    for (let k = 3; k >= 1; k--) {
+      const s = order[k];
+      if (s === undefined) continue;
+      const q = ci[s-1].map(p => [p[0] + ox, oy - p[1]]);
+      for (let e = 0; e < 4; e++)                                    // the outline, white
+        drawLine(q[e][0], q[e][1], q[(e+1)%4][0], q[(e+1)%4][1], 15);
+      const c = FACE_COLOR[s-1];                                     // the two diagonals
+      drawLine(q[0][0], q[0][1], q[2][0], q[2][1], c);
+      drawLine(q[1][0], q[1][1], q[3][0], q[3][1], c);
+    }
+  } else if (mode === 'wings') {
+    const h = el('hbug').checked ? 0 : 50;
+    const pts = wingPoints(h).map(p => {
+      const i = rot(r, p, scale);
+      return [i[0] + ox, oy - i[1]];
+    });
+    const m = el('edges').value;
+    const edges = m === 'cube' ? EDGES : m === 'poly' ? POLY_EDGES : WEB_EDGES;
+    for (const [a, b] of edges) drawLine(pts[a][0], pts[a][1], pts[b][0], pts[b][1], 15);
+    if (el('dots').checked)
+      pts.forEach(([px, py], n) => {
+        const col = (m === 'cube' && n >= 8) ? 1 : 10;   // blue = generated, never drawn
+        for (let dy=-1; dy<=1; dy++) for (let dx=-1; dx<=1; dx++)
+          if (px+dx>=0 && px+dx<W && py+dy>=0 && py+dy<H) vram[(py+dy)*W + px+dx] = col;
+      });
+  } else {
+    const i = V.map(p => rot(r, p, scale));
+    for (const [a, b] of EDGES)
+      drawLine(i[a][0] + ox, oy - i[a][1], i[b][0] + ox, oy - i[b][1], 15);
+  }
+
+  // ASMBOX clears at the *end* of its loop with no retrace wait, so the erase
+  // is visible. Emulated by clearing after the blit on alternate frames.
+  for (let p = 0; p < vram.length; p++) out[p] = PAL[vram[p]];
+  if (mode === 'asmbox' && el('flicker').checked && (tick & 1)) out.fill(PAL[0]);
+  ctx.putImageData(img, 0, 0);
+  if (mode === 'asmbox' && el('flicker').checked) vram.fill(0);
+
+  const s = el('status');
+  if (twoAxis)
+    s.textContent = `x=${w(ax,3)}  y=${w(ay,3)}   velocity ${w(velx,3)},${w(vely,3)}   ` +
+      `zoom ${(zoom/10).toFixed(1)}×` + (mode==='asmbox2' ? `   pan ${w(panx,4)},${w(pany,4)}` : '') +
+      (mode==='wings' ? `   h=${w(el('hbug').checked ? 0 : 50,2)}` : '');
+  else
+    s.textContent = `x=${w(ax,3)}  y=${w(ay,3)}  z=${w(az,3)}   axes ` +
+      `${incx?'X':'·'}${incy?'Y':'·'}${incz?'Z':'·'}` +
+      (mode==='box' ? `   d=${d}` : '') +
+      `   revolutions ${wraps}` + (stalled ? '   ← 361 wrapped: 1° drawn twice' : '');
+}
+
+reset();
+frame();
+</script>
+</body>
+</html>

@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>16 &middot; Wiggles and Waves</title>
+<link rel="stylesheet" href="archive.css">
+<style>
+
+  #screen{height:min(56vh,480px)}
+</style>
+</head>
+<body>
+
+<nav class="ring">
+  <a href="mar27.html"><b>&laquo; PREVIOUS</b><span>15 &middot; Spiral Illusions</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
+  <a class="next" href="saver001.html"><b>NEXT &raquo;</b><span>17 &middot; Mixing It Up</span></a>
+</nav>
+
+<header class="entry">
+  <div class="num">16</div>
+  <h1>Wiggles and Waves</h1>
+  <div class="lede">
+    These files are all from the same morning of March 31, 1996, four days after the last entry's session.
+    This is the last substantial session, as the final session four months later is just some minor tweaks to older files.
+    After doing heavy pixel drawing in the last entry, I return to palette cycling here, playing with two concepts.
+    The first demo is simply vertical bars, with the palette cycling back and forth at top speed to create a vibrating "wiggle" effect.
+    For the second one I believe I was inspired by some effects I had seen on Super Nintendo, although I can't remember
+    which game precisely. I seem to have been working towards something but never got there.
+  </div>
+  <details class="meta">
+    <summary>Details</summary>
+    <dl>
+      <dt>Files</dt><dd><code>WIGGLE.PAS</code> 07:58 &middot; <code>NEWWAVE.BAK</code> 08:25 &middot; <code>NEWWAVE.PAS</code> 08:48</dd>
+      <dt>Provenance</dt><dd>Mine</dd>
+      <dt>Demo</dt><dd>Both programs, with the shared palette table shown live</dd>
+      <dt>Note</dt><dd><b>The last program in the archive written from scratch.</b> <code>SAVER001</code> is later, but it is <code>ASCTXT.PAS</code> extended.</dd>
+    </dl>
+  </details>
+</header>
+
+<div class="demo">
+<div class="panel selector">
+  <button id="prev">&larr;</button>
+  <select id="variant">
+      <option value="wiggle-pas">07:58 WIGGLE.PAS: vertical bars, palette rotated back and forth</option>
+      <option value="wave-bak">08:25 NEWWAVE.BAK: fan, five bands, blue</option>
+      <option value="wave-pas">08:48 NEWWAVE.PAS: fan, one band, magenta</option>
+    </select>
+  <button id="next">&rarr;</button>
+  <button id="restart">restart</button>
+</div>
+
+<canvas id="screen" width="360" height="480"></canvas>
+
+<canvas id="strip" width="64" height="16"></canvas>
+
+<div class="cap">the palette table a[1..64] - a triangle ramp, rotated 3 places per step. Both programs share it verbatim.</div>
+
+
+<div class="panel">
+  <label>ms/step <input id="rate" type="range" min="1" max="60" value="10">
+    <span id="rateLabel">10</span></label>
+  <label id="o-raw"><input id="raw" type="checkbox" checked> unthrottled, untick to slow it down</label>
+  <label><input id="scroll" type="checkbox"> drop the reverse loop for continuous scroll</label>
+  <label><input id="idx" type="checkbox"> reveal the color indices</label>
+</div>
+
+<div id="status"></div>
+
+<div id="notes">
+<div class="note" data-note="wiggle-pas" hidden>
+<b>WIGGLE.PAS: 07:58, 799 bytes.</b> Vertical stripes, and that is the whole
+picture: five repeats of indices 1..64 across the screen plus a truncated sixth
+band of 40. Then the palette does everything. Rotating 3 slots per step for 64
+steps moves the table 192 slots (exactly three full bands) and lands it back
+where it started, at which point the loop runs in reverse. That reversal is
+what makes it wiggle rather than scroll; tick
+"drop the reverse loop" to see it scroll instead.
+There is <b>no delay anywhere</b> and
+the retrace wait does not work, so on real hardware it rewrote 64 registers and
+immediately rotated again, the full 128-step cycle in well under a tenth of a
+second, which is what you are watching. Untick "unthrottled" to slow it down.
+NEWWAVE, fifty minutes later, puts a delay in; whether that was a correction or
+a change of mind is discussed below.
+</div>
+<div class="note" data-note="wave-bak" hidden>
+<b>NEWWAVE.BAK: 08:25, 921 bytes.</b> The same palette engine, now driving a
+fan: every line runs from its own point on the top or bottom edge to a single
+vanishing point at the screen center, with a 20-pixel sine wobble along its
+length. r runs 0..4, so indices 1..64 repeat five times across the screen and
+the traveling band appears five times over.
+The palette blackout is commented out in this version, so on real hardware you
+watched all 76,800 sines grind out line by line before the effect started.
+The mirror here is a plain vertical flip.
+</div>
+<div class="note" data-note="wave-pas" hidden>
+<b>NEWWAVE.PAS: 08:48, 928 bytes.</b> Three changes, all of them decisions.
+<b>(1)</b> the r loop is cut to a single pass, so 64 lines are laid down instead
+of 320, one band, not five, and the fan reads as a shape rather than a texture.
+<b>(2)</b> the mirror becomes a true 180° rotation (x is flipped as well as y),
+matching what NEW.PAS arrived at on the 27th.
+<b>(3)</b> the palette is blacked out during setup and <b>delay(4)</b> is added
+to the cycle, so it no longer strobes, and you no longer see it draw.
+Every one of those is the same edit: stop showing the machinery. Four days after
+NEW.PAS was clearing 172,800 bytes a frame, this writes zero pixels and 64
+registers. It is also the last program here written from scratch. Nothing else
+is saved until 8 August, and that morning produces a year-old demo switched
+back on plus one more file that is ASCTXT.PAS with a color engine added.
+</div>
+</div>
+</div>
+
+<details class="source">
+<summary>WIGGLE.PAS: 799 bytes</summary>
+<p class="cap">07:58</p>
+<pre>uses crt,jmodex;var b,c,d,q,r:integer;a:array[1..64]of byte;
+begin if set_vga_modex(7,360,480,1)=0 then halt(0);clear_vga_screen(0);
+for q:=1to 32do a[q]:=(q-1);for q:=33to 64do a[q]:=(64-q);
+for q:=1to 64do set_dac_register(q,0,0,0);
+for r:=0to 4do for q:=1to 64do draw_line(r*64+q,1,r*64+q,480,q);
+for q:=321to 360do draw_line(q,1,q,480,q-320);
+repeat repeat until(port[$3da]and 8)=0;repeat until(port[$3da]and 8)&lt;&gt;0;
+for r:=1to 64do begin
+for q:=1to 64do set_dac_register(q,0,0,a[q]);b:=a[1];c:=a[2];d:=a[3];
+for q:=1to 61do a[q]:=a[q+3];a[64]:=d;a[63]:=c;a[62]:=b;end;
+for r:=1to 64do begin
+for q:=1to 64do set_dac_register(q,0,0,a[q]);b:=a[64];c:=a[63];d:=a[62];
+for q:=64downto 4do a[q]:=a[q-3];a[1]:=d;a[2]:=c;a[3]:=b;end;
+until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
+</details>
+<details class="source">
+<summary>NEWWAVE.BAK: 921 bytes</summary>
+<p class="cap">08:25</p>
+<pre>uses crt,jmodex;var b,c,d,q,r,s,t:integer;a:array[1..64]of byte;
+begin if set_vga_modex(7,360,480,1)=0 then halt(0);clear_vga_screen(0);
+for q:=1to 32do a[q]:=(q-1);for q:=33to 64do a[q]:=(64-q);
+{for q:=1to 64do set_dac_register(q,0,0,0);}
+
+for r:=0to 4do for q:=1to 64do
+for s:=1to 240do begin
+t:= round((r*64+q+sin(s/90*pi)*20)-((240-s)*(r*64+q-180)/239));
+if (t&gt;=0)and(t&lt;=360)then begin set_point(t,s+240,q);set_point(t,241-s,q);end;
+end;
+
+repeat repeat until(port[$3da]and 8)=0;repeat until(port[$3da]and 8)&lt;&gt;0;
+for r:=1to 64do begin
+for q:=1to 64do set_dac_register(q,0,0,a[q]);b:=a[1];c:=a[2];d:=a[3];
+for q:=1to 61do a[q]:=a[q+3];a[64]:=d;a[63]:=c;a[62]:=b;delay(10);end;
+for r:=1to 64do begin
+for q:=1to 64do set_dac_register(q,0,0,a[q]);b:=a[64];c:=a[63];d:=a[62];
+for q:=64downto 4do a[q]:=a[q-3];a[1]:=d;a[2]:=c;a[3]:=b;delay(10);end;
+until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
+</details>
+<details class="source">
+<summary>NEWWAVE.PAS: 928 bytes</summary>
+<p class="cap">08:48 the last one written from scratch.</p>
+<pre>uses crt,jmodex;var b,c,d,q,r,s,t:integer;a:array[1..64]of byte;
+begin if set_vga_modex(7,360,480,1)=0 then halt(0);clear_vga_screen(0);
+for q:=1to 32do a[q]:=(q-1);for q:=33to 64do a[q]:=(64-q);
+for q:=1to 64do set_dac_register(q,0,0,0);
+
+for r:=0to 0do for q:=1to 64do for s:=1to 240do begin
+t:=round((r*64+q+sin(s*0.0349)*20)-((240-s)*((r*64+q-180)/240)));
+if (t&gt;=0)and(t&lt;=360)then begin set_point(t,s+240,q);set_point(360-t,241-s,q);end;
+end;
+
+repeat repeat until(port[$3da]and 8)=0;repeat until(port[$3da]and 8)&lt;&gt;0;
+for r:=1to 64do begin
+for q:=1to 64do set_dac_register(q,a[q],0,a[q]);b:=a[1];c:=a[2];d:=a[3];
+for q:=1to 61do a[q]:=a[q+3];a[64]:=d;a[63]:=c;a[62]:=b;delay(4);end;
+for r:=1to 64do begin
+for q:=1to 64do set_dac_register(q,a[q],0,a[q]);b:=a[64];c:=a[63];d:=a[62];
+for q:=64downto 4do a[q]:=a[q-3];a[1]:=d;a[2]:=c;a[3]:=b;delay(4);end;
+until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
+</details>
+
+<nav class="ring">
+  <a href="mar27.html"><b>&laquo; PREVIOUS</b><span>15 &middot; Spiral Illusions</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
+  <a class="next" href="saver001.html"><b>NEXT &raquo;</b><span>17 &middot; Mixing It Up</span></a>
+</nav>
+
+<script src="archive.js"></script>
+<script>
+'use strict';
+// Notes live in the markup as hidden siblings, so they are plain HTML with no
+// escaping and cannot break this script. This only flips which one is visible.
+function showNote(key) {
+  for (const n of document.getElementById('notes').children)
+    n.hidden = n.dataset.note !== String(key);
+}
+// ---------------------------------------------------------------------------
+// 31 March 1996, 07:56 to 08:48. Four saves, two programs, one sitting -- four
+// days after SPIRAL and NEW, and the exact opposite approach.
+//
+// Both files here draw their picture ONCE and then never touch a pixel again.
+// Everything after setup is 64 DAC register writes per step. They share the
+// palette engine character for character: the same triangle table a[1..64],
+// the same rotate-by-3, the same 64-forward-then-64-back structure. Only the
+// image underneath differs -- and in WIGGLE's case the image is the simplest
+// one there is.
+// ---------------------------------------------------------------------------
+
+const W = 360, H = 480;
+const canvas = document.getElementById('screen');
+const ctx = canvas.getContext('2d');
+const img = ctx.createImageData(W, H);
+const out = new Uint32Array(img.data.buffer);
+const fb  = new Uint8Array(W * H);
+const PAL = new Uint32Array(256);
+
+const paintStrip = paletteStrip('strip', 64);
+
+const el = id => document.getElementById(id);
+const pround = v => v >= 0 ? Math.floor(v + 0.5) : -Math.floor(-v + 0.5);
+const dac = v => Math.round((v & 63) * 255 / 63);
+
+// The shared table. a[1..32] ramps 0..31, a[33..64] ramps 31..0 -- a triangle,
+// so rotating it produces a band that travels rather than a hard edge.
+const a = new Uint8Array(65);
+let step = 0, dir = 1, shifted = 0, last = 0;
+function initTable() {
+  for (let q = 1; q <= 32; q++) a[q] = q - 1;
+  for (let q = 33; q <= 64; q++) a[q] = 64 - q;
+  step = 0; dir = 1; shifted = 0;
+}
+function rot3(d) {
+  if (d > 0) {
+    const b = a[1], c = a[2], e = a[3];
+    for (let q = 1; q <= 61; q++) a[q] = a[q+3];
+    a[64] = e; a[63] = c; a[62] = b;
+  } else {
+    const b = a[64], c = a[63], e = a[62];
+    for (let q = 64; q >= 4; q--) a[q] = a[q-3];
+    a[1] = e; a[2] = c; a[3] = b;
+  }
+}
+
+let magenta = false, builtWrites = 0, builtClipped = 0;
+function applyPal() {
+  PAL.fill(0);
+  for (let q = 1; q <= 64; q++) {
+    const v = dac(a[q]);
+    PAL[q] = magenta ? (255<<24) | (v<<16) | v : (255<<24) | (v<<16);
+  }
+  PAL[200] = (255<<24) | (200<<16) | (60<<8) | 40;
+}
+function advance() {
+  applyPal();
+  const s = el('scroll').checked;
+  rot3(s ? 1 : dir);
+  // 192 slots = 3 color bands = one full turn of the table, so the net
+  // shift is a position in a cycle rather than a running total. Wrapping
+  // keeps it meaningful while scrolling, where it would otherwise just climb.
+  shifted = (shifted + 3 * (s ? 1 : dir) + 192) % 192;
+  if (++step === 64) { step = 0; if (!s) dir = -dir; }
+}
+
+// === WIGGLE ================================================================
+//   for r:=0to 4do for q:=1to 64do draw_line(r*64+q,1,r*64+q,480,q);
+//   for q:=321to 360do draw_line(q,1,q,480,q-320);
+// x runs 1..360, so column 0 is never touched and stays index 0 -- which no DAC
+// write ever reaches either, leaving a permanent black column down the left
+// edge. y runs 1..480, so row 0 is skipped and row 480 does not exist.
+function buildBars() {
+  fb.fill(0); builtWrites = 0; builtClipped = 0;
+  for (let r = 0; r <= 4; r++)
+    for (let q = 1; q <= 64; q++)
+      for (let y = 1; y < H; y++) { fb[y*W + (r*64 + q)] = q; builtWrites++; }
+  for (let q = 321; q <= 360; q++)
+    for (let y = 1; y < H; y++) { if (q < W) { fb[y*W + q] = q - 320; builtWrites++; } else builtClipped++; }
+}
+
+// === NEWWAVE ===============================================================
+// t := round( v + sin(s*0.0349)*20 - (240-s)*((v-180)/240) )   with v = r*64+q
+//
+// At s=240 (the screen edge) the second term vanishes and the line sits at x=v;
+// at s=1 it cancels v almost exactly and the line sits at x=180. So every line
+// runs from its own point on the edge to one vanishing point in the middle,
+// with a 20-pixel sine wobble laid over it. The color index is q, 1..64 --
+// which is the entire point, because that is what the cycler chews on.
+function buildWave(isBak) {
+  fb.fill(0); builtWrites = 0; builtClipped = 0;
+  const rMax = isBak ? 4 : 0;
+  for (let r = 0; r <= rMax; r++)
+    for (let q = 1; q <= 64; q++)
+      for (let s = 1; s <= 240; s++) {
+        const v = r*64 + q;
+        const t = isBak
+          ? pround(v + Math.sin(s/90*Math.PI)*20 - ((240-s)*(v-180))/239)
+          : pround(v + Math.sin(s*0.0349)*20 - ((240-s)*((v-180)/240)));
+        if (t >= 0 && t <= 360) {
+          put(t, s + 240, q);
+          // The .BAK mirrors vertically; the .PAS flips x too, making it a true
+          // 180-degree rotation -- the symmetry NEW.PAS settled on four days back.
+          put(isBak ? t : 360 - t, 241 - s, q);
+        }
+      }
+}
+function put(x, y, c) {
+  if (x < 0 || x >= W || y < 0 || y >= H) { builtClipped++; return; }
+  fb[y*W + x] = c; builtWrites++;
+}
+
+// === driver ================================================================
+let kind = 'bars';
+const variantEl = el('variant');
+
+function reset() {
+  const v = variantEl.value;
+  kind = v.startsWith('wiggle') ? 'bars' : 'wave';
+  magenta = (v === 'wave-pas');
+  el('o-raw').classList.toggle('hidden', kind !== 'bars');
+  showNote(v);
+  initTable();
+  if (kind === 'bars') buildBars(); else buildWave(v === 'wave-bak');
+  applyPal();
+  last = performance.now();
+}
+variantEl.addEventListener('change', reset);
+el('restart').addEventListener('click', reset);
+el('next').addEventListener('click', () => {
+  variantEl.selectedIndex = (variantEl.selectedIndex+1) % variantEl.length; reset(); });
+el('prev').addEventListener('click', () => {
+  variantEl.selectedIndex = (variantEl.selectedIndex+variantEl.length-1) % variantEl.length; reset(); });
+el('rate').addEventListener('input', () => el('rateLabel').textContent = el('rate').value);
+
+function frame() {
+  requestAnimationFrame(frame);
+  const now = performance.now();
+
+  if (kind === 'bars' && el('raw').checked) {
+    for (let i = 0; i < 30; i++) advance();
+  } else if (now - last >= +el('rate').value) {
+    last = now; advance();
+  }
+
+  if (el('idx').checked)
+    for (let i = 0; i < fb.length; i++) {
+      const g = fb[i] * 4;
+      out[i] = (255<<24) | (g<<16) | (g<<8) | g;
+    }
+  else
+    for (let i = 0; i < fb.length; i++) out[i] = PAL[fb[i]];
+  ctx.putImageData(img, 0, 0);
+
+  paintStrip(x => { const v = dac(a[x+1]);
+    return magenta ? (255<<24)|(v<<16)|v : (255<<24)|(v<<16); });
+
+  // The line is centred, so any change in its LENGTH slides the whole thing
+  // sideways -- at 60 fps that reads as a blur rather than as text. Every
+  // varying field is padded to a fixed width.
+  const w = (v, n) => String(v).padStart(n);
+  el('status').textContent =
+    `step ${w(step, 2)}/64  ${(el('scroll').checked ? 'scrolling'
+                              : dir > 0 ? 'forward' : 'reverse').padEnd(9)}` +
+    `   net shift ${w(shifted, 3)}/192 palette slots` +
+    `   built ${w(builtWrites.toLocaleString(), 7)} pixels` +
+    `   pixels written this frame: 0   DAC registers rewritten: 64`;
+}
+
+reset();
+frame();
+</script>
+</body>
+</html>

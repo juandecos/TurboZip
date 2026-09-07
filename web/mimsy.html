@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>05 &middot; Jabberwocky</title>
+<link rel="stylesheet" href="archive.css">
+<style>
+
+  #screen{height:min(70vh,600px)}
+</style>
+</head>
+<body>
+
+<nav class="ring">
+  <a href="modex.html"><b>&laquo; PREVIOUS</b><span>04 &middot; Enter Mode X</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
+  <a class="next" href="circle.html"><b>NEXT &raquo;</b><span>06 &middot; Drawing Circles</span></a>
+</nav>
+
+<header class="entry">
+  <div class="num">05</div>
+  <h1>Jabberwocky</h1>
+  <div class="lede">
+    This may be the first one of my own that wasn't simply altering someone else's code.  Nothing
+    too exciting, but it seems I was starting to make sense of the Mode X routines.
+  </div>
+  <details class="meta">
+    <summary>Details</summary>
+    <dl>
+      <dt>File</dt><dd><code>MIMSY.PAS</code>, 1,039 bytes, <b>1995-06-16 00:32</b></dd>
+      <dt>Provenance</dt><dd>Mine</dd>
+      <dt>Demo</dt><dd>The first stanza, falling</dd>
+    </dl>
+  </details>
+</header>
+
+<div class="demo">
+<canvas id="screen" width="320" height="400"></canvas>
+
+<div class="panel">
+  <label>ms/step <input id="rate" type="range" min="4" max="60" value="20">
+    <span id="rateLabel">20</span></label>
+  <label><input id="loop" type="checkbox" checked> repeat</label>
+</div>
+
+<div id="status"></div>
+</div>
+
+<div class="prose">
+<h2>What it does</h2>
+<p>The first stanza of <i>Jabberwocky</i> scrolls down a 360&times;480 Mode X
+screen, brightening as it falls. Six days after <code>JTEST.BAK</code>, and it is
+the first file in the archive that exists to <b>look like something</b> rather
+than to test something.</p>
+
+<h2>Two things in it</h2>
+<p>Yes, I spelled &ldquo;borogoves&rdquo; wrong. Oddly, 30 years later, I can still
+  recite this, and I still have the same typo burned into my brain.</p>
+<p>The erase loop runs <code>for c := 1 to 20</code> over a <b>four-element
+array</b>. Sixteen iterations past the end, every frame. It is harmless purely
+because <code>{$R-}</code> is Turbo Pascal's default, so the writes land in
+whatever follows the array in the data segment and nothing complains. Range
+checking off is the reason a great deal of this archive runs at all.</p>
+</div>
+
+<details class="source">
+<summary>MIMSY.PAS: 1,039 bytes</summary>
+<p class="cap">All of it. The stanza is a typed constant array of strings.</p>
+<pre>Uses Crt,jmodex;Const z:array[1..4]of string=(
+&#x27;&#x27;&#x27;Twas brillig and the slithy toves&#x27;,
+&#x27;  Did gyre and gimble in the wabe&#x27;,
+&#x27;   All mimsy were the borogroves&#x27;,
+&#x27;    And the mome raths outgrabe&#x27;);
+Var c,x:integer;y:array[1..4]of integer;
+Procedure Page(p:byte);Begin set_active_page(p);set_display_page(p);end;
+Procedure Text(s:string;x,y,B,F:integer);Var a:Array[1..135]of Char;i:byte;
+Begin For i:=1to Length(s)DO a[i]:=s[i];Print_Str(a,Length(s),X,Y,B,f);End;
+Procedure TText(s:string;X,Y,c:integer);Var a:Array[1..135]of Char;i:byte;
+Begin For i:=1to Length(s)DO a[i]:=s[i];TPrint_Str(a,Length(s),X,Y,C);End;
+Procedure Demo;Begin IF SET_VGA_MODEX(1,320,400,2)=0 THEN halt(0);
+FOR X:=1TO 250DO Begin SET_DAC_REGISTER(X,0,0,X div 4);end;
+for x:=1to 4do y[x]:=(x-1)*20;page(0);
+for x:=1to 400do begin for c:=1to 4do tText(z[c],20,x+y[c],x div 2);
+delay(20);for c:=1 to 20do ttext(z[c],20,x+y[c],0);
+end;
+{*************Wait and Quit*************}
+repeat until keypressed;end;Begin Demo;asm mov ah,0;mov al,3;int 16;end;END.</pre>
+</details>
+
+<nav class="ring">
+  <a href="modex.html"><b>&laquo; PREVIOUS</b><span>04 &middot; Enter Mode X</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
+  <a class="next" href="circle.html"><b>NEXT &raquo;</b><span>06 &middot; Drawing Circles</span></a>
+</nav>
+
+<script src="archive.js"></script>
+<script>
+// ---------------------------------------------------------------------------
+// MIMSY.PAS -- the first stanza of Jabberwocky scrolling down a 320x400 Mode X
+// screen, one pixel per step, brightening as it falls. The palette is a pure
+// blue ramp (register n -> blue n div 4) and the text color is the step
+// counter halved, so the poem fades up out of black over 400 steps.
+// ---------------------------------------------------------------------------
+
+const W = 320, H = 400;
+const canvas = document.getElementById('screen');
+const ctx  = canvas.getContext('2d');
+const img  = ctx.createImageData(W, H);
+const out  = new Uint32Array(img.data.buffer);
+const vram = new Uint8Array(W * H);
+
+// FOR X:=1TO 250DO SET_DAC_REGISTER(X,0,0,X div 4)
+const PAL = new Uint32Array(256);
+for (let n = 1; n <= 250; n++)
+  PAL[n] = (255 << 24) | (Math.round((n >> 2) * 255/63) << 16);
+
+// Const z:array[1..4]of string. "borogroves" is how it is spelled in the file;
+// Carroll wrote "borogoves".
+const LINES = [
+  "'Twas brillig and the slithy toves",
+  "  Did gyre and gimble in the wabe",
+  "   All mimsy were the borogroves",
+  "    And the mome raths outgrabe"
+];
+
+// jmodex's TPrint_Str stamped an 8x8 ROM glyph in a single color. Rendering
+// the strings once to an offscreen canvas and thresholding gives the same
+// one-bit-per-pixel mask to blit.
+function mask(str) {
+  const c = document.createElement('canvas');
+  const g = c.getContext('2d');
+  c.width = str.length * 8 + 8; c.height = 10;
+  g.font = '8px "Courier New", monospace';
+  g.textBaseline = 'top';
+  g.fillStyle = '#fff';
+  g.fillText(str, 0, 1);
+  const d = g.getImageData(0, 0, c.width, c.height).data;
+  const bits = new Uint8Array(c.width * c.height);
+  for (let i = 0; i < bits.length; i++) bits[i] = d[i*4 + 3] > 110 ? 1 : 0;
+  return { w: c.width, h: c.height, bits };
+}
+const MASKS = LINES.map(mask);
+
+function blit(m, x0, y0, col) {
+  for (let y = 0; y < m.h; y++) {
+    const ty = y0 + y;
+    if (ty < 0 || ty >= H) continue;
+    for (let x = 0; x < m.w; x++) {
+      const tx = x0 + x;
+      if (tx < 0 || tx >= W) continue;
+      if (m.bits[y*m.w + x]) vram[ty*W + tx] = col;
+    }
+  }
+}
+
+// for x:=1to 4do y[x]:=(x-1)*20 -- the four lines are 20 scanlines apart.
+const YOFF = [0, 20, 40, 60];
+
+const rateEl = document.getElementById('rate');
+rateEl.addEventListener('input', () =>
+  document.getElementById('rateLabel').textContent = rateEl.value);
+
+let t0 = performance.now();
+
+function frame() {
+  requestAnimationFrame(frame);
+  const ms = +rateEl.value;
+  let step = Math.floor((performance.now() - t0) / ms) + 1;   // x := 1 to 400
+  if (step > 400) {
+    if (document.getElementById('loop').checked) { t0 = performance.now(); step = 1; }
+    else step = 400;
+  }
+
+  vram.fill(0);
+  const col = step >> 1;                      // tText(..., x div 2)
+  for (let c = 0; c < 4; c++) blit(MASKS[c], 20, step + YOFF[c], col);
+
+  for (let i = 0; i < vram.length; i++) out[i] = PAL[vram[i]];
+  ctx.putImageData(img, 0, 0);
+
+  document.getElementById('status').textContent =
+    `step ${w(step,3)}/400   color index ${w(col,3)}   blue ${w(col >> 2,2)}/63`;
+}
+
+frame();
+</script>
+</body>
+</html>
