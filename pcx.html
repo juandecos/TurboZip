@@ -584,7 +584,7 @@ function decodePCX(buf) {
     for (let y = 0; y < height; y++) { const row = y*stride;
       for (let x = 0; x < width; x++)
         px[y*width+x] = rgb(raw[row+x], raw[row+h.bpl+x], raw[row+h.bpl*2+x]); }
-    kind = '24-bit truecolour: no palette, so nothing here can animate it';
+    kind = '24-bit truecolor: no palette, so nothing here can animate it';
     current = { width, height, paletted:false, direct:px };
   } else if (h.bpp === 1 && h.nplanes === 4) {
     const pal = new Uint32Array(16);

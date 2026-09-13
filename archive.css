@@ -116,7 +116,7 @@ input[type=range] { width:120px }
 
 .cap    { color:#666; font-size:11px; text-align:center; width:var(--col) }
 
-/* The DAC strip. Most of these programs animate colour registers rather than
+/* The DAC strip. Most of these programs animate color registers rather than
    pixels, so this row is often the only thing on the page that is moving. */
 #strip { image-rendering:pixelated; border:1px solid #333;
          width:var(--col); height:22px; display:block }

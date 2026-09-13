@@ -210,7 +210,7 @@ reset(false);
 document.getElementById('restart').addEventListener('click', () => reset(false));
 // Switching the ceiling mid-run leaves the old values in the history buffer,
 // so the change arrives smeared over the next second instead of cleanly. Restart
-// the colour walk but keep the drawing, so the same picture is re-colored under
+// the color walk but keep the drawing, so the same picture is re-colored under
 // the new rule -- which is the comparison the toggle exists to make.
 document.getElementById('bak').addEventListener('change', () => reset(true));
 const rateEl = document.getElementById('rate');

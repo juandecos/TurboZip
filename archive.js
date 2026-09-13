@@ -9,7 +9,7 @@
 
 // --- the palette strip -----------------------------------------------------
 // Nearly every program in this archive animates the DAC rather than the screen,
-// so the row of colour registers is often the only thing actually changing.
+// so the row of color registers is often the only thing actually changing.
 // Five pages had grown their own copy of this; this is that code, once.
 //
 //   const paintStrip = paletteStrip('strip');   // 256 registers by default
