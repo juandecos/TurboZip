@@ -1,0 +1,1985 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bonus &middot; A Vortex on a 386</title>
+<link rel="stylesheet" href="archive.css">
+<style>
+  /* Where js-dos draws on the DOS tabs: the canvas's size and shape, 4:3. */
+  .dosbox { width:min(var(--col), calc((100vh - var(--chrome)) * 4 / 3));
+            aspect-ratio:4/3; background:#000; border:1px solid #333; position:relative }
+  .dosbox > div { position:absolute; inset:0 }
+  .dosbox .dosmsg { display:flex; align-items:center; justify-content:center;
+                    text-align:center; padding:16px; color:#888; font-size:12px }
+  .parbar.dosmode .parctl { border-right:0; padding-right:0 }
+</style>
+</head>
+<body>
+
+<header class="entry">
+  <h1>A Vortex on a 386</h1>
+  <div class="lede">
+    <p>
+    While making a <a href="index.html">web project about my old MS-DOS graphics days</a>, I happened to see
+    <a href="https://openai.com/index/navier-stokes-solution/">OpenAI's announcement</a>
+    about a solution to the smoothness problem from Navier-Stokes, and various
+    visualizations of it (e.g.
+    <a href="https://www.reddit.com/r/physicsmemes/comments/1wca2kj/navierstokes_solution_simulation_resembles_a/">this one</a>).
+    So I wondered if I could make a nice anachronistic 386 demo of this visualization, and ended up with
+    two solutions.
+    </p>
+    <p>
+    The palette cycling one draws the screen once and then flips through colors to animate it, while the particle
+    one is actually animating the particles in real time. When I saw their binaries were so small, I went a little
+    further and optimized them both to be sub-1,024 bytes.
+    </p>
+    <p>For each I have a JavaScript version that lets
+    you play with settings and go way beyond what 386 could do, and then real 386 versions running in DOSBox. The JS and ASM
+    source code are available at the bottom. Full disclaimer, this effort was AI assisted.
+    </p>
+  </div>
+</header>
+
+<div class="demo">
+<div class="panel selector">
+  <select id="way">
+      <option value="palette">PALETTE(JS): streamlines drawn once, and after that only the DAC moves</option>
+      <option value="palette-dos">PALETTE.COM: the same, as 386 assembly, running in DOSBox</option>
+      <option value="particles">PARTICLE(JS): fixed-point particles, palette-faded trails, a moving camera</option>
+      <option value="particle-dos">PARTICLE.COM: the same, as 386 assembly, running in DOSBox</option>
+    </select>
+  <button id="restart">restart</button>
+  <button id="pause">pause</button>
+</div>
+
+<div id="notes" class="captions">
+<div class="note" data-note="palette" hidden>
+Streamlines are drawn once, back to front. After that not one pixel is written: the flow
+you see is the palette turning, each line colored by how far along it a point has travelled.
+</div>
+<div class="note" data-note="palette-dos" hidden>
+The real program: 946 bytes of 386 assembly, in DOSBox at about the speed of a fast 386.
+Mode 13h, 320&times;200, so a little coarser than the tab before it.
+</div>
+<div class="note" data-note="particles" hidden>
+Particles stepped through the flow in 16.16 fixed point and drawn as short lines. Their
+trails fade with no redrawing at all: each is written in a palette step that darkens as the palette turns.
+</div>
+<div class="note" data-note="particle-dos" hidden>
+The real program, 200 particles in DOSBox at about the speed of a fast 386, where it
+holds 35 frames a second, just, even zoomed in on the eye. Mode 13h, 320&times;200.
+</div>
+</div>
+
+<div id="dosbox" class="dosbox" hidden></div>
+
+<canvas id="screen" width="320" height="240"></canvas>
+<canvas id="strip" width="256" height="16"></canvas>
+<div class="cap" id="stripcap">the 256 DAC registers: 2 hues &times; 4 depths &times; 32 steps</div>
+
+<div class="panel" id="opts-palette">
+  <label>streamlines <input id="lines" type="range" min="20" max="800" step="10" value="120">
+    <span id="linesLabel">120</span></label>
+</div>
+
+<div class="panel" id="opts-particles">
+  <label>particles <input id="count" type="range" min="0" max="11" step="1" value="1">
+    <span id="countLabel">200</span></label>
+  <label><input id="truecolor" type="checkbox"> true-color trails instead of palette fades</label>
+</div>
+
+<div class="panel" id="opts-limits">
+  <label><input id="hires" type="checkbox"> 640&times;480</label>
+  <label><input id="uncapped" type="checkbox"> uncapped frame rate</label>
+</div>
+
+<div class="cap" id="limitscap">The defaults here are meant to stay inside
+what a fast 386 with a VGA card could plausibly do. Feel free to push it past that.</div>
+</div>
+
+<div class="prose">
+<h2>The flow: Burgers, 1948</h2>
+<p>This is not the smoothness problem solution, but rather the
+<a href="https://en.wikipedia.org/wiki/Burgers_vortex">Burgers vortex</a>, an exact solution of the Navier&ndash;Stokes equations published
+by J.&nbsp;M.&nbsp;Burgers in 1948, chosen because it has the same anatomy: fluid drawn
+inward in a plane, stretched along the axis and thrown out of both ends, spinning
+fastest in a core. It just so happens that this solution can also reasonably be run
+on a 386 MS-DOS computer (circa 1990).</p>
+<p>The swirl is the only part that looks expensive. Its angular velocity depends on the
+distance from the axis, which would mean a square root, and on dividing by that
+distance. Written as a function of <i>r</i>&sup2; instead, it is a single
+<b>lookup table</b>: 1,024 entries, indexed by <i>x</i>&sup2;&nbsp;+&nbsp;<i>z</i>&sup2;,
+finite all the way to the axis. Positions are 16.16 fixed point. The turn is applied
+with the new <i>x</i> feeding the new <i>z</i>, which keeps the fast-spinning core from
+spiralling itself apart.</p>
+
+<h2><a href="#palette">PALETTE</a></h2>
+<p>A few hundred streamlines
+are integrated from the rim until they leave along the axis, and each point is given a
+palette index from how many steps along its line it is, plus a random offset so the
+lines do not all pulse together. The segments are sorted into depth buckets and
+drawn far to near. Then the palette turns and nothing else happens.</p>
+<p>That still has a cost. All 256 registers change every frame: 768 port writes. An assembly
+version would probably spread the update across the two retraces a 35&nbsp;fps frame
+has anyway.</p>
+
+<h2><a href="#particles">PARTICLES</a></h2>
+<p>The same flow, stepped live, with a camera that starts nearly edge-on (the cross)
+and tilts to straight down the axis (the eye) and back every forty-two seconds,
+zooming in as it comes over the top, where the eye opens. Each particle is drawn as a line from where it was to where it is, in a palette
+index taken from the frame number, so the trail darkens on its own as the palette
+turns. The only bookkeeping is erasure: every pixel is remembered for 32 frames and
+cleared just before its index would come round bright again, unless something newer
+has been drawn over it.</p>
+<p>The 256 colors divide exactly: two hues, cyan outside the core and orange inside,
+times four depth bands, times 32 steps of fade. Particles thrown out along the axis
+drop into the dimmer bands as they go, which is what tapers the jets.</p>
+
+<h2><a href="#palette-dos">PALETTE.COM</a> and <a href="#particle-dos">PARTICLE.COM</a></h2>
+<p>The same two, written in 386 assembly and assembled with NASM, running in
+<b>js-dos</b>, which is DOSBox compiled for the browser. They are not ports of the
+JavaScript: they are the programs, and either will run in DOSBox on a desktop or on a
+386 with a VGA card. Both are in the listings below, with the .COM files to download.</p>
+<p>What real hardware changed: mode 13h at 320&times;200 instead of 320&times;240, so the
+camera is squashed by 5/6 to keep the vortex round; a z-buffer in place of PALETTE's
+depth sort, which would not fit in real-mode memory; tables built with integer
+arithmetic, because a 386 had no maths coprocessor; and the palette sent in two halves,
+one per retrace. The emulator runs at 8,000 cycles, roughly a fast 386 by DOSBox's
+reckoning.</p>
+<p>The DOS tabs run <a href="https://js-dos.com">js-dos</a> 8.4.1, DOSBox for the browser,
+under the <a href="https://www.gnu.org/licenses/old-licenses/gpl-2.0.html">GPL-2.0</a>
+(<a href="https://github.com/caiiiycuk/js-dos/tree/v8.4.1">source</a>).</p>
+
+<h2>PALETTE.COM in under 1K</h2>
+<p>PALETTE.COM started out at 1,594 bytes, sharing its flow, tables and palette code
+with PARTICLE.COM through <code>flow.inc</code>. The goal was to get it under 1,024
+bytes, a classic demoscene size limit, in two passes, with one rule: the picture must
+not change by a single byte. Each attempt was assembled with a screenshot switch that
+saves video memory and the palette to a file. The result was compared with the first
+version's at frames 20 and 45, while the streamlines are still being drawn, and at
+frame 100, when they are all in.</p>
+<p>The first pass kept the program's shape and changed only where the values live. Every
+position and working value had been a named variable in memory, and in 16-bit code each
+use of one carries its address. With the particle held in registers throughout (x in
+ESI, y in EBP, z in EDI), it came to 1,264 bytes. That was smaller, with the same
+picture, but not close enough.</p>
+<p>The second pass changed the shape. PALETTE.COM stopped including
+<code>flow.inc</code> and got its own copy of the arithmetic. Routines called only once
+were written in place, and the sine, swirl and colour tables are now built one after
+another by a single running pointer. The five rounded multiplies of the flow became
+one subroutine once the swirl table was stored sixteen times larger, so that all five
+shift by the same amount. Both depth bands, one from distance and one from how far out
+along the jet a point has gone, turned out to have evenly spaced thresholds, so one
+loop walks the two together. The palette goes straight from the colour table to the
+DAC with no copy in between, and register 0 is never written, because the BIOS already
+set it to black. When a segment is drawn, its new end point is swapped in for the old
+one instead of copied.</p>
+<p>Some of the bytes came from checks that could never fire. The first version guarded
+against points behind the camera or off the sides of the screen, depths that needed
+clamping, reads past the end of the swirl table, and streamlines that never leave,
+capped at 1,400 steps. Those guards make sense for a program whose input varies, but
+PALETTE.COM always draws the same 120 streamlines from the same random seed. Whether a
+guard ever fires is a fact that can be checked once. A throwaway copy put every guard
+back as a tripwire that ends the program, and it ran to the finished picture without
+tripping one. As a check on the check, a limit of 300 steps did trip it. The one
+difference left is on a machine without 64K to spare for the z-buffer, where the
+program now quits without saying why.</p>
+<p>The result is 946 bytes: 896 of code, and 50 of data for the random seed, two
+counters, and the ramp, gain and hue values the colours are built from. The listing
+below is that version, and its opening comment keeps the same account.</p>
+
+<h2>PARTICLE.COM in under 1K</h2>
+<p>PARTICLE.COM started at 2,725 bytes, which looked out of reach of 1K. It got there
+in four passes. Two of them kept the picture identical to the byte, one changed the
+camera on purpose, and one traded exactness for approximations that look the same.</p>
+<p>The first pass used the same rule and the same means as PALETTE.COM, and came to
+1,332 bytes, identical at frames 1, 40, 300 and 1,000. Each particle became one 16-byte
+record, loaded into registers and stored back. The camera's four slow waves (tilt,
+zoom, and a drift across and down) became one loop over a small table. The first
+version drew lines with two routines, a fast one for segments on the screen and a
+slower one that clipped every pixel. They became one, which steps the pixel's address
+instead of multiplying it out, with its error term in a single byte. Segments were
+never longer than 24 pixels, so the error term peaked at 66. The 32 erase lists
+became one allocation from DOS. The "warming up" message went, and the line of
+statistics printed on exit now appears only in the benchmark build. The speed did
+not change. Squeezing the code this way could have gone a little further, but a
+test compression of the file suggested that pass alone would stop somewhere around
+1,200 bytes.</p>
+<p>The detour that followed was about looks, not size. Seen from above, the centre of
+the vortex was a tangle. Zooming in only magnified the tangle, and moving the camera
+closer was worse. The cure was two changes together. The tilt had stopped about six
+degrees short of straight down, so the upper jet's corkscrew lay across the eye.
+Tilting all the way to 90 degrees lines the corkscrew up with the axis, and the eye
+opens as a dark hole ringed with orange. The zoom now grows with the square of the
+tilt: wide for most of the cycle, and 4.4 times closer at the top. At 200 particles
+instead of 300, the rings around the eye stay separate. The drift went, and so did the
+check that dropped streaks longer than 24 pixels, since zoomed-in particles legitimately
+move further than that. That had costs. A frame now draws up to about 3,100 pixels, so
+each erase list grew to 4,000. A segment can now be 43 pixels long, one step short of
+overflowing a byte, so the error term went back to 16 bits. The busiest frames also
+stopped fitting between the two palette retraces, until the work was split across both
+gaps. But the simpler camera was also smaller, at 1,292 bytes. The camera had also been
+orbiting the axis once a minute. The flow looks the same from every side, so the orbit
+was invisible, and removing it brought the size to 1,232.</p>
+<p>The third pass gave up exactness, change by change, each rendered side by side with
+the version before at the same moments of the tilt. The 32-step fade table became a
+formula, (32&nbsp;&minus;&nbsp;age)&sup2;, which traces the same curve, and the four
+depth bands became quarters. The swirl's exponential became the rational
+function (2&nbsp;+&nbsp;<i>q</i>)&nbsp;/&nbsp;(2&nbsp;+&nbsp;2<i>q</i>&nbsp;+&nbsp;<i>q</i>&sup2;),
+which stays within 7% of it at every radius, at the cost of one division per particle.
+The sine table went too. Every sine now comes from a point turned step by step: the
+spawn angle, the pitch, and the tilt's wave, which is a point turned one step a frame.
+That makes the tilt cycle 46 seconds instead of 42. A streak with an end off the screen
+is skipped rather than clipped, which costs a few pixels of trail at the screen's edge.
+The vertical focal length became 13/16 of the horizontal instead of 5/6. Together these
+came to 1,072 bytes, and the program got faster, because the formulas cost less than
+the lookups and checks they replaced.</p>
+<p>The last 50 bytes came from rearranging alone, back under the byte-for-byte rule,
+checked at frames 1, 40, 402, 804 and 1,500. The erase lists moved into the memory
+DOS had already given the program, instead of a second allocation, though the program
+still checks that the memory is there. The frame counter and the wave's sine now sit in
+memory that is cleared anyway, so they cost no bytes in the file. Marking a respawned
+particle's last position as "nowhere" happens in one place instead of three. The work
+went back to being split around the whole particle loop rather than the middle of it,
+since the program was now fast enough. A few dozen shorter instructions did the rest,
+some of them saving a single byte each.</p>
+<p>The result is 1,022 bytes: 1,008 of code, and 14 of data for the random seed, the two
+hues and the tilt's starting point. It holds 35 frames a second at the emulator's
+8,000 cycles, with room to spare, and uses no tables at all except the colour ramps it
+builds at startup. The JavaScript tabs keep the exact arithmetic, as the reference. The
+listing below is the 1K version, and its opening comment lists each approximation and
+what it replaced.</p>
+</div>
+
+<!-- listings -->
+<details class="source">
+<summary>vortex.js</summary>
+<p class="cap">14,532 bytes &middot; The page's version: both halves, in JavaScript, and the model for the assembly.</p>
+<pre>// ===========================================================================
+// vortex.js -- a vortex, drawn the way a 386 could have drawn it.
+//
+// No DOM in here: the page supplies a canvas, this supplies an 8-bit framebuffer
+// and a 256-register palette, and a script outside the browser can run the
+// same code and look at the frames. It is also meant to read like the thing an
+// assembly version would be: integers throughout the per-frame work, lookup
+// tables where a 386 would want them, 16.16 fixed point for positions, 6-bit
+// DAC values, Turbo Pascal's random number generator.
+//
+// THE FLOW is a Burgers vortex (J. M. Burgers, 1948), an exact solution of the
+// Navier-Stokes equations with the anatomy of the schematic this was made
+// after: fluid drawn inward in a plane, stretched along the axis and thrown out
+// of both ends, spinning fastest in a core. In units where the inflow starts at
+// radius 1, with the axis vertical (world y):
+//
+//     radial     -A r / 2          axial    A y
+//     swirl      w(r) = W0 (1 - e^-(r^2/C)) / (r^2/C)     radians per second
+//
+// w is written as a function of r^2, so the per-particle cost is one lookup: no
+// square root for r, no division by it. Near the axis it tends to W0, so it is
+// finite everywhere.
+//
+//   createVortex({ width, height, mode: 'palette'|'particles',
+//                  lines, count, truecolor, seed })
+//     .frame()        advance one frame and draw it
+//     .render(out)    fill a Uint32Array of ABGR pixels
+//     .lut            the palette as ABGR, for the DAC strip
+// ===========================================================================
+'use strict';
+
+function createVortex(opt) {
+  const W = opt.width, H = opt.height;
+  const S = W / 320;                     // every screen constant is for 320x240
+  const AGES = 32, DEPTHS = 4, HUES = 2; // 2 x 4 x 32 = the whole DAC
+
+  // --- Turbo Pascal's generator ---------------------------------------------
+  let seed = (opt.seed &gt;&gt;&gt; 0) || 12345;
+  const random = n =&gt; { seed = (Math.imul(seed, 134775813) + 1) &gt;&gt;&gt; 0;
+                        return Math.floor(seed / 4294967296 * n); };
+
+  // --- tables -----------------------------------------------------------------
+  // Sine: 1024 steps to a turn, Q12.
+  const SIN = new Int32Array(1024);
+  for (let i = 0; i &lt; 1024; i++) SIN[i] = Math.round(Math.sin(i * Math.PI / 512) * 4096);
+  const sin = a =&gt; SIN[a &amp; 1023], cos = a =&gt; SIN[(a + 256) &amp; 1023];
+
+  // The flow, per frame at 35 fps (one frame = two retraces of a 70 Hz VGA).
+  const A = 0.55, DT = 1 / 35, C = 0.045, W0 = 20;
+  const KR = Math.round(A / 2 * DT * 65536);   // Q16 radial shrink per frame
+  const KY = Math.round(A * DT * 65536);       // Q16 axial stretch per frame
+  // Angular step per frame, Q12 radians, indexed by r^2 (Q12) &gt;&gt; 3.
+  const OMEGA = new Int32Array(1024);
+  for (let i = 0; i &lt; 1024; i++) {
+    const q = Math.max(1e-6, (i &lt;&lt; 3) / 4096 / C);
+    OMEGA[i] = Math.round(W0 * DT * (1 - Math.exp(-q)) / q * 4096);
+  }
+  const YMAX = Math.round(1.45 * 65536);       // out of the top or bottom: respawn
+  const CORE2 = Math.round(0.24 * 0.24 * 4096); // r^2 (Q12) inside which it is orange
+
+  // --- the palette --------------------------------------------------------------
+  // Register (h*4 + d)*32 + j. At frame F, register j of a ramp shows the brightness
+  // of age (F - j) mod 32, so a pixel written in index F mod 32 starts bright and
+  // dims by itself as the palette turns -- nothing is ever redrawn to fade it.
+  const HUE = [[12, 50, 63], [63, 34, 8]];      // 6-bit: cyan, orange
+  const GAIN = [64, 44, 30, 20];                // depth band 0 is nearest
+  const RAMP = new Int32Array(AGES);
+  for (let a = 0; a &lt; AGES; a++) RAMP[a] = Math.round(64 * Math.pow(1 - a / AGES, 2.2));
+  const dac = new Uint8Array(768);
+  const lut = new Uint32Array(256);
+
+  function setPalette(F) {
+    for (let h = 0; h &lt; HUES; h++)
+      for (let d = 0; d &lt; DEPTHS; d++)
+        for (let j = 0; j &lt; AGES; j++) {
+          const reg = (h * DEPTHS + d) * AGES + j, a = (F - j) &amp; (AGES - 1);
+          const b = RAMP[a] * GAIN[d];            // Q12
+          const hot = a &lt; 2 ? (2 - a) * 10 : 0;   // the newest two steps run toward white
+          for (let k = 0; k &lt; 3; k++) {
+            const v = (HUE[h][k] * b &gt;&gt; 12) + (hot * GAIN[d] &gt;&gt; 6);
+            dac[reg * 3 + k] = v &gt; 63 ? 63 : v;
+          }
+        }
+    dac[0] = dac[1] = dac[2] = 0;                 // register 0 is the background
+    for (let r = 0; r &lt; 256; r++) {
+      const q = r * 3, c = v =&gt; (dac[q + v] &lt;&lt; 2) | (dac[q + v] &gt;&gt; 4);
+      lut[r] = (255 &lt;&lt; 24) | (c(2) &lt;&lt; 16) | (c(1) &lt;&lt; 8) | c(0);
+    }
+  }
+
+  // --- the framebuffer, and the pixels waiting to be erased ---------------------
+  const fb = new Uint8Array(W * H);
+  const truecolor = opt.mode === 'particles' &amp;&amp; !!opt.truecolor;
+  const rgb = truecolor ? new Float32Array(W * H * 3) : null;
+  // One list per palette step: the pixels written in that frame. They are
+  // erased 32 frames later, just before their index would come round bright
+  // again -- unless something newer has been drawn over them since.
+  const slotA = [], slotV = [], slotN = new Int32Array(AGES);
+  for (let s = 0; s &lt; AGES; s++) { slotA.push(new Int32Array(4096)); slotV.push(new Uint8Array(4096)); }
+  let slot = 0;
+
+  function put(a, v) {
+    fb[a] = v;
+    let n = slotN[slot];
+    if (n === slotA[slot].length) {
+      const A2 = new Int32Array(n * 2), V2 = new Uint8Array(n * 2);
+      A2.set(slotA[slot]); V2.set(slotV[slot]); slotA[slot] = A2; slotV[slot] = V2;
+    }
+    slotA[slot][n] = a; slotV[slot][n] = v; slotN[slot] = n + 1;
+  }
+  function eraseSlot(s) {
+    const As = slotA[s], Vs = slotV[s];
+    for (let i = 0, n = slotN[s]; i &lt; n; i++) if (fb[As[i]] === Vs[i]) fb[As[i]] = 0;
+    slotN[s] = 0;
+  }
+
+  // Bresenham, as every line in this archive was drawn.
+  function line(x0, y0, x1, y1, v, record) {
+    let dx = Math.abs(x1 - x0), sx = x0 &lt; x1 ? 1 : -1;
+    let dy = -Math.abs(y1 - y0), sy = y0 &lt; y1 ? 1 : -1, err = dx + dy;
+    for (;;) {
+      if (x0 &gt;= 0 &amp;&amp; x0 &lt; W &amp;&amp; y0 &gt;= 0 &amp;&amp; y0 &lt; H) {
+        const a = y0 * W + x0;
+        if (record) put(a, v); else fb[a] = v;
+      }
+      if (x0 === x1 &amp;&amp; y0 === y1) break;
+      const e2 = 2 * err;
+      if (e2 &gt;= dy) { err += dy; x0 += sx; }
+      if (e2 &lt;= dx) { err += dx; y0 += sy; }
+    }
+  }
+  // The true-color path: lines added into floating-point RGB. Brightness is
+  // scaled by particle density so 20,000 do not simply burn to white.
+  const GLOW = 1.1 * S * 1000 / Math.max(1, opt.count || 1000);
+  function glow(x0, y0, x1, y1, h, d) {
+    const c = HUE[h], g = GAIN[d] / 64 * GLOW;
+    let dx = Math.abs(x1 - x0), sx = x0 &lt; x1 ? 1 : -1;
+    let dy = -Math.abs(y1 - y0), sy = y0 &lt; y1 ? 1 : -1, err = dx + dy;
+    for (;;) {
+      if (x0 &gt;= 0 &amp;&amp; x0 &lt; W &amp;&amp; y0 &gt;= 0 &amp;&amp; y0 &lt; H) {
+        const a = (y0 * W + x0) * 3;
+        rgb[a] += c[0] * g; rgb[a + 1] += c[1] * g; rgb[a + 2] += c[2] * g;
+      }
+      if (x0 === x1 &amp;&amp; y0 === y1) break;
+      const e2 = 2 * err;
+      if (e2 &gt;= dy) { err += dy; x0 += sx; }
+      if (e2 &lt;= dx) { err += dx; y0 += sy; }
+    }
+  }
+
+  // --- particles ------------------------------------------------------------------
+  const N = opt.mode === 'particles' ? opt.count : opt.lines;
+  const px = new Int32Array(N), py = new Int32Array(N), pz = new Int32Array(N);
+  const r2s = new Int32Array(N);
+
+  function spawn(i) {
+    const ang = random(1024), r = 0.92 + random(1000) * 0.00016;
+    px[i] = Math.round(r * cos(ang) * 16);        // Q12 table * 16 = Q16
+    pz[i] = Math.round(r * sin(ang) * 16);
+    py[i] = (random(2) ? 1 : -1) * (40 + random(900));
+  }
+
+  // One frame of the flow for particle i. Returns r^2, Q12.
+  function advance(i) {
+    let x = px[i], y = py[i], z = pz[i];
+    const xs = x &gt;&gt; 4, zs = z &gt;&gt; 4;
+    const r2 = (xs * xs + zs * zs) &gt;&gt; 12;
+    x -= (x * KR + 32768) &gt;&gt; 16;                   // drawn in
+    z -= (z * KR + 32768) &gt;&gt; 16;
+    y += (y * KY + 32768) &gt;&gt; 16;                   // stretched out along the axis
+    const w = OMEGA[r2 &gt;&gt; 3 &gt; 1023 ? 1023 : r2 &gt;&gt; 3];
+    x -= (z * w + 2048) &gt;&gt; 12;                     // turned: x from the old z,
+    z += (x * w + 2048) &gt;&gt; 12;                     // z from the NEW x, which keeps it stable
+    px[i] = x; py[i] = y; pz[i] = z;
+    return r2;
+  }
+
+  // --- the camera -------------------------------------------------------------------
+  // Angles in 1024ths of a turn. Pitch 0 looks at the disc edge-on (the cross);
+  // 256 looks straight down the axis from above (the eye).
+  // There is no yaw: the flow is the same seen from any side, and orbiting the
+  // axis showed nothing but a slightly different rate of spin.
+  let pitch, F, D, cx, cy;
+  function setCamera(t) {
+    if (opt.mode === 'palette') { pitch = 112; F = 250 * S | 0; D = 196000; cx = W &gt;&gt; 1; cy = H &gt;&gt; 1; return; }
+    // ~11 deg to straight down and back every 42 s. It starts at the low end, nearly
+    // edge-on, where the shape is easiest to recognise at 320 pixels across --
+    // so by the time it looks straight down the axis you know what the eye is.
+    pitch = 144 + (112 * sin(((t * 1024 / 1470) | 0) + 768) &gt;&gt; 12);
+    // Zooming in with the square of the tilt: wide for most of the cycle, and 4.4
+    // times closer looking straight down, where the eye opens. Short of 90 degrees
+    // the upper jet's corkscrew lies across the eye; at 90 it rings it.
+    const p = pitch - 32;
+    F = (232 + (p * p &gt;&gt; 6)) * S | 0;
+    D = 196000;                                              // 3.0, Q16
+    cx = W &gt;&gt; 1; cy = H &gt;&gt; 1;
+  }
+  // Projected into sxv/syv, depth band into dband; false if behind the camera.
+  let sxv = 0, syv = 0, dband = 0, zv = 0;
+  function project(x, y, z) {
+    const cp = cos(pitch), sp = sin(pitch);
+    const y2 = (y * cp + z * sp) &gt;&gt; 12;
+    const z2 = (z * cp - y * sp) &gt;&gt; 12;
+    const zc = z2 + D;
+    zv = z2;
+    if (zc &lt; 16384) return false;
+    sxv = cx + ((x * F / zc) | 0);
+    syv = cy - ((y2 * F / zc) | 0);
+    let b = ((z2 + 92000) * DEPTHS / 184000) | 0;
+    // Thrown out along the axis, a particle fades into the dimmer bands as it
+    // goes, so the jets taper instead of ending in a block -- and seen from
+    // above they no longer pile up into a bright disc where the eye should be.
+    const ay = y &lt; 0 ? -y : y, yb = ((ay - 36000) * 3 / 40000) | 0;
+    if (yb &gt; b) b = yb;
+    dband = b &lt; 0 ? 0 : b &gt; 3 ? 3 : b;
+    return true;
+  }
+
+  // --- the palette way: streamlines drawn once --------------------------------------
+  // Each line is integrated from the rim until it leaves along the axis, and
+  // every step is colored by how far along the line it is (plus a random phase
+  // per line, or every comet would set off at once). Segments go into depth
+  // buckets and are drawn far to near, a few buckets a frame, so the picture
+  // builds from the back the way a slow machine would have shown it.
+  const BUCKETS = 32;
+  let buckets = null, bucketAt = 0;
+  function buildLines() {
+    setCamera(0);
+    buckets = Array.from({ length: BUCKETS }, () =&gt; []);
+    for (let i = 0; i &lt; N; i++) {
+      spawn(i);
+      const off = random(AGES);
+      let ox = 0, oy = 0, have = false;
+      for (let s = 0; s &lt; 1400; s++) {
+        const r2 = advance(i);
+        if (py[i] &gt; YMAX || py[i] &lt; -YMAX) break;
+        if (!project(px[i], py[i], pz[i])) { have = false; continue; }
+        const h = r2 &lt; CORE2 ? 1 : 0;
+        const v = ((h * DEPTHS + dband) * AGES + ((s + off) &amp; (AGES - 1))) || 1;
+        if (have) {
+          const b = ((zv + 92000) * BUCKETS / 184000) | 0;
+          buckets[b &lt; 0 ? 0 : b &gt;= BUCKETS ? BUCKETS - 1 : b].push(ox, oy, sxv, syv, v);
+        }
+        ox = sxv; oy = syv; have = true;
+      }
+    }
+    bucketAt = BUCKETS - 1;                        // far end first
+  }
+
+  // --- the particle way ------------------------------------------------------------------
+  const lastX = new Int32Array(N), lastY = new Int32Array(N);
+  // Let the flow fill in before the first frame. Each particle runs its own
+  // random number of frames: warmed up all together, they would spiral in as
+  // one cohort and leave the outer disc nearly empty for the first half-minute.
+  function buildParticles() {
+    for (let i = 0; i &lt; N; i++) {
+      spawn(i); lastX[i] = -1;
+      for (let t = random(1040); t &gt; 0; t--) {
+        advance(i);
+        if (py[i] &gt; YMAX || py[i] &lt; -YMAX) spawn(i);
+      }
+    }
+  }
+
+  let frameNo = 0;
+
+  function frame() {
+    setPalette(frameNo);
+    if (opt.mode === 'palette') {
+      // a few buckets per frame until the picture is complete, then nothing at all
+      for (let k = 0; k &lt; 2 &amp;&amp; bucketAt &gt;= 0; k++, bucketAt--) {
+        const L = buckets[bucketAt];
+        for (let i = 0; i &lt; L.length; i += 5) line(L[i], L[i + 1], L[i + 2], L[i + 3], L[i + 4], false);
+      }
+    } else {
+      slot = frameNo &amp; (AGES - 1);
+      if (!truecolor) eraseSlot(slot);
+      else for (let i = 0; i &lt; rgb.length; i++) rgb[i] *= 0.9;
+      setCamera(frameNo);
+      const base = frameNo &amp; (AGES - 1);
+      for (let i = 0; i &lt; N; i++) {
+        const r2 = advance(i);
+        if (py[i] &gt; YMAX || py[i] &lt; -YMAX) { spawn(i); lastX[i] = -1; continue; }
+        if (!project(px[i], py[i], pz[i])) { lastX[i] = -1; continue; }
+        const h = r2 &lt; CORE2 ? 1 : 0;
+        const x0 = lastX[i], y0 = lastY[i];
+        // x0 &lt; 0: just respawned (or last seen off the left edge), nothing to draw from.
+        // Every other move is a streak, however long the zoom has made it.
+        if (x0 &gt;= 0) {
+          if (truecolor) glow(x0, y0, sxv, syv, h, dband);
+          else line(x0, y0, sxv, syv, ((h * DEPTHS + dband) * AGES + base) || 1, true);
+        }
+        lastX[i] = sxv; lastY[i] = syv;
+      }
+    }
+    frameNo++;
+  }
+
+  function render(out) {
+    if (truecolor) {
+      // 1 - e^-v rolls off toward full brightness instead of clipping at it
+      for (let i = 0, a = 0; i &lt; out.length; i++, a += 3) {
+        const r = 255 * (1 - Math.exp(-rgb[a] / 200)) | 0,
+              g = 255 * (1 - Math.exp(-rgb[a + 1] / 200)) | 0,
+              b = 255 * (1 - Math.exp(-rgb[a + 2] / 200)) | 0;
+        out[i] = (255 &lt;&lt; 24) | (b &lt;&lt; 16) | (g &lt;&lt; 8) | r;
+      }
+    } else {
+      for (let i = 0; i &lt; out.length; i++) out[i] = lut[fb[i]];
+    }
+  }
+
+  if (opt.mode === 'palette') buildLines(); else buildParticles();
+  return { frame, render, lut, fb, get frameNo() { return frameNo; } };
+}
+
+if (typeof module !== 'undefined') module.exports = { createVortex };</pre>
+</details>
+<details class="source">
+<summary>palette.asm</summary>
+<p class="cap">16,879 bytes &middot; The PALETTE half as a DOS program, written for size. Assembles to <a href="dos/PALETTE.COM" download>PALETTE.COM</a>, 946 bytes.</p>
+<pre>; ===========================================================================
+; palette.asm -- the PALETTE half of web/vortex.html, as a DOS program.
+;
+; Streamlines of a Burgers vortex are drawn once. After that nothing is drawn:
+; the flow is the VGA palette turning, 2 hues x 4 depth bands x 32 steps.
+; The flow and its constants are the ones in web/vortex.js and particle.asm.
+;
+; What changes for real hardware:
+;   - mode 13h, 320x200. Its pixels are taller than wide, so the camera's
+;     vertical focal length is 5/6 of the horizontal one and circles stay round.
+;   - a z-buffer (64,000 bytes asked of DOS) instead of the page's depth-sorted
+;     segment lists, which would not fit in real-mode memory.
+;   - streamlines are drawn two a frame as they are computed, so the picture
+;     builds while the palette is already turning.
+;   - the palette goes out in two halves, one per vertical retrace.
+;   - no FPU: the sine and swirl tables are built with integer arithmetic.
+;
+; WRITTEN FOR SIZE. The first version shared an include file with particle.asm and kept
+; every value in a named variable; it was 1,594 bytes. This one stands alone.
+; It draws exactly the same thing -- its screen and palette were checked byte
+; for byte against the first version's, while the picture was building and
+; after -- by these means:
+;   - the particle lives in registers: x in ESI, y in EBP, z in EDI.
+;   - routines called once are written in place, and the three tables are
+;     built one after another by a single running STOSW/STOSB pointer.
+;   - the five rounded multiplies of the flow share one subroutine (the swirl
+;     table holds its values x16, so all five are "&gt;&gt; 16").
+;   - the two depth bands, one from distance and one from how far out the jet
+;     is, both step in equal intervals, so one loop walks both at once.
+;   - the palette goes straight from the colour table to the DAC, and register 0
+;     is left alone: the BIOS set it black and nothing changes it.
+;   - checks that can never fire are gone. The picture is always the same 120
+;     streamlines, so this is known, not hoped: no point comes near or behind
+;     the camera, off the sides of the screen, or out of the swirl table's
+;     reach, the z-buffer depth never needs clamping, and every streamline
+;     leaves along the axis long before the first version's 1,400-step limit.
+;   - if DOS has no memory for the z-buffer it quits without a message.
+;
+; Needs a 386 (32-bit arithmetic; FS and GS hold the z-buffer and the screen)
+; and a VGA. Any key quits.
+;
+;   python dos/build.py              build
+;   python dos/build.py run palette  run in DOSBox-X
+;   python dos/build.py web          the WEB build (never quits) packaged for vortex.html
+; ===========================================================================
+
+        cpu     386
+        org     100h
+
+NLINES  equ     120             ; streamlines
+KR      equ     515             ; Q16 radial shrink per frame      A/2 * DT
+KY      equ     1030            ; Q16 axial stretch per frame      A * DT, = 2 KR
+OMEGA0  equ     2341            ; Q12 radians per frame at the axis  W0 * DT
+EFAC    equ     62752           ; Q16 e^-q for one step of the omega table
+KSTEP   equ     53927           ; OMEGA0 / q-step
+YMAX    equ     95027           ; Q16 1.45: out along the axis, the line ends
+CORE2   equ     236             ; Q12 r^2 inside which it is orange
+DIST    equ     196000          ; Q16 3.0, the camera's distance
+SINP    equ     2598            ; Q12 sin and cos of the camera's fixed pitch,
+COSP    equ     3166            ;     112/1024 of a turn
+FX      equ     250             ; focal length in pixels, across
+FY      equ     208             ; ...and down: 250 * 200/240
+
+section .text
+
+start:
+        mov     ah, 4Ah                 ; keep 64K for ourselves...
+        mov     bx, 1000h
+        int     21h
+        mov     ah, 48h                 ; ...and ask DOS for 64,000 bytes of z-buffer
+        mov     bx, 0FA0h
+        int     21h
+        jnc     .mem
+        ret
+.mem:   mov     fs, ax                  ; FS: the z-buffer
+        mov     es, ax
+        xor     di, di
+        mov     cx, 64000
+        mov     al, 255                 ; everything as far away as it gets
+        rep     stosb
+        push    ds
+        pop     es
+
+; --- sine, 1024 steps a turn, Q12: a point rotated a step at a time --------------------------
+        mov     di, sintab              ; DI runs on through all three tables
+        mov     ebx, 1 &lt;&lt; 28            ; cos, Q28
+        xor     ebp, ebp                ; sin, Q28
+        mov     ecx, 402                ; 2pi/1024, Q16
+.sin:   mov     eax, ebp
+        sar     eax, 16
+        stosw
+        mov     eax, ebp                ; cos -= sin * 2pi/1024
+        imul    ecx
+        shrd    eax, edx, 16
+        sub     ebx, eax
+        mov     eax, ebx                ; sin += cos * 2pi/1024, the NEW cos: it stays a circle
+        imul    ecx
+        shrd    eax, edx, 16
+        add     ebp, eax
+        cmp     di, omega
+        jb      .sin
+
+; --- swirl by r^2: OMEGA0 (1 - e^-q) / q, Q12, stored x16 ----------------------------------------
+        mov     ax, OMEGA0 &lt;&lt; 4         ; the limit at the axis
+        stosw
+        mov     esi, 1 &lt;&lt; 30            ; e^-q, Q30, one step at a time
+        xor     ecx, ecx                ; (which also clears ECX's top half, for random)
+.om:    inc     cx
+        mov     eax, EFAC
+        mul     esi
+        shrd    eax, edx, 16
+        mov     esi, eax
+        neg     eax
+        add     eax, 1 &lt;&lt; 30
+        shr     eax, 14                 ; 1 - e^-q, Q16
+        mov     edx, KSTEP
+        mul     edx
+        div     ecx                     ; / q, as KSTEP / i
+        shr     eax, 16
+        shl     ax, 4
+        stosw
+        cmp     di, col
+        jb      .om
+
+; --- the 8 ramps x 32 ages, in 6-bit RGB --------------------------------------------------------
+        mov     bx, hue
+.h:     xor     cx, cx                  ; depth band
+.d:     xor     si, si                  ; age
+.a:     mov     bp, cx
+        mov     al, [si + ramp]
+        mul     byte [bp + gain]
+        push    ax                      ; ramp * gain, Q12
+        xor     ax, ax
+        cmp     si, 2
+        jae     .cold
+        mov     al, 2                   ; the newest two steps run toward white
+        sub     ax, si
+        imul    ax, ax, 10
+        mul     byte [bp + gain]
+        shr     ax, 6
+.cold:  mov     [hot], ax
+        pop     bp
+        push    bx
+        mov     ch, 3                   ; channels
+.k:     movzx   ax, byte [bx]
+        mul     bp
+        shrd    ax, dx, 12
+        add     ax, [hot]
+        cmp     ax, 63
+        jbe     .fits
+        mov     al, 63
+.fits:  stosb
+        inc     bx
+        dec     ch
+        jnz     .k
+        pop     bx
+        inc     si
+        cmp     si, 32
+        jb      .a
+        inc     cx
+        cmp     cl, 4
+        jb      .d
+        add     bx, 3
+        cmp     bx, hue + 6
+        jb      .h
+
+        mov     ax, 0013h
+        int     10h
+        push    0A000h
+        pop     gs                      ; GS: the screen
+
+; --- the frame loop ---------------------------------------------------------------------------
+frame:
+        call    pair                    ; two streamlines a frame until all are in
+
+; The palette, straight to the DAC in two halves, one vertical retrace apiece.
+; Register r*32 + j shows ramp r at age (frame - j) mod 32; (frame - register)
+; mod 32 is the same thing, since r*32 is a whole number of 32s.
+        mov     bx, 1                   ; register 0 stays black
+.half:  mov     dx, 3DAh
+.inside:
+        in      al, dx
+        test    al, 8
+        jnz     .inside
+.outside:
+        in      al, dx
+        test    al, 8
+        jz      .outside
+        mov     dl, 0C8h                ; 3C8h
+        mov     al, bl
+        out     dx, al
+        inc     dx                      ; 3C9h
+.reg:   mov     ax, [frameno]
+        sub     ax, bx
+        and     ax, 31                  ; the age
+        mov     si, bx
+        and     si, ~31                 ; the ramp's first entry
+        add     si, ax
+        imul    si, si, 3
+        add     si, col
+        outsb
+        outsb
+        outsb
+        inc     bx
+        test    bl, 127
+        jnz     .reg
+        test    bh, bh                  ; at 128, the second half
+        jz      .half
+
+        inc     word [frameno]
+%ifdef DUMP
+        cmp     word [frameno], DUMP
+        jb      .nodump
+        call    dump_screen
+        jmp     quit
+.nodump:
+%endif
+%ifdef WEB
+        jmp     frame                   ; in the browser there is nowhere to quit to
+%else
+        mov     ah, 1                   ; a key waiting?
+        int     16h
+        jz      frame
+        xor     ah, ah
+        int     16h
+%endif
+quit:
+        mov     ax, 0003h
+        int     10h
+        ret
+
+; --- two streamlines: PAIR calls LINE, which returns into LINE again -----------------------------
+none:   inc     word [left]             ; all in: stay at 0
+        ret
+pair:   call    line
+line:   dec     word [left]
+        js      none
+
+; A point on the rim: radius 0.92..1.08, just off the disc plane.
+        mov     cx, 1024
+        call    random
+        add     ax, ax                  ; angle, 1024ths of a turn, x2 to index words
+        push    ax
+        mov     cx, 655
+        call    random
+        add     ax, 3768
+        xchg    ax, cx                  ; radius, Q12
+        pop     bx
+        call    rim
+        xchg    eax, edi                ; z = sin * r
+        add     bh, 2                   ; + a quarter turn...
+        and     bh, 7                   ; ...mod a whole one: the cosine
+        call    rim
+        xchg    eax, esi                ; x = cos * r
+        mov     cx, 900
+        call    random
+        add     ax, 40
+        xchg    eax, ebp                ; y
+        mov     cx, 2
+        call    random
+        test    ax, ax
+        jz      .above
+        neg     ebp
+.above: mov     cx, 32
+        call    random
+        mov     [phase], al             ; a phase of its own, or all would pulse together
+        mov     byte [have], 1          ; shifted out on the first step: nothing to draw from
+
+; One frame of the flow. EDX = r^2 before the step, Q12.
+.step:  mov     eax, esi
+        sar     eax, 4
+        imul    eax, eax
+        mov     edx, edi
+        sar     edx, 4
+        imul    edx, edx
+        add     eax, edx
+        sar     eax, 12
+        xchg    eax, edx
+        mov     ebx, KR                 ; drawn in...
+        mov     eax, esi
+        call    mulr
+        sub     esi, eax
+        mov     eax, edi
+        call    mulr
+        sub     edi, eax
+        add     ebx, ebx                ; ...stretched out along the axis...
+        mov     eax, ebp
+        call    mulr
+        add     ebp, eax
+        mov     bx, dx                  ; ...and turned, by a lookup on r^2
+        shr     bx, 3
+        add     bx, bx
+        movzx   ebx, word [bx + omega]
+        mov     eax, edi
+        call    mulr
+        sub     esi, eax                ; x from the old z,
+        mov     eax, esi
+        call    mulr
+        add     edi, eax                ; z from the new x: stable
+
+        cmp     dx, CORE2
+        sbb     cl, cl                  ; CL = FF inside the core
+        mov     eax, ebp
+        cdq
+        xor     eax, edx
+        sub     eax, edx                ; |y|
+        cmp     eax, YMAX
+        jbe     .on
+        ret                             ; out along the axis: this streamline is done
+.on:    pushad
+
+; Where the fixed camera sees it.
+        lea     edx, [eax - 36001]
+        imul    ebx, edi, COSP
+        imul    eax, ebp, SINP
+        sub     ebx, eax
+        sar     ebx, 12                 ; z2 = z cos p - y sin p
+; Depth band 0..3, the dimmer of two: from distance, z2 past -46000, 0, 46000,
+; and from how far out the jet, |y| past 49334, 62667, 76000. Both step evenly,
+; so each pass takes a step off both, and the band goes up while either is past.
+        lea     eax, [ebx + 92000]
+        and     cl, 4                   ; hue: 4 for orange
+        mov     ch, 3
+.band:  sub     eax, 46000
+        sub     edx, 13333
+        test    eax, edx
+        js      .banded                 ; neither is past this one
+        inc     cx
+        dec     ch
+        jnz     .band
+.banded:
+        shl     cl, 5                   ; (hue + band) * 32 ...
+        mov     al, [phase]
+        and     al, 31
+        or      cl, al                  ; ... + the age it is drawn in
+        jnz     .nonzero
+        inc     cx                      ; never 0, the background
+.nonzero:
+        lea     eax, [ebx + 128000]     ; z-buffer depth, 0..255, nearer is smaller
+        sar     eax, 10
+        mov     ch, al
+        push    cx                      ; CH depth, CL colour
+
+        add     ebx, DIST               ; distance from the camera
+        imul    eax, ebp, COSP
+        imul    edx, edi, SINP
+        add     eax, edx
+        sar     eax, 12                 ; y2 = y cos p + z sin p
+        imul    eax, eax, FY
+        cdq
+        idiv    ebx
+        neg     ax
+        add     ax, 100
+        xchg    ax, [oy]                ; the new point in, the last one out
+        xchg    ax, di
+        imul    eax, esi, FX
+        cdq
+        idiv    ebx
+        add     ax, 160
+        xchg    ax, [ox]
+        xchg    ax, si
+        pop     ax                      ; AH depth, AL colour
+        shr     byte [have], 1
+        jc      .drawn
+
+; Bresenham from (SI,DI) to [ox],[oy]: BP the error term, CX and -DX the distances.
+        mov     cx, [ox]
+        sub     cx, si
+        mov     bx, 1
+        jge     .right
+        neg     cx
+        neg     bx
+.right: mov     [lsx], bx
+        mov     dx, di
+        sub     dx, [oy]
+        mov     bx, 1
+        jle     .down
+        neg     dx
+        neg     bx
+.down:  mov     [lsy], bx
+        mov     bp, cx
+        add     bp, dx
+.plot:  cmp     di, 199
+        ja      .clipped                ; unsigned: above the top is huge
+        imul    bx, di, 320
+        add     bx, si
+        cmp     ah, [fs:bx]
+        ja      .clipped                ; something nearer is already there
+        mov     [fs:bx], ah
+        mov     [gs:bx], al
+.clipped:
+        cmp     si, [ox]
+        jne     .move
+        cmp     di, [oy]
+        je      .drawn
+.move:  mov     bx, bp
+        add     bx, bx
+        cmp     bx, dx
+        jl      .across
+        add     bp, dx
+        add     si, [lsx]
+.across:
+        cmp     bx, cx
+        jg      .plot
+        add     bp, cx
+        add     di, [lsy]
+        jmp     .plot
+.drawn: popad
+        inc     byte [phase]
+        jmp     .step
+
+; --- EAX * EBX, rounded, &gt;&gt; 16 -------------------------------------------------------------------
+mulr:   imul    eax, ebx
+        add     eax, 32768
+        sar     eax, 16
+        ret
+
+; --- sine table entry BX times the radius in ECX, Q16 --------------------------------------------
+rim:    movsx   eax, word [bx + sintab]
+        imul    eax, ecx
+        sar     eax, 8
+        ret
+
+; --- Turbo Pascal's Random: CX = n in, EAX = 0..n-1 out. ECX's top half is already 0 ------------
+random:
+        mov     eax, [seed]
+        imul    eax, eax, 134775813
+        inc     eax
+        mov     [seed], eax
+        mul     ecx
+        xchg    eax, edx
+        ret
+
+%ifdef DUMP
+; --- screenshot build: VRAM and the palette, read back from the DAC, to FRAME.RAW -----------------
+dump_screen:
+        mov     dx, 3C7h
+        xor     al, al
+        out     dx, al
+        mov     dl, 0C9h
+        mov     di, dac
+        mov     cx, 768
+        rep     insb
+        mov     ah, 3Ch
+        xor     cx, cx
+        mov     dx, dumpname
+        int     21h
+        jc      .fail
+        mov     bx, ax
+        push    ds
+        push    0A000h
+        pop     ds
+        xor     dx, dx
+        mov     cx, 64000
+        mov     ah, 40h
+        int     21h
+        pop     ds
+        mov     dx, dac
+        mov     cx, 768
+        mov     ah, 40h
+        int     21h
+        mov     ah, 3Eh
+        int     21h
+.fail:  ret
+dumpname db     'FRAME.RAW', 0
+%endif
+
+section .data
+
+seed      dd    12345
+frameno   dw    0
+left      dw    NLINES
+ramp      db    64, 60, 56, 52, 48, 44, 41, 37, 34, 31, 28, 25, 23, 20, 18, 16
+          db    14, 12, 10, 9, 7, 6, 5, 4, 3, 2, 2, 1, 1, 0, 0, 0
+gain      db    64, 44, 30, 20          ; depth band 0 is nearest
+hue       db    12, 50, 63              ; cyan
+          db    63, 34, 8               ; orange
+
+section .bss
+
+sintab    resw  1024                    ; these three in this order: one pointer builds them
+omega     resw  1024
+col       resb  768
+hot       resw  1
+ox        resw  1
+oy        resw  1
+lsx       resw  1
+lsy       resw  1
+phase     resb  1
+have      resb  1
+%ifdef DUMP
+dac       resb  768
+%endif</pre>
+</details>
+<details class="source">
+<summary>particle.asm</summary>
+<p class="cap">26,125 bytes &middot; The PARTICLES half as a DOS program, written for size. Assembles to <a href="dos/PARTICLE.COM" download>PARTICLE.COM</a>, 1,022 bytes.</p>
+<pre>; ===========================================================================
+; particle.asm -- the PARTICLES half of web/vortex.html, as a DOS program.
+;
+; N particles (200 unless built with N=) stepped through a Burgers vortex in
+; 16.16 fixed point, each drawn as a line from where it was to where it is, in
+; the palette index of the current frame. The palette turning is what fades the
+; trails; nothing is ever redrawn to dim them. The camera starts nearly edge-on
+; and tilts to straight down the axis and back every 46 seconds, zooming in as
+; it comes over the top, where the eye opens. The flow and its constants are the
+; ones in web/vortex.js, with the approximations listed below.
+;
+; Erasing is the only bookkeeping. Every pixel drawn is remembered in the list
+; for its palette step, and cleared 32 frames later -- just before its index
+; would come round bright again -- unless something newer has been drawn over
+; it. At 200 particles a frame draws at most about 3,100 pixels (measured over
+; ten tilt cycles), so each list holds 4,000 and the 32 take 256K of DOS's 640K.
+; Build with a much larger N and there is no longer room, which is a limit a 386
+; would really have.
+;
+; Why 200: particles have no depth order, so where the jet's near and far sides
+; overlap in the centre, the last one drawn takes the pixel. The more there are,
+; the more of the lit centre changes hands every frame, which reads as flicker,
+; and zoomed in over the eye the rings around it run together. Every trail lasts
+; 32 frames, so 200 still fill the picture.
+;
+; WRITTEN FOR SIZE, like palette.asm. The first version was 2,725 bytes, with the
+; flow in an include file it shared with palette.asm. The size-written one,
+; 1,332 bytes, drew exactly what that did -- its screen and palette were checked
+; byte for byte against the first version's at frames 1, 40, 300 and 1,000 --
+; before the camera changed to the one above, which is cheaper again. The means:
+;   - each particle is one 16-byte record, loaded into registers (x in ESI,
+;     y in EBP, z in EDI) and stored back; its last screen position is swapped
+;     in place for the new one.
+;   - one Bresenham loop, stepping the pixel's address instead of multiplying it
+;     out. The first version had two, one of them clipping each pixel; this one
+;     skips a streak with an end off the screen, which at the screen's edge
+;     loses a few pixels of trail a frame.
+;   - the 32 erase lists sit in the memory above the program, which DOS has
+;     already given a .COM, each list's segment worked out from its step number.
+;   - no tables but the eight colour ramps, and those from a formula:
+;       the fade is (32 - age)^2, where the first version had a 32-step table
+;       of the same curve, and the depth bands are 4/4, 3/4, 2/4 and 1/4 bright,
+;       where they were 64, 44, 30 and 20 sixty-fourths;
+;       the swirl is (2 + q) / (2 + 2q + q^2), within 7% at every radius of the
+;       exponential in the 1,024-entry table it replaces;
+;       every sine and cosine -- the spawn angle, the pitch -- comes from a point
+;       turned step by step, and the tilt's wave is one turned a step a frame,
+;       so its period is 1,608 frames (46 s) where the table's was 1,470 (42 s);
+;       the vertical focal length is 13/16 of the horizontal, not 5/6.
+;     Side by side with the version that had the tables, it is the same picture.
+;   - checks that cannot fire are gone. No particle comes within reach of the
+;     camera: the farthest one can be from the axis's centre is under 2.0, and
+;     the camera is 3.0 away. An instrumented copy ran ten tilt cycles to be sure.
+;   - the "warming up" message is gone, and so is the stats line on exit, except
+;     in a FRAMES= build, where it is what the benchmark reads -- with the most
+;     pixels any frame drew. If there is not enough memory for the lists, it
+;     quits without a message.
+;   - the last 50 bytes, from 1,072 to 1,022, are rearrangement alone: its
+;     screen and palette were checked byte for byte against the 1,072-byte
+;     version's at frames 1, 40, 402, 804 and 1,500.
+;
+; Needs a 386 and a VGA. Any key quits. Build with UNCAPPED to stop waiting for
+; the retrace and see how fast it can go.
+;
+;   python dos/build.py web         the WEB build (never quits) packaged for vortex.html
+;   python dos/build.py run particle
+;   python dos/build.py bench particle 700 [N=2000] [UNCAPPED]
+; ===========================================================================
+
+        cpu     386
+        org     100h
+
+%ifndef N
+%define N 200
+%endif
+SLOTLEN  equ    N * 20                  ; pixels an erase list holds: 4,000 for 200
+SLOTPARA equ    (SLOTLEN * 2 + 15) / 16 ; ...in DOS paragraphs
+
+KR      equ     515             ; Q16 radial shrink per frame      A/2 * DT
+KY      equ     1030            ; Q16 axial stretch per frame      A * DT, = 2 KR
+OMEGA0  equ     2341            ; Q12 radians per frame at the axis  W0 * DT
+YMAX    equ     95027           ; Q16 1.45: out along the axis, it respawns
+CORE2   equ     236             ; Q12 r^2 inside which it is orange
+DIST    equ     196000          ; Q16 3.0, the camera's distance
+
+section .text
+
+start:
+        mov     ax, cs                  ; the erase lists: all 32 in the memory above our
+        add     ax, 1000h + SLOTPARA * 32 ; own 64K, which DOS gave a .COM program already --
+        cmp     ax, [2]                 ; if it reaches that far (the PSP says where ours ends)
+        jbe     .mem
+        ret
+.mem:
+
+        mov     di, col                 ; DI runs on through the colours and the list counts
+        xor     ecx, ecx                ; ECX's top half 0, for random
+
+; --- the 8 ramps x 32 ages, in 6-bit RGB --------------------------------------------------------
+; Brightness (32 - age)^2 * (4 - band), Q12: a fade that reaches 0 just as the
+; pixel is erased, and four depth bands at 4/4, 3/4, 2/4 and 1/4.
+        mov     si, hue
+.h:     mov     bx, 4                   ; 4 - depth band
+.d:     mov     cl, 32                  ; 32 - age
+.a:     mov     al, cl
+        mul     al
+        imul    ax, bx
+        xchg    ax, bp                  ; brightness
+        mov     al, cl
+        sub     al, 30                  ; the newest two steps run toward white
+        jnc     .hot
+        mov     al, 0
+.hot:   mul     bl
+        imul    ax, ax, 3
+        mov     [hot], al
+        push    si
+        mov     ch, 3                   ; channels
+.k:     lodsb                           ; (AH is already 0: nothing here passes 72)
+        mul     bp
+        shrd    ax, dx, 12
+        add     al, [hot]
+        cmp     al, 63
+        jbe     .fits
+        mov     al, 63
+.fits:  stosb
+        dec     ch
+        jnz     .k
+        pop     si
+        dec     cl
+        jnz     .a
+        dec     bx
+        jnz     .d
+        add     si, 3
+        cmp     si, hue + 6
+        jb      .h
+
+        mov     cx, 35                  ; every erase list starts empty; frame 0, the wave's sine 0
+        xor     ax, ax
+        rep     stosw
+
+; Graphics before the warm-up, not after: it takes a second or two, and a black
+; screen says less than whatever text was on it when the program started.
+        mov     ax, 0013h
+        int     10h
+        push    0A000h
+        pop     gs                      ; GS: the screen
+
+; --- let the flow fill in before the first frame -----------------------------------------------
+; Each particle runs its own random number of frames: warmed up all together they
+; would spiral in as one cohort and leave the outer disc nearly empty for half a minute.
+        mov     bx, parts
+.warm:  call    spawn
+        mov     cx, 1040
+        call    random
+        push    ax
+.wstep: pop     ax
+        dec     ax
+        js      .warmed
+        push    ax
+        call    step
+        jmp     .wstep
+.warmed:
+        call    store
+        jb      .warm
+
+%ifdef FRAMES
+        push    ds
+        push    40h
+        pop     ds
+        mov     eax, [6Ch]              ; BIOS timer ticks, 18.2 a second
+        pop     ds
+        mov     [tick0], eax
+        mov     word [peak], 0
+%endif
+
+; --- the frame loop ---------------------------------------------------------------------------
+frame:
+        push    ds
+        pop     es
+
+; The camera: a pitch from ~11 degrees to straight down and back every 46 s,
+; starting at the bottom (nearly edge-on, the shape easiest to recognise), and
+; a focal length that grows with the square of the tilt, so that it is 4.4 times
+; closer looking straight down, where the eye opens. There is no yaw: the flow
+; is the same seen from any side, and orbiting the axis showed nothing but a
+; slightly different rate of spin.
+;
+; The tilt's wave is a point turned 1/256 of a radian a frame, [wc] its cosine,
+; Q20: pitch = 113 - 88 wc, in 804ths of a turn (see rot), 25..201.
+        mov     eax, [ws]
+        sar     eax, 8
+        sub     [wc], eax
+        mov     eax, [wc]
+        sar     eax, 8
+        add     [ws], eax
+        imul    eax, [wc], 88
+        sar     eax, 20
+        mov     si, 113
+        sub     si, ax                  ; pitch
+        lea     ax, [si - 25]           ; p, 0 edge-on .. 176 straight down
+        mul     ax
+        mov     cx, 40
+        div     cx
+        add     ax, 232                 ; 232 + p^2/40
+        mov     di, fx
+        cwde
+        stosd                           ; focal length across...
+        imul    ax, ax, 13
+        shr     ax, 4
+        stosd                           ; ...and down, 13/16 of it, for mode 13h's tall pixels (5/6)
+        call    rot
+        stosd                           ; [sinp]
+        xchg    eax, edx
+        stosd                           ; [cosp]
+
+; Erase what was drawn 32 frames ago in this palette step.
+        mov     bx, [frameno]
+        and     bx, 31
+        mov     dx, bx                  ; DL the step, DH 0
+        imul    ax, bx, SLOTPARA
+        mov     cx, cs
+        add     ax, cx
+        add     ah, 10h
+        mov     es, ax                  ; ES: this step's erase list, for the frame
+        add     bx, bx
+        push    bx
+        mov     cx, [bx + slotcnt]
+        xor     si, si
+.erase: cmp     si, cx
+        jae     .erased
+        es      lodsw
+        xchg    ax, di
+        mov     al, [gs:di]
+        and     al, 31
+        cmp     al, dl
+        jne     .erase                  ; drawn over since, by a newer step (or already 0)
+        mov     [gs:di], dh
+        jmp     .erase
+.erased:
+        xor     ax, ax
+        mov     [lptr], ax
+
+; Every particle: a step of the flow, and a line from where it was on screen to where it is.
+; The palette goes out in two halves, one per retrace, and the frame's work is
+; split between the two gaps they leave: the erasing and the camera in one, the
+; particles in the next. Each has to fit in a 70th of a second.
+        mov     bx, 1                   ; register 0 stays black
+        call    half                    ; registers 1..127
+        push    bx                      ; 128, for the other half
+        mov     bx, parts
+.p:     mov     esi, [bx]
+        mov     ebp, [bx + 4]
+        mov     edi, [bx + 8]
+        call    step
+        jnc     .next                   ; respawned: nothing to draw
+        pushad
+        push    eax                     ; |y|
+        mov     eax, ebp
+        imul    eax, [cosp]
+        mov     edx, edi
+        imul    edx, [sinp]
+        add     eax, edx                ; y2 = y cos pitch + z sin pitch ...
+        imul    edi, [cosp]
+        imul    ebp, [sinp]
+        sub     edi, ebp
+        sar     edi, 12                 ; z2 = z cos pitch - y sin pitch
+        sar     eax, 12                 ; ... &gt;&gt; 12
+        xchg    eax, ebp
+; Depth band 0..3, the dimmer of two: from distance, z2 past -46000, 0, 46000,
+; and from how far out the jet, |y| past 49334, 62667, 76000. Both step evenly,
+; so each pass takes a step off both, and the band goes up while either is past.
+        pop     edx
+        sub     edx, 36001
+        lea     eax, [edi + 92000]
+.band:  sub     eax, 46000
+        sub     edx, 13333
+        test    eax, edx
+        js      .banded                 ; neither is past this one
+        inc     cx
+        cmp     cl, 3
+        jb      .band
+.banded:
+        add     cl, ch                  ; + hue: 4 for orange
+        shl     cl, 5
+        mov     al, [frameno]
+        and     al, 31
+        or      al, cl                  ; (hue + band) * 32 + this frame's step
+        jnz     .nonzero
+        mov     al, 32                  ; not 0, the background: the next ramp, same step
+.nonzero:
+        mov     [value], al
+        add     edi, DIST               ; distance from the camera
+        mov     eax, esi
+        or      si, -1                  ; nowhere, until both coordinates are on the screen...
+        xchg    si, [bx + 12]           ; ...and SI where it was
+        imul    eax, [fx]
+        cdq
+        idiv    edi
+        add     ax, 160
+        cmp     ax, 319
+        ja      .drawn                  ; off the screen: no streak, and nowhere to draw from next
+        xchg    ax, cx
+        mov     eax, ebp
+        imul    eax, [fy]
+        cdq
+        idiv    edi
+        neg     ax
+        add     ax, 100
+        cmp     ax, 199
+        ja      .drawn
+        mov     dx, ax
+        xchg    ax, [bx + 14]
+        xchg    ax, di
+        mov     [bx + 12], cx           ; on the screen: the new point in, the last one out
+        test    si, si
+        js      .drawn                  ; it was nowhere: no streak (a last position is only ever
+                                        ; on the screen, or -1)
+
+; Bresenham from (SI,DI) to (CX,DX), both on the screen, so no pixel between can
+; be off it. BX the pixel's address, CX and -DX the distances, BP the error term,
+; AX twice it; SI and [lsy] the steps; DI the erase list.
+        imul    ax, dx, 320
+        add     ax, cx
+        mov     [lend], ax              ; the last pixel's address
+        imul    bx, di, 320
+        add     bx, si                  ; the first
+        cmp     cx, si                  ; both ends on the screen: unsigned is signed
+        sbb     ax, ax
+        or      al, 1
+        sub     cx, si
+        imul    cx, ax                  ; |x1 - x0|
+        xchg    ax, si                  ; +-1
+        cmp     dx, di
+        sbb     ax, ax
+        or      al, 1
+        sub     dx, di
+        imul    dx, ax
+        neg     dx                      ; -|y1 - y0|
+        imul    ax, ax, 320
+        mov     [lsy], ax               ; +-320
+        mov     bp, cx
+        add     bp, dx                  ; err = dx + dy
+        mov     di, [lptr]
+.plot:  cmp     di, SLOTLEN * 2
+        jae     .off                    ; the list is full: better unseen than never erased
+        mov     al, [value]
+        mov     [gs:bx], al
+        xchg    ax, bx
+        stosw                           ; remembered, for erasing
+        xchg    ax, bx
+.off:   cmp     bx, [lend]
+        je      .done
+        mov     ax, bp
+        add     ax, ax
+        cmp     ax, dx
+        jl      .across
+        add     bp, dx
+        add     bx, si
+.across:
+        cmp     ax, cx
+        jg      .plot
+        add     bp, cx
+        add     bx, [lsy]
+        jmp     .plot
+.done:  mov     [lptr], di
+.drawn: popad
+.next:  call    store
+        jb      .p
+
+        pop     bx
+        call    half                    ; registers 128..255
+        pop     bx
+        mov     ax, [lptr]
+        mov     [bx + slotcnt], ax
+%ifdef FRAMES
+        cmp     ax, [peak]
+        jbe     .notpeak
+        mov     [peak], ax
+.notpeak:
+%endif
+
+        inc     word [frameno]
+%ifdef DUMP
+        cmp     word [frameno], DUMP
+        jb      .nodump
+        call    dump_screen
+        jmp     finish
+.nodump:
+%endif
+%ifdef FRAMES
+        cmp     word [frameno], FRAMES
+        jae     finish
+%endif
+%ifdef WEB
+        jmp     frame                   ; in the browser there is nowhere to quit to
+%else
+        mov     ah, 1                   ; a key waiting?
+        int     16h
+        jz      frame
+        xor     ah, ah
+        int     16h
+%endif
+finish:
+        mov     ax, 0003h
+        int     10h
+%ifdef FRAMES
+        call    stats
+%endif
+        ret
+
+; --- particle BX back to its record, and on to the next: CF while there is one ------------------
+store:  mov     [bx], esi
+        mov     [bx + 4], ebp
+        mov     [bx + 8], edi
+        add     bx, 16
+        cmp     bx, parts + N * 16
+        ret
+
+; --- half the palette, from register BX to the next multiple of 128, at a vertical retrace -------
+; Register r*32 + j shows ramp r at age (frame - j) mod 32; (frame - register)
+; mod 32 is the same thing, since r*32 is a whole number of 32s.
+half:
+%ifndef UNCAPPED
+        mov     dx, 3DAh
+.inside:
+        in      al, dx
+        test    al, 8
+        jnz     .inside
+.outside:
+        in      al, dx
+        test    al, 8
+        jz      .outside
+        mov     dl, 0C8h                ; 3C8h
+%else
+        mov     dx, 3C8h
+%endif
+        mov     al, bl
+        out     dx, al
+        inc     dx                      ; 3C9h
+.reg:   mov     ax, [frameno]
+        sub     ax, bx
+        and     ax, 31                  ; the age
+        mov     si, bx
+        and     si, ~31                 ; the ramp's first entry
+        add     si, ax
+        imul    si, si, 3
+        add     si, col
+        outsb
+        outsb
+        outsb
+        inc     bx
+        test    bl, 127
+        jnz     .reg
+        ret
+
+; --- one frame of the flow for ESI EBP EDI -------------------------------------------------------
+; CF set: still in the flow, with EAX = |y| and CH = 4 inside the core. CF clear:
+; it had left along the axis and has been respawned, its last screen position
+; marked as nowhere.
+step:   mov     eax, esi
+        sar     eax, 4
+        imul    eax, eax
+        mov     edx, edi
+        sar     edx, 4
+        imul    edx, edx
+        add     eax, edx
+        sar     eax, 12                 ; r^2, Q12, before the step
+        cmp     ax, CORE2
+        xchg    eax, edx
+        sbb     cx, cx
+        and     cx, 400h                ; CH = 4 inside the core, CL = 0
+        push    bx
+        mov     ebx, KR                 ; drawn in...
+        mov     eax, esi
+        call    mulr
+        sub     esi, eax
+        mov     eax, edi
+        call    mulr
+        sub     edi, eax
+        add     ebx, ebx                ; ...stretched out along the axis...
+        mov     eax, ebp
+        call    mulr
+        add     ebp, eax
+; ...and turned. The swirl is OMEGA0 (1 - e^-q) / q, with q = r^2 / C; that
+; takes an exponential, so it is (2 + q) / (2 + 2q + q^2) instead, which is
+; within 7% of it at every radius. In r^2 (Q12), with S = C = 184:
+; OMEGA0 x16 * S (2S + r^2) / (2S^2 + 2S r^2 + r^4).
+        lea     eax, [edx + 368]
+        mov     ebx, eax
+        imul    ebx, edx
+        add     ebx, 67712
+        mov     edx, (OMEGA0 &lt;&lt; 4) * 184
+        mul     edx
+        div     ebx
+        mov     ebx, eax
+        mov     eax, edi
+        call    mulr
+        sub     esi, eax                ; x from the old z,
+        mov     eax, esi
+        call    mulr
+        add     edi, eax                ; z from the new x: stable
+        pop     bx
+        mov     eax, ebp
+        cdq
+        xor     eax, edx
+        sub     eax, edx
+        cmp     eax, YMAX + 1
+        jnb     .out
+        ret
+.out:                                   ; and on into spawn
+; --- a point on the rim: radius 0.92..1.08, just off the disc plane. ESI x, EDI z, EBP y --------
+spawn:  or      word [bx + 12], -1      ; drawn nowhere yet
+        mov     cx, 804
+        call    random
+        push    ax                      ; angle, 804ths of a turn
+        mov     cx, 655
+        call    random
+        add     ax, 3768
+        xchg    ax, cx                  ; radius, Q12
+        pop     si
+        call    rot
+        imul    eax, ecx
+        sar     eax, 8
+        xchg    eax, edi                ; z = sin * r
+        imul    edx, ecx
+        sar     edx, 8
+        mov     esi, edx                ; x = cos * r
+        mov     cx, 900
+        call    random
+        add     ax, 40
+        xchg    eax, ebp                ; y
+        mov     cx, 2
+        call    random
+        dec     ax
+        jnz     .above
+        neg     ebp
+.above: clc
+        ret
+
+; --- EAX * EBX, rounded, &gt;&gt; 16 -------------------------------------------------------------------
+mulr:   imul    eax, ebx
+        add     eax, 32768
+        sar     eax, 16
+        ret
+
+; --- sin and cos of angle SI in EAX and EDX, Q12: a point turned SI + 1 steps ---------------------
+; Each step is 1/128 of a radian, so a turn is 804 of them, and the step is two
+; shifts: the cosine less the sine / 128, then the sine plus the NEW cosine / 128,
+; which keeps the point on its circle. No table, and no multiply.
+rot:    mov     edx, 1 &lt;&lt; 20            ; cos, Q20
+        xor     eax, eax                ; sin
+.step:  mov     ebp, eax
+        sar     ebp, 7
+        sub     edx, ebp
+        mov     ebp, edx
+        sar     ebp, 7
+        add     eax, ebp
+        dec     si
+        jns     .step
+        sar     eax, 8
+        sar     edx, 8
+        ret
+
+; --- Turbo Pascal's Random: CX = n in, EAX = 0..n-1 out. ECX's top half is already 0 ------------
+random:
+        imul    eax, [seed], 134775813
+        inc     eax
+        mov     [seed], eax
+        mul     ecx
+        xchg    eax, edx
+        ret
+
+%ifdef DUMP
+; --- screenshot build: VRAM and the palette, read back from the DAC, to FRAME.RAW -----------------
+dump_screen:
+        push    ds
+        pop     es
+        mov     dx, 3C7h
+        xor     al, al
+        out     dx, al
+        mov     dl, 0C9h
+        mov     di, dac
+        mov     cx, 768
+        rep     insb
+        mov     ah, 3Ch
+        xor     cx, cx
+        mov     dx, dumpname
+        int     21h
+        jc      .fail
+        mov     bx, ax
+        push    ds
+        push    0A000h
+        pop     ds
+        xor     dx, dx
+        mov     cx, 64000
+        mov     ah, 40h
+        int     21h
+        pop     ds
+        mov     dx, dac
+        mov     cx, 768
+        mov     ah, 40h
+        int     21h
+        mov     ah, 3Eh
+        int     21h
+.fail:  ret
+dumpname db     'FRAME.RAW', 0
+%endif
+
+%ifdef FRAMES
+; --- benchmark build: particles, frames, seconds and frames per second, to the screen and STATS.TXT --
+stats:
+        push    ds
+        push    40h
+        pop     ds
+        mov     eax, [6Ch]
+        pop     ds
+        sub     eax, [tick0]
+        jnz     .ticked
+        inc     eax
+.ticked:
+        mov     [ticks], eax
+        push    ds
+        pop     es
+        mov     di, statbuf
+        mov     eax, N
+        call    putnum
+        mov     si, s_particles
+        call    putstr
+        movzx   eax, word [frameno]
+        call    putnum
+        mov     si, s_frames
+        call    putstr
+        mov     eax, [ticks]
+        imul    eax, eax, 100
+        xor     edx, edx
+        mov     ecx, 182
+        div     ecx                     ; tenths of a second
+        call    puttenths
+        mov     si, s_seconds
+        call    putstr
+        movzx   eax, word [frameno]
+        imul    eax, eax, 182
+        xor     edx, edx
+        div     dword [ticks]           ; tenths of a frame per second
+        call    puttenths
+        mov     si, s_fps
+        call    putstr
+        movzx   eax, word [peak]
+        shr     eax, 1
+        call    putnum
+        mov     si, s_pixels
+        call    putstr
+        mov     cx, di
+        sub     cx, statbuf
+        mov     [statlen], cx
+        mov     bx, 1                   ; the screen
+        mov     dx, statbuf
+        mov     ah, 40h
+        int     21h
+        mov     ah, 3Ch                 ; and STATS.TXT
+        xor     cx, cx
+        mov     dx, statname
+        int     21h
+        jc      .nofile
+        mov     bx, ax
+        mov     cx, [statlen]
+        mov     dx, statbuf
+        mov     ah, 40h
+        int     21h
+        mov     ah, 3Eh
+        int     21h
+.nofile:
+        ret
+putnum:                                 ; EAX as decimal
+        mov     ecx, 10
+        xor     ebx, ebx
+.div:   xor     edx, edx
+        div     ecx
+        push    dx
+        inc     ebx
+        test    eax, eax
+        jnz     .div
+.out:   pop     ax
+        add     al, '0'
+        stosb
+        dec     ebx
+        jnz     .out
+        ret
+puttenths:                              ; EAX tenths, as "12.3"
+        xor     edx, edx
+        mov     ecx, 10
+        div     ecx
+        push    dx
+        call    putnum
+        mov     al, '.'
+        stosb
+        pop     ax
+        add     al, '0'
+        stosb
+        ret
+putstr:                                 ; SI, zero-terminated
+        lodsb
+        test    al, al
+        jz      .end
+        stosb
+        jmp     putstr
+.end:   ret
+%endif
+
+section .data
+
+seed      dd    12345
+hue       db    12, 50, 63              ; cyan
+          db    63, 34, 8               ; orange
+wc        dd    1 &lt;&lt; 20                 ; the tilt's wave, Q20: it starts at the bottom
+%ifdef FRAMES
+s_particles db  ' particles, ', 0
+s_frames    db  ' frames in ', 0
+s_seconds   db  ' s: ', 0
+s_fps       db  ' fps, at most ', 0
+s_pixels    db  ' pixels a frame', 13, 10, 0
+statname    db  'STATS.TXT', 0
+%endif
+
+section .bss
+
+col       resb  768                     ; these two in this order: one pointer fills them
+slotcnt   resw  32                      ; bytes used in each erase list
+frameno   resw  1                       ; (these two zeroed with the counts)
+ws        resd  1
+hot       resb  1
+lptr      resw  1
+lend      resw  1
+lsy       resw  1
+value     resb  1
+fx        resd  1                       ; the camera: in the order it is filled in
+fy        resd  1
+sinp      resd  1
+cosp      resd  1
+%ifdef DUMP
+dac       resb  768
+%endif
+%ifdef FRAMES
+tick0     resd  1
+ticks     resd  1
+peak      resw  1                       ; the most bytes an erase list has held
+statlen   resw  1
+statbuf   resb  80
+%endif
+parts     resb  N * 16                  ; x, y, z (dd), and last screen x, y (dw)</pre>
+</details>
+<!-- /listings -->
+
+<script src="archive.js"></script>
+<script src="vortex.js"></script>
+<script>
+const el = id => document.getElementById(id);
+const canvas = el('screen');
+const ctx = canvas.getContext('2d');
+const paintStrip = paletteStrip('strip');
+let img, out, eng;
+const box = el('dosbox');
+const isDos = mode => mode.endsWith('-dos');
+// js-dos keeps every bundle it downloads in the browser's private storage, named
+// after its URL, and never asks the server for that URL again. So each bundle's
+// URL carries a hash of its contents: a rebuilt program is a new URL, and is fetched.
+// Written by `python dos/build.py web`.
+const BUNDLE_VERSIONS = {"palette": "b5de6929fa", "particle": "dabdde4c8a"};
+
+// The particle slider steps through these rather than running 100..20,000 in
+// hundreds, which left everything under 1,000 in the first sliver of the track.
+// 200 is where it starts: past that, the dense centre spends more of each frame
+// with overlapping particles taking pixels from one another, which reads as flicker,
+// and the rings around the eye run together when the camera zooms in over it.
+const COUNTS = [100, 200, 300, 500, 700, 1000, 1500, 2000, 3000, 5000, 10000, 20000];
+const particles = () => COUNTS[+el('count').value];
+
+// Anything that changes the size of the picture or what is being simulated
+// starts it again; everything else is read as it runs.
+function build() {
+  const hi = el('hires').checked, mode = el('way').value;
+  const dosTab = isDos(mode);
+  // The DOS tabs draw in DOSBox's box instead, and nothing about the canvas --
+  // its aspect toggle, the DAC strip, the 386-limit options -- applies to them.
+  canvas.hidden = dosTab; box.hidden = !dosTab;
+  for (const id of ['strip', 'stripcap', 'opts-limits', 'limitscap']) el(id).hidden = dosTab;
+  const bar = document.querySelector('.parbar');
+  if (bar) {
+    bar.classList.toggle('dosmode', dosTab);
+    for (const c of bar.children) if (!c.classList.contains('parctl')) c.hidden = dosTab;
+  }
+  if (dosTab) {
+    el('opts-palette').hidden = el('opts-particles').hidden = true;
+    eng = null;
+    const name = mode.replace('-dos', '');
+    startDos('dos/' + name + '.jsdos?v=' + BUNDLE_VERSIONS[name]);
+    return;
+  }
+  stopDos();
+  canvas.width = hi ? 640 : 320; canvas.height = hi ? 480 : 240;
+  img = ctx.createImageData(canvas.width, canvas.height);
+  out = new Uint32Array(img.data.buffer);
+  el('opts-palette').hidden = mode !== 'palette';
+  el('opts-particles').hidden = mode !== 'particles';
+  eng = createVortex({ width: canvas.width, height: canvas.height, mode,
+                       lines: +el('lines').value, count: particles(),
+                       truecolor: el('truecolor').checked });
+}
+
+el('lines').addEventListener('input', () => el('linesLabel').textContent = el('lines').value);
+el('count').addEventListener('input', () => el('countLabel').textContent = particles());
+for (const id of ['lines', 'count']) el(id).addEventListener('change', build);
+for (const id of ['way', 'hires', 'truecolor']) el(id).addEventListener('change', build);
+el('restart').addEventListener('click', build);
+
+let paused = false;
+el('pause').addEventListener('click', () => {
+  paused = !paused;
+  el('pause').textContent = paused ? 'resume' : 'pause';
+  if (dos) dos.setPaused(paused);
+});
+
+// --- the DOS tabs: js-dos, loaded the first time one is opened -----------------
+// Self-hosted in jsdos/, unmodified; the prose credits it and links its licence
+// and source. Leaving the tab stops the
+// emulator, so it is not running unseen. `starting` counts requests, so a tab
+// clicked away from while js-dos is still loading does not start late.
+let dos = null, jsdosLoading = null, starting = 0;
+function loadJsDos() {
+  if (window.Dos) return Promise.resolve();
+  return jsdosLoading || (jsdosLoading = new Promise((resolve, reject) => {
+    // js-dos.css opens with a full CSS reset -- links, buttons, headings, lists,
+    // tables -- and arriving after archive.css it won every tie: links lost their
+    // color the moment a DOS tab was opened. Imported into a cascade layer, all
+    // of it ranks below the page's own (unlayered) styles whatever the order, and
+    // still styles js-dos wherever the page says nothing.
+    const css = document.createElement('style');
+    css.textContent = '@import url("jsdos/js-dos.css") layer(jsdos);';
+    document.head.append(css);
+    // As a module, the way js-dos's own example page loads it. A classic script
+    // shares its top-level names with every other script on the page, and the
+    // minified js-dos declares hundreds of short ones -- `function el(...)` among
+    // them, which collided with this page's `el` and stopped js-dos loading.
+    // A module has its own scope; js-dos sets window.Dos explicitly.
+    const js = document.createElement('script');
+    js.type = 'module';
+    js.src = 'jsdos/js-dos.js';
+    js.onload = () => window.Dos ? resolve() : reject(new Error('js-dos loaded but defined no Dos'));
+    js.onerror = reject;
+    document.head.append(js);
+  }));
+}
+function stopDos() {
+  starting++;
+  if (dos) { dos.stop(); dos = null; }
+  box.replaceChildren();
+}
+function dosMessage(text) {
+  const m = document.createElement('div');
+  m.className = 'dosmsg'; m.textContent = text;
+  box.replaceChildren(m);
+}
+async function startDos(bundle) {
+  stopDos();
+  const mine = starting;
+  if (location.protocol === 'file:') {
+    dosMessage('The DOS versions run in DOSBox for the browser, which will not load from a ' +
+               'file. Serve this folder from a web server to see them; the JavaScript tabs work as they are.');
+    return;
+  }
+  dosMessage('Starting DOSBox...');
+  try { await loadJsDos(); }
+  catch (e) { console.error(e); dosMessage('Could not load js-dos from jsdos/.'); jsdosLoading = null; return; }
+  if (mine !== starting) return;               // a different tab was chosen meanwhile
+  const host = document.createElement('div');
+  box.replaceChildren(host);
+  dos = Dos(host, {
+    url: bundle,
+    pathPrefix: new URL('jsdos/emulators/', location.href).href,
+    backend: 'dosbox', kiosk: true, autoStart: true,
+    renderAspect: '4/3', imageRendering: 'pixelated', theme: 'dark', volume: 0,
+  });
+  if (paused) dos.setPaused(true);
+}
+
+// 35 fps: every other retrace of a 70 Hz VGA, unless the box says otherwise.
+let last = 0;
+function loop(now) {
+  requestAnimationFrame(loop);
+  if (paused || !eng) return;
+  if (!el('uncapped').checked && now - last < 1000 / 35 - 2) return;
+  last = now;
+  eng.frame();
+  eng.render(out);
+  ctx.putImageData(img, 0, 0);
+  paintStrip(x => eng.lut[x]);
+}
+
+build();
+requestAnimationFrame(loop);
+
+// The bar under the screen first: opened at #palette-dos or #particle-dos, the
+// strip switches to that tab at once, and build() can only hide a bar that exists.
+screenAspect();
+underScreen('restart', 'pause');
+demoStrip('way');
+</script>
+</body>
+</html>
