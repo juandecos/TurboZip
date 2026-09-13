@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>02 &middot; Enter Mode X</title>
 <link rel="stylesheet" href="archive.css">
 </head>
@@ -59,7 +60,6 @@ Only the first is ever on screen.</div>
 
 <div class="cap" id="viewcap"></div>
 
-<div id="status"></div>
 </div>
 
 <div class="prose">
@@ -78,7 +78,7 @@ labels down the left are a list of its own entry points.
 </p>
 <p>The panning is the part worth watching. <b>Nothing moves.</b> Set_Window
 rewrites the CRTC start address and the card begins reading video memory
-somewhere else; no pixels are copied, no frame is redrawn. Tick the box to show the whole page and you can watch the window slide over a
+somewhere else; no pixels are copied, no frame is redrawn. <a href="#test5">Tick the box to show the whole page</a> and you can watch the window slide over a
 picture that is standing perfectly still.
 Sixty-four sprites bounce around on top, drawn onto whichever page is about to
 be displayed and erased from the other one by copying 16×16 boxes back from
@@ -123,7 +123,7 @@ produced <code>MYDEMO</code>, <code>BOX2</code> and the
 
 <details class="source">
 <summary>TEST5.PAS</summary>
-<p class="cap">15,873 bytes &middot; Scott Wyatt's Turbo Pascal port of Pritchard's demo, the file everything here descends from.</p>
+<p class="cap">1995-05-16 19:23 &middot; 15,873 bytes &middot; Scott Wyatt's Turbo Pascal port of Pritchard's demo, the file everything here descends from.</p>
 <pre>{                      ModeX Turbo Pascal Demo Program                       }
 {                  Converted to Turbo Pascal by Scott Wyatt                  }
 {          Original program written in QuickBasic by Matt Prichard           }
@@ -615,7 +615,7 @@ END.</pre>
 </details>
 <details class="source">
 <summary>JTEST.PAS</summary>
-<p class="cap">2,771 bytes &middot; My cut-down.</p>
+<p class="cap">1995-09-21 17:59 &middot; 2,771 bytes &middot; My cut-down.</p>
 <pre>Uses Crt,jmodex;
 
 Var
@@ -724,7 +724,7 @@ END.</pre>
 </details>
 <details class="source">
 <summary>JMODEX.PAS</summary>
-<p class="cap">3,189 bytes &middot; Pascal interface to Pritchard's object file.</p>
+<p class="cap">1995-06-09 17:46 &middot; 3,189 bytes &middot; Pascal interface to Pritchard's object file.</p>
 <pre>unit jmodex;
 
 interface
@@ -1094,12 +1094,6 @@ function frame() {
   const now = performance.now();
   if (now - last >= +el('rate').value) { last = now; step(); }
   render();
-  el('status').textContent =
-    `frame ${w(frames,7)}   window at ${w(xView,3)},${w(yView,3)} of 0..40   ` +
-    `panning ${right ? 'X' : 'Y'}   showing page ${w(displayPage,1)}   ` +
-    `chaser 50+${w(setColor,3)} / 50+${w(prevColor,3)}\n` +
-    `pixels moved by the pan: 0   ·   DAC registers rewritten: ` +
-    `${w(el('chase').checked ? 4 : 0,1)} (two of them into a bank nothing uses)`;
 }
 
 reset();

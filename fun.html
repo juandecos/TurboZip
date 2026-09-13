@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>11 &middot; Random Walking</title>
 <link rel="stylesheet" href="archive.css">
 </head>
@@ -65,7 +66,7 @@ Two days on, back to Mode X and radius-10 circles, but now with the vsync wait a
 <div class="cap" id="stripcap">the 256 DAC registers</div>
 
 <div class="panel">
-  <label><input id="bug" type="checkbox" checked> call randomize() every frame (as written)</label>
+  <label><input id="fixrand" type="checkbox"> fix randomize() bug: seed once, not every frame</label>
 </div>
 
 </div>
@@ -104,7 +105,7 @@ three weeks later, and it is how the rest of the archive talks to the screen.</p
 
 <details class="source">
 <summary>FUN.PAS</summary>
-<p class="cap">03:16, 31 December &middot; 685 bytes</p>
+<p class="cap">1995-12-31 03:16 &middot; 685 bytes</p>
 <pre>uses crt,jmodex;var q,x,y,r,s:integer;
 
 procedure circ(x,y,r,l:integer);var b,c:integer;a:real;begin if r=0 then b:=0
@@ -121,7 +122,7 @@ until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
 </details>
 <details class="source">
 <summary>FUN1.BAK</summary>
-<p class="cap">03:12 &middot; 686 bytes &middot; The earliest of the night.</p>
+<p class="cap">1995-12-31 03:12 &middot; 686 bytes &middot; The earliest of the night.</p>
 <pre>uses crt,jmodex;var q,x,y,r,s:integer;
 procedure circ(x,y,r,l:integer);var b,c:integer;a:real;
 begin if r=0 then b:=0 else b:=round(sqrt(r*r-1));a:=b;
@@ -137,7 +138,7 @@ until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
 </details>
 <details class="source">
 <summary>FUN1.PAS</summary>
-<p class="cap">2 January, 05:45 &middot; 825 bytes</p>
+<p class="cap">1996-01-02 05:45 &middot; 825 bytes</p>
 <pre>uses crt,jmodex;var c,q,x,y,r,s,o:integer;
 procedure circ(x,y,r,l:integer);var b,c:integer;a:real;
 begin if r=0 then b:=0 else b:=round(sqrt(r*r-1));a:=b;
@@ -155,7 +156,7 @@ until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
 </details>
 <details class="source">
 <summary>FUN2.PAS</summary>
-<p class="cap">03:21 &middot; 625 bytes</p>
+<p class="cap">1995-12-31 03:21 &middot; 625 bytes</p>
 <pre>uses crt,jmodex;var q,x,y,s:integer;
 
 procedure circ(x,y,l:integer);var b,c:integer;a:real;begin
@@ -172,7 +173,7 @@ until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
 </details>
 <details class="source">
 <summary>FUN3.PAS</summary>
-<p class="cap">03:45 &middot; 653 bytes</p>
+<p class="cap">1995-12-31 03:45 &middot; 653 bytes</p>
 <pre>uses crt,jmodex;var o,c,q,x,y,s:integer;
 
 begin if set_vga_modex(7,360,480,1)=0 then halt(0);clear_vga_screen(0);
@@ -192,7 +193,7 @@ until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
 </details>
 <details class="source">
 <summary>FUN4.PAS</summary>
-<p class="cap">06:29 &middot; 643 bytes &middot; Raw mode 13h, DAC ports, and the ancestor of ASMSTARS.</p>
+<p class="cap">1995-12-31 06:29 &middot; 643 bytes &middot; Raw mode 13h, DAC ports, and the ancestor of ASMSTARS.</p>
 <pre>uses crt;var o,c,q,x,y,s:integer;
 
 begin
@@ -215,7 +216,7 @@ until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
 </details>
 <details class="source">
 <summary>FUN5.BAK</summary>
-<p class="cap">New Year's Day, 03:38 &middot; 1,073 bytes</p>
+<p class="cap">1996-01-01 03:38 &middot; 1,073 bytes</p>
 <pre>uses crt;var o,c,q,s:integer;x,y:array[1..16]of integer;
 
 begin
@@ -257,7 +258,7 @@ until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
 </details>
 <details class="source">
 <summary>FUN5.PAS</summary>
-<p class="cap">1996-08-08 &middot; 1,019 bytes &middot; Finished seven months later.</p>
+<p class="cap">1996-08-08 05:13 &middot; 1,019 bytes &middot; Finished seven months later.</p>
 <pre>uses crt;var o,c,q,s:integer;x,y:array[1..16]of integer;
 
 begin
@@ -428,7 +429,7 @@ function frame() {
   q += s;
   o++;
 
-  if (document.getElementById('bug').checked) tpRandomize();
+  if (!document.getElementById('fixrand').checked) tpRandomize();   // as written: every frame
 
   for (const wk of walkers) {
     wk.x += tpRandom(3) - 1;

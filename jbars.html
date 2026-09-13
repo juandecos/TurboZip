@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>01 &middot; Copper Bars: Palette Cycling 101</title>
 <link rel="stylesheet" href="archive.css">
 </head>
@@ -289,7 +290,7 @@ CenterPoint! BBS (301) 309-0144, 9600+ only, Sysop - Fred Nietzche.
 </details>
 <details class="source">
 <summary>PALETTE2.PAS</summary>
-<p class="cap">5,208 bytes &middot; The bars, the scroller, and the assembly that ends up in JBARS.</p>
+<p class="cap">1991-07-30 06:54 &middot; 5,208 bytes &middot; The bars, the scroller, and the assembly that ends up in JBARS.</p>
 <pre>Program PaletteTricks;
 
   Uses Crt;
@@ -513,7 +514,7 @@ Continue2:
 </details>
 <details class="source">
 <summary>PALETTE4.PAS</summary>
-<p class="cap">45,340 bytes &middot; Same program plus the TRSI/TDT logo. The logo is a 287&times;48 byte array.</p>
+<p class="cap">1991-06-01 00:18 &middot; 45,340 bytes &middot; Same program plus the TRSI/TDT logo. The logo is a 287&times;48 byte array.</p>
 <pre>Program PaletteTricks;
 
   Uses Crt;
@@ -1457,7 +1458,7 @@ Var   CharSet : Array[1..NumChars] Of OneChar;
 
 <details class="source">
 <summary>CYLINDER.PAS</summary>
-<p class="cap">7,807 bytes &middot; The cylinder scroller, with the enciphered <code>DispStr</code> near the top.</p>
+<p class="cap">1995-09-16 16:05 &middot; 7,807 bytes &middot; The cylinder scroller, with the enciphered <code>DispStr</code> near the top.</p>
 <pre>Program Cylinder_Scroll;
 
   Const CGA_CharSet_Seg = $0F000;
@@ -1784,7 +1785,7 @@ Continue5:
 
 <details class="source">
 <summary>JBARS.PAS</summary>
-<p class="cap">1,172 bytes &middot; My take. As on disk. The line breaks are the editor wrapping at 128 columns, not mine.</p>
+<p class="cap">1995-05-06 14:14 &middot; 1,172 bytes &middot; My take. As on disk. The line breaks are the editor wrapping at 128 columns, not mine.</p>
 <pre>uses crt;Const e=$A000;f=200;g=80;i:array[1..45]Of Byte=(7,7,63,15,15,63,23,23,63,31,31,63,39,39,63,47,47,63,55,55,63,63,63,63,
 55,55,63,47,47,63,39,39,63,31,31,63,23,23,63,15,15,63,7,7,63);Var l:Array[1..f]Of integer;m:Array[1..4]Of integer;Procedure r(s
 :Byte);Begin Asm Mov ah,0;Mov AL,s;Int 16 End;End;Var b:Integer;c:Word;Label k,n,o,j,d,h,p,q;begin r(19);Port [968]:=1;For b:=1

@@ -33,15 +33,6 @@ function paletteStrip(id, n) {
   };
 }
 
-// --- status lines -----------------------------------------------------------
-// The status readout under each demo is centre-aligned, so anything that changes
-// its LENGTH slides the whole line sideways. A counter going 9 -> 10 does it; at
-// 60 fps the result reads as a blur rather than as text. Pad every field that
-// varies.
-//   `step ${w(step, 2)}/64   x ${w(px)}`
-function w(v, n = 4) { return String(v).padStart(n); }
-function wl(v, n) { return String(v).padEnd(n); }
-
 // --- showing one of several hidden siblings --------------------------------
 // Used for the per-demo notes, and for options that only apply to one demo.
 // Keys are matched against a data- attribute, so the wiring is visible in the
@@ -140,8 +131,7 @@ function screenAspect(id) {
 //
 // A button's label is the last word before the option's first ": ", which is
 // the file or pattern name on every page ("FUN3.PAS", "P12", "BOX"). An option
-// can override that with data-label, and data-kind="recon" marks a
-// reconstruction that is not in the archive, which draws its button dashed.
+// can override that with data-label.
 // The option's full text is the button's tooltip.
 //
 // If the page has a <div id="notes" class="captions">, the strip also shows the
@@ -172,7 +162,6 @@ function demoStrip(selectId) {
     b.textContent = o.dataset.label || says(o).split(': ')[0].split(' ').pop();
     b.title = says(o);
     b.setAttribute('role', 'tab');
-    if (o.dataset.kind) b.classList.add(o.dataset.kind);
     // A pointer click hands the keyboard straight back to the demo -- several
     // pages read keys and ignore them while a button has focus. A keyboard
     // activation (detail 0) keeps focus, so Tab and Enter still walk the strip.

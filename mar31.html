@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>15 &middot; Wiggles and Waves</title>
 <link rel="stylesheet" href="archive.css">
 </head>
@@ -74,7 +75,7 @@ what makes it wiggle rather than scroll.
 There is <b>no delay anywhere</b> and
 the retrace wait does not work, so on real hardware it rewrote 64 registers and
 immediately rotated again, the full 128-step cycle in well under a tenth of a
-second, which is what you are watching. Untick "unthrottled" to slow it down.</p>
+second, which is what you are watching. <a href="#wiggle-pas">Untick "unthrottled"</a> to slow it down.</p>
 
 <h2><a href="#wave-bak">NEWWAVE.BAK</a></h2>
 <p>The same palette engine, now driving a
@@ -103,7 +104,7 @@ back on plus one more file that is ASCTXT.PAS with a color engine added.</p>
 
 <details class="source">
 <summary>WIGGLE.PAS</summary>
-<p class="cap">07:58 &middot; 799 bytes</p>
+<p class="cap">1996-03-31 07:58 &middot; 799 bytes</p>
 <pre>uses crt,jmodex;var b,c,d,q,r:integer;a:array[1..64]of byte;
 begin if set_vga_modex(7,360,480,1)=0 then halt(0);clear_vga_screen(0);
 for q:=1to 32do a[q]:=(q-1);for q:=33to 64do a[q]:=(64-q);
@@ -121,7 +122,7 @@ until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
 </details>
 <details class="source">
 <summary>NEWWAVE.BAK</summary>
-<p class="cap">08:25 &middot; 921 bytes</p>
+<p class="cap">1996-03-31 08:25 &middot; 921 bytes</p>
 <pre>uses crt,jmodex;var b,c,d,q,r,s,t:integer;a:array[1..64]of byte;
 begin if set_vga_modex(7,360,480,1)=0 then halt(0);clear_vga_screen(0);
 for q:=1to 32do a[q]:=(q-1);for q:=33to 64do a[q]:=(64-q);
@@ -144,7 +145,7 @@ until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
 </details>
 <details class="source">
 <summary>NEWWAVE.PAS</summary>
-<p class="cap">08:48 &middot; 928 bytes &middot; The last one written from scratch.</p>
+<p class="cap">1996-03-31 08:48 &middot; 928 bytes &middot; The last one written from scratch.</p>
 <pre>uses crt,jmodex;var b,c,d,q,r,s,t:integer;a:array[1..64]of byte;
 begin if set_vga_modex(7,360,480,1)=0 then halt(0);clear_vga_screen(0);
 for q:=1to 32do a[q]:=(q-1);for q:=33to 64do a[q]:=(64-q);

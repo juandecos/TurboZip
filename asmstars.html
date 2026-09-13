@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>12 &middot; Parallax Starfield</title>
 <link rel="stylesheet" href="archive.css">
 </head>
@@ -51,7 +52,7 @@ compensating for something the rewrite makes unnecessary.</p>
 
 <details class="source">
 <summary>ASMSTARS.PAS</summary>
-<p class="cap">07:00 &middot; 1,188 bytes &middot; Mode 13h, direct DAC writes, the FUN4 machinery.</p>
+<p class="cap">1996-01-25 07:00 &middot; 1,188 bytes &middot; Mode 13h, direct DAC writes, the FUN4 machinery.</p>
 <pre>Uses Crt;Type StarField=Array[1..3,1..2,1..5]of Integer;T=Array[1..3]of
 Integer;Var Colors:T;Stars:StarField;x,y,q:integer;
 
@@ -80,7 +81,7 @@ ChangeStars(Stars,Colors);vidmode(3);End.</pre>
 </details>
 <details class="source">
 <summary>ASMSTARS.BAK</summary>
-<p class="cap">06:48 &middot; 1,053 bytes &middot; Byte-identical to <code>pas/JSTARS.PAS</code>.</p>
+<p class="cap">1996-01-25 06:48 &middot; 1,053 bytes &middot; Byte-identical to <code>pas/JSTARS.PAS</code>.</p>
 <pre>Uses Crt, Graph, BGIDriv;
 Type StarField=Array[1..3,1..2,1..5]of Integer;T=Array[1..3]of Integer;
 Var Colors:T;Stars:StarField;d,m,x,y,q:integer;
@@ -104,7 +105,7 @@ ChangeStars (Stars,Colors);Closegraph;End.</pre>
 </details>
 <details class="source">
 <summary>STARS.PAS</summary>
-<p class="cap">1995-03-22 &middot; 5,670 bytes &middot; The collected original, as downloaded.</p>
+<p class="cap">1995-03-22 08:36 &middot; 5,670 bytes &middot; The collected original, as downloaded.</p>
 <pre>Uses
    Crt, Graph, BGIDriv;
 

@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>13 &middot; Bouncing Lines</title>
 <link rel="stylesheet" href="archive.css">
 </head>
@@ -85,7 +86,7 @@ side-effect of it, the rewrite removes the only way the program could stall.</p>
 
 <details class="source">
 <summary>ASCTXT.BAK</summary>
-<p class="cap">05:21 &middot; 586 bytes &middot; Random colors, mirror bounce.</p>
+<p class="cap">1996-03-02 05:21 &middot; 586 bytes &middot; Random colors, mirror bounce.</p>
 <pre>uses jmodex,crt;var p:array[1..2]of integer;q:array[1..2]of integer;
 x,c:integer;f:array[1..4]of shortint;
 begin if set_vga_modex(7,360,480,1)=0 then halt(0);clear_vga_screen(0);
@@ -103,7 +104,7 @@ until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
 </details>
 <details class="source">
 <summary>ASCTXT.PAS</summary>
-<p class="cap">06:10 &middot; 767 bytes &middot; Red ramp, randomized bounce.</p>
+<p class="cap">1996-03-02 06:10 &middot; 767 bytes &middot; Red ramp, randomized bounce.</p>
 <pre>uses jmodex,crt;var p:array[1..2]of integer;q:array[1..2]of integer;
 x,c:integer;f:array[1..4]of shortint;a:byte;
 begin if set_vga_modex(7,360,480,1)=0 then halt(0);clear_vga_screen(0);

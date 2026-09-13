@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>10 &middot; Doodling With Lines</title>
 <link rel="stylesheet" href="archive.css">
 <style>
@@ -87,8 +88,8 @@ figure is drawn inside the viewport's own coordinates. Incidentally,
 y is no longer flipped, so it turns the other way.
 <b>(2)</b> clearing is now behind <b>if d then clearviewport</b>, and d is a
 global boolean that is never assigned, so Turbo Pascal starts it false. The
-screen never clears and the figure accumulates. That is the doodle, and press
-<kbd>D</kbd> to switch it off.
+screen never clears and the figure accumulates. That is the doodle, and <a href="#doodle">press
+<kbd>D</kbd> to switch it off</a>.
 <b>(3)</b> the retrace wait loses its first edge (one <b>repeat until</b>
 instead of two) so it can catch the tail of a blank rather than the start.
 One more artifact of the compression: <b>if RegisterBGIDriver(…)&lt;0 then;</b> -
@@ -99,7 +100,7 @@ is drawn twice running.</p>
 
 <details class="source">
 <summary>PATTERN1.PAS</summary>
-<p class="cap">01:28 &middot; 1,929 bytes &middot; The z values are the commented-out ones.</p>
+<p class="cap">1995-09-22 01:28 &middot; 1,929 bytes &middot; The z values are the commented-out ones.</p>
 <pre>uses crt,graph,bgidriv;var c,ci:array[1..4,1..3]of integer;
   rotation: ARRAY[1..3,1..3] OF real;
   driver, mode: integer;
@@ -165,7 +166,7 @@ BEGIN ClrScr;
 </details>
 <details class="source">
 <summary>JUAN.PAS</summary>
-<p class="cap">14:17 &middot; 1,869 bytes &middot; Identical but for those four values.</p>
+<p class="cap">1995-09-22 14:17 &middot; 1,869 bytes &middot; Identical but for those four values.</p>
 <pre>uses crt,graph,bgidriv;
 const p=4;
 var c,ci:array[1..p,1..3]of integer;
@@ -223,7 +224,7 @@ SetRotation(x,y);Rotatec;bar(215,135,425,345);Drawc;IF Keypressed THEN
 </details>
 <details class="source">
 <summary>DOODLE.PAS</summary>
-<p class="cap">15:20 &middot; 1,236 bytes &middot; <code>if d then</code> - and <code>d</code> is never set.</p>
+<p class="cap">1995-09-22 15:20 &middot; 1,236 bytes &middot; <code>if d then</code> - and <code>d</code> is never set.</p>
 <pre>uses crt,graph,bgidriv;var c,p:array[1..4,1..3]of integer;r:ARRAY[1..3,1..3]OF
 real;x,y,k,l:integer;ch:char;a,b,d:boolean;v,w:real;PROCEDURE g(a,b,c,d:
 integer);BEGIN Line(a+105,b+105,c+105,d+105);END;BEGIN if RegisterBGIDriver(

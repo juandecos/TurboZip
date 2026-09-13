@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>14 &middot; Spiral Illusions</title>
 <link rel="stylesheet" href="archive.css">
 </head>
@@ -73,9 +74,9 @@ row q has a period of about 3q frames: row 1 turns around every 3 frames, row
 240 every 720. All 240 start together at center moving left, so the turnaround
 sweeps down the screen as a straight diagonal, and then the phases smear apart
 and the braid appears. <b>The spiral is emergent.</b>
-Tick "sinusoidal motion" to give the rows cosine easing, a real rotating
+<a href="#spiral-pas">Tick "sinusoidal motion"</a> to give the rows cosine easing, a real rotating
 cylinder, and the figure reads as more physically honest and much less
-interesting: the hard chevron creases go away. Tick "flat color" to drop the
+interesting: the hard chevron creases go away. <a href="#spiral-pas">Tick "flat color"</a> to drop the
 two opposed brightness ramps and the figure loses its near/far face entirely
 and becomes directionally ambiguous.
 Edge cases, as written: q=240 addresses row 480, one past the bottom, and its
@@ -108,7 +109,7 @@ to about 0.10 and the ribbon becomes easier to see.</p>
 
 <details class="source">
 <summary>SPIRAL.BAK</summary>
-<p class="cap">17:32 &middot; 788 bytes &middot; With the sine initializer.</p>
+<p class="cap">1996-03-27 17:32 &middot; 788 bytes &middot; With the sine initializer.</p>
 <pre>uses crt,jmodex;var q:integer;a:array[1..240]of integer;
 b,c:array[1..240]of byte;
 begin if set_vga_modex(7,360,480,1)=0 then halt(0);clear_vga_screen(0);
@@ -133,7 +134,7 @@ until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
 </details>
 <details class="source">
 <summary>SPIRAL.PAS</summary>
-<p class="cap">17:37 &middot; 768 bytes &middot; Without it.</p>
+<p class="cap">1996-03-27 17:37 &middot; 768 bytes &middot; Without it.</p>
 <pre>uses crt,jmodex;var q:integer;a:array[1..240]of integer;
 b,c:array[1..240]of byte;
 begin if set_vga_modex(7,360,480,1)=0 then halt(0);clear_vga_screen(0);
@@ -158,7 +159,7 @@ until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
 </details>
 <details class="source">
 <summary>NEW.BAK</summary>
-<p class="cap">18:33 &middot; 801 bytes &middot; Selective erase.</p>
+<p class="cap">1996-03-27 18:33 &middot; 801 bytes &middot; Selective erase.</p>
 <pre>uses crt,jmodex;var c,q:integer;a:array[1..240]of integer;
 
 begin if set_vga_modex(7,360,480,1)=0 then halt(0);clear_vga_screen(0);
@@ -187,7 +188,7 @@ until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
 </details>
 <details class="source">
 <summary>NEW.PAS</summary>
-<p class="cap">18:48 &middot; 981 bytes &middot; Mirrored, and clearing everything.</p>
+<p class="cap">1996-03-27 18:48 &middot; 981 bytes &middot; Mirrored, and clearing everything.</p>
 <pre>uses crt,jmodex;var c,q:integer;a:array[1..240]of integer;
 begin if set_vga_modex(7,360,480,1)=0 then halt(0);clear_vga_screen(0);
 for q:=1 to 64 do set_dac_register(q,0,0,q);

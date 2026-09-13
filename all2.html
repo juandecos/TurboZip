@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>08 &middot; Fans, Bars and Noise</title>
 <link rel="stylesheet" href="archive.css">
 </head>
@@ -75,7 +76,7 @@ The seam is at x=256, and the blue ramp scrolls through it. This is WIGGLE six m
 
 <h2><a href="#P12">P12</a></h2>
 <p>Another centered fan but drawn differently from P10/P15. Note that the version saved in the archive had a bug that breaks the
-effect; uncheck the "index the ramp" toggle to see the buggy version. I absolutely remember the fixed version running back
+effect; <a href="#P12">uncheck the "index the ramp" toggle</a> to see the buggy version. I absolutely remember the fixed version running back
 then, so this seems like a work in progress issue that snuck into the archive.</p>
 
 <h2><a href="#P13">P13</a></h2>
@@ -99,7 +100,7 @@ goes. But back then, I was probably just thinking it looked cool.</p>
 
 <details class="source">
 <summary>ALL.PAS</summary>
-<p class="cap">1996-08-08 &middot; 6,490 bytes &middot; Fifteen patterns, all enabled.</p>
+<p class="cap">1996-08-08 05:19 &middot; 6,490 bytes &middot; Fifteen patterns, all enabled.</p>
 <pre>Uses Crt,jmodex;Var X:Integer;a:char;
 
 Procedure i;begin IF SET_VGA_MODEX(7,360,480,1)=0 THEN halt(0);

@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Learning MS-DOS Graphics Coding, 1994&ndash;1996</title>
 <link rel="stylesheet" href="archive.css">
 <style>
@@ -46,6 +47,13 @@
   ol.toc .t{color:#cc9;font-size:14px}
   ol.toc .w{color:#7d7d7d;font-size:12px;display:block;margin-top:3px}
   ol.toc .d{color:#5f5f5f;font-size:11px;float:right;margin-left:12px}
+  /* a phone: 24 two-digit hour labels do not fit one per column, so every other
+     one; and the date goes under the title rather than floating beside it */
+  @media (max-width: 640px) {
+    h1.big{font-size:22px}
+    .hcol:nth-child(even) em{visibility:hidden}
+    ol.toc .d{float:none;display:block;margin:2px 0 0}
+  }
 </style>
 </head>
 <body>

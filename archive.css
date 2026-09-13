@@ -16,9 +16,19 @@
    height it can have. */
 :root { --col:min(880px, 100%) }
 
+/* Widths include borders. Without this the canvas, the DAC strip and the ring
+   are the full column plus a 1px border either side, which on a phone is two
+   pixels wider than the screen. */
+*, *::before, *::after { box-sizing:border-box }
+
 html, body { min-height:100%; margin:0; background:#111; color:#999;
              font:13px/1.6 ui-monospace, Consolas, "DejaVu Sans Mono", monospace }
-body { display:flex; flex-direction:column; align-items:center; gap:12px; padding:20px }
+body { display:flex; flex-direction:column; align-items:center; gap:12px; padding:20px;
+       overflow-wrap:break-word }
+
+/* A table wider than the screen scrolls inside itself rather than pushing the
+   whole page sideways -- circle's five-column cost table, on a phone. */
+table { display:block; max-width:100%; overflow-x:auto }
 
 canvas { background:#000; image-rendering:pixelated; border:1px solid #333 }
 
@@ -91,8 +101,6 @@ input[type=range] { width:120px }
 .demos button:hover { color:#bbb }
 .demos button[aria-selected="true"] { color:#dd9; background:#20201a;
                                       border-color:#6a6a4a }
-/* a reconstruction, not a file from the archive */
-.demos button.recon { border-style:dashed }
 
 /* Captions: a sentence or two per demo, directly under the strip and above the
    canvas, so what you are looking at is on screen while you look at it. The
@@ -106,7 +114,6 @@ input[type=range] { width:120px }
 .prose h2 a { color:inherit; border-bottom:1px dotted #6a6a4a }
 .prose h2 a:hover { border-bottom-style:solid }
 
-#status { color:#7a7; white-space:pre; font-size:12px; text-align:center }
 .cap    { color:#666; font-size:11px; text-align:center; width:var(--col) }
 
 /* The DAC strip. Most of these programs animate colour registers rather than
@@ -216,3 +223,36 @@ details.source pre { background:#0c0c0c; border:1px solid #2c2c2c; padding:12px;
                      overflow-x:auto; color:#9a9a8a; font-size:12px;
                      line-height:1.45; white-space:pre-wrap; word-break:break-word;
                      margin:0 0 14px }
+
+/* --- small screens --------------------------------------------------------
+   The column already does most of the work: everything is sized to the page,
+   not the window, so a phone just gets a narrower column. What is left is
+   what assumed room -- padding, the ring's three cells, the Details grid --
+   and targets sized for a mouse rather than a finger. */
+@media (max-width: 640px) {
+  body { padding:12px 10px; gap:10px }
+
+  /* the ring: three cells still fit side by side once they stop insisting on
+     one line of subtitle and a 15px letter-spaced label */
+  .ring a, .ring .here { padding:7px 8px }
+  .ring b { font-size:12px; letter-spacing:.02em }
+  .ring span { white-space:normal; display:-webkit-box; -webkit-line-clamp:2;
+               -webkit-box-orient:vertical }
+
+  header.entry .num { font-size:26px }
+  header.entry h1 { font-size:18px; margin-bottom:8px }
+
+  /* Details: label above value, since a label column sized to the longest
+     label leaves the values a sliver */
+  body > details.meta dl { grid-template-columns:1fr; gap:0 }
+  body > details.meta dt { margin-top:8px }
+  body > details.meta dt:first-child { margin-top:0 }
+
+  /* fingers, not a mouse */
+  .demos { gap:6px }
+  .demos button { padding:7px 11px; font-size:13px }
+  .parbar button { padding:6px 10px; font-size:12px }
+  .keybtn { padding:6px 11px }
+  .panel { gap:10px 14px }
+  input[type=range] { width:100px }
+}
