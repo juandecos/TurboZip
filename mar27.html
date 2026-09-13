@@ -2,51 +2,48 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>15 &middot; Spiral Illusions</title>
+<title>14 &middot; Spiral Illusions</title>
 <link rel="stylesheet" href="archive.css">
-<style>
-
-  #screen{height:min(60vh,520px)}
-</style>
 </head>
 <body>
 
 <nav class="ring">
-  <a href="asctxt.html"><b>&laquo; PREVIOUS</b><span>14 &middot; Bouncing Lines</span></a>
-  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
-  <a class="next" href="mar31.html"><b>NEXT &raquo;</b><span>16 &middot; Wiggles and Waves</span></a>
+  <a href="asctxt.html"><b>&laquo; PREVIOUS</b><span>13 &middot; Bouncing Lines</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>16 entries</span></a>
+  <a class="next" href="mar31.html"><b>NEXT &raquo;</b><span>15 &middot; Wiggles and Waves</span></a>
 </nav>
 
 <header class="entry">
-  <div class="num">15</div>
+  <div class="num">14</div>
   <h1>Spiral Illusions</h1>
   <div class="lede">
-    These four examples are from one evening. 
+    These examples are from one evening. 
     In the first two I animate points in a way that gives the illusion of a rotating cone, or perhaps a Christmas tree.
-    The second two animate fans of sine waves to create a tornado illusion, or a sense of depth, depending how you look at it.
+    The second two animate fans of sine waves to create a tornado illusion, or a wave motion if you slow it down.
     I was continuing to explore how to make things I found visually interesting with the tools I had learned.
   </div>
-  <details class="meta">
-    <summary>Details</summary>
-    <dl>
-      <dt>Files</dt><dd><code>SPIRAL.BAK</code> 17:32 &middot; <code>SPIRAL.PAS</code> 17:37 &middot; <code>NEW.BAK</code> 18:33 &middot; <code>NEW.PAS</code> 18:48</dd>
-      <dt>Provenance</dt><dd>Mine</dd>
-      <dt>Demo</dt><dd>All four saves of the evening, in order</dd>
-    </dl>
-  </details>
 </header>
 
 <div class="demo">
 <div class="panel selector">
-  <button id="prev">&larr;</button>
   <select id="variant">
-      <option value="spiral-bak">17:32 SPIRAL.BAK: rows start on a sine</option>
       <option value="spiral-pas">17:37 SPIRAL.PAS: rows all start at 180</option>
       <option value="new-bak">18:33 NEW.BAK: ribbon, bottom half, selective erase</option>
       <option value="new-pas">18:48 NEW.PAS: ribbon, both halves, full clear</option>
     </select>
-  <button id="next">&rarr;</button>
   <button id="restart">restart</button>
+</div>
+
+<div id="notes" class="captions">
+<div class="note" data-note="spiral-pas" hidden>
+17:37 &middot; rows all start at 180
+</div>
+<div class="note" data-note="new-bak" hidden>
+18:33 &middot; ribbon, bottom half, selective erase
+</div>
+<div class="note" data-note="new-pas" hidden>
+18:48 &middot; ribbon, both halves, full clear
+</div>
 </div>
 
 <canvas id="screen" width="360" height="480"></canvas>
@@ -62,24 +59,12 @@
     <span id="rateLabel">1</span></label>
   <label><input id="sine" type="checkbox"> sinusoidal motion: what a real rotation would do</label>
   <label><input id="flat" type="checkbox"> flat color: drop the direction shading</label>
-  <label><input id="solid" type="checkbox"> fill the skipped odd scanlines</label>
-  <label><input id="env" type="checkbox"> show the &plusmn;0.75q envelope</label>
+</div>
 </div>
 
-<div id="status"></div>
-
-<div id="notes">
-<div class="note" data-note="spiral-bak" hidden>
-<b>SPIRAL.BAK: 17:32.</b> The only difference from the .PAS is the starting
-line: <b>a[q] := 180 + round(10*sin(q/30))</b> instead of <b>a[q] := 180</b>.
-Every row begins somewhere on a shallow sine instead of dead center, so the
-figure opens as a wave rather than a straight vertical bar. It is a nicer
-opening but I simplified it in the next version; not sure why. Maybe on the
-386 it was a performance difference? Either way, once the animation reaches
-the bottom, it no longer matters.
-</div>
-<div class="note" data-note="spiral-pas" hidden>
-<b>SPIRAL.PAS: 17:37, 768 bytes.</b> 240 independent
+<div class="prose">
+<h2><a href="#spiral-pas">SPIRAL.PAS</a></h2>
+<p>240 independent
 oscillators, one per even scanline. Each moves at exactly <b>one pixel per
 frame</b> and turns around at ±0.75q from center.
 That is the whole trick, and it is worth being clear that there is no spiral
@@ -95,24 +80,22 @@ two opposed brightness ramps and the figure loses its near/far face entirely
 and becomes directionally ambiguous.
 Edge cases, as written: q=240 addresses row 480, one past the bottom, and its
 right-hand turning point is x=360, one past the right edge. Both are clipped
-rather than wrapped here; the counter shows how many.
-</div>
-<div class="note" data-note="new-bak" hidden>
-<b>NEW.BAK: 18:33.</b> A sine ribbon: for each row, a horizontal band centered
+rather than wrapped here.</p>
+
+<h2><a href="#new-bak">NEW.BAK</a></h2>
+<p>A sine ribbon: for each row, a horizontal band centered
 on <b>180 + q/2·sin(q/20 + c)</b>, drawn four times at widths q/4, q/5, q/6 and
 q/17 in increasing brightness, so it comes out shaded like a tube.
 And this is the smarter of the two files. It erases <i>selectively</i>,
 repainting the previous frame's ribbon in color 0 at the q div 4 width only,
 which is the widest of the four passes and therefore covers all of them.
 A correct, cheap, targeted erase: a few thousand bytes instead of 172,800.
-In the next one I threw that away.
-</div>
-<div class="note" data-note="new-pas" hidden>
-<b>NEW.PAS: 18:48.</b> The mirrored top half is added, and to make that work
+In the next one I threw that away.</p>
+
+<h2><a href="#new-pas">NEW.PAS</a></h2>
+<p>The mirrored top half is added, and to make that work
 the selective erase is replaced by <b>clear_vga_screen</b>, the whole 172,800
-bytes, every frame. Watch the pixel counter change when you switch between
-this and the .BAK: that is the price of the second half.
-The mirror is a true 180° rotation about (180,240) rather than a vertical flip,
+bytes, every frame. The mirror is a true 180° rotation about (180,240) rather than a vertical flip,
 which is the same symmetry NEWWAVE.PAS reaches for four days later.
 Two edge artifacts: row 240 is never written
 because q starts at 1, so a one-pixel seam runs across the middle; and q=240
@@ -120,14 +103,12 @@ addresses row 480, one scanline past the end.
 The phase advances <b>a whole radian per frame</b>. sin(q/20) has a wavelength
 of about 126 in q, so a radian is roughly a sixth of a wavelength per frame,
 too fast to read as motion, and it strobes. Pull the phase-step slider down
-to about 0.10 and the ribbon becomes easier to see.
-</div>
-</div>
+to about 0.10 and the ribbon becomes easier to see.</p>
 </div>
 
 <details class="source">
-<summary>SPIRAL.BAK: 788 bytes</summary>
-<p class="cap">17:32 with the sine initializer.</p>
+<summary>SPIRAL.BAK</summary>
+<p class="cap">17:32 &middot; 788 bytes &middot; With the sine initializer.</p>
 <pre>uses crt,jmodex;var q:integer;a:array[1..240]of integer;
 b,c:array[1..240]of byte;
 begin if set_vga_modex(7,360,480,1)=0 then halt(0);clear_vga_screen(0);
@@ -151,8 +132,8 @@ end;
 until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
 </details>
 <details class="source">
-<summary>SPIRAL.PAS: 768 bytes</summary>
-<p class="cap">17:37 without it.</p>
+<summary>SPIRAL.PAS</summary>
+<p class="cap">17:37 &middot; 768 bytes &middot; Without it.</p>
 <pre>uses crt,jmodex;var q:integer;a:array[1..240]of integer;
 b,c:array[1..240]of byte;
 begin if set_vga_modex(7,360,480,1)=0 then halt(0);clear_vga_screen(0);
@@ -176,8 +157,8 @@ end;
 until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
 </details>
 <details class="source">
-<summary>NEW.BAK: 801 bytes</summary>
-<p class="cap">18:33 selective erase.</p>
+<summary>NEW.BAK</summary>
+<p class="cap">18:33 &middot; 801 bytes &middot; Selective erase.</p>
 <pre>uses crt,jmodex;var c,q:integer;a:array[1..240]of integer;
 
 begin if set_vga_modex(7,360,480,1)=0 then halt(0);clear_vga_screen(0);
@@ -205,8 +186,8 @@ end;
 until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
 </details>
 <details class="source">
-<summary>NEW.PAS: 981 bytes</summary>
-<p class="cap">18:48 mirrored, and clearing everything.</p>
+<summary>NEW.PAS</summary>
+<p class="cap">18:48 &middot; 981 bytes &middot; Mirrored, and clearing everything.</p>
 <pre>uses crt,jmodex;var c,q:integer;a:array[1..240]of integer;
 begin if set_vga_modex(7,360,480,1)=0 then halt(0);clear_vga_screen(0);
 for q:=1 to 64 do set_dac_register(q,0,0,q);
@@ -230,20 +211,14 @@ until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
 </details>
 
 <nav class="ring">
-  <a href="asctxt.html"><b>&laquo; PREVIOUS</b><span>14 &middot; Bouncing Lines</span></a>
-  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
-  <a class="next" href="mar31.html"><b>NEXT &raquo;</b><span>16 &middot; Wiggles and Waves</span></a>
+  <a href="asctxt.html"><b>&laquo; PREVIOUS</b><span>13 &middot; Bouncing Lines</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>16 entries</span></a>
+  <a class="next" href="mar31.html"><b>NEXT &raquo;</b><span>15 &middot; Wiggles and Waves</span></a>
 </nav>
 
 <script src="archive.js"></script>
 <script>
 'use strict';
-// Notes live in the markup as hidden siblings, so they are plain HTML with no
-// escaping and cannot break this script. This only flips which one is visible.
-function showNote(key) {
-  for (const n of document.getElementById('notes').children)
-    n.hidden = n.dataset.note !== String(key);
-}
 // ---------------------------------------------------------------------------
 // 27 March 1996, 17:32 to 18:48. Four saves, two programs, one sitting.
 //
@@ -271,10 +246,9 @@ const pround = v => v >= 0 ? Math.floor(v + 0.5) : -Math.floor(-v + 0.5);
 // quietly end in black.
 const dac = v => Math.round((v & 63) * 255 / 63);
 
-let writes = 0, clipped = 0;
 function setPoint(x, y, c) {
-  if (x < 0 || x >= W || y < 0 || y >= H) { clipped++; return; }
-  fb[y*W + x] = c; writes++;
+  if (x < 0 || x >= W || y < 0 || y >= H) return;
+  fb[y*W + x] = c;
 }
 function hline(x1, x2, y, c) {
   if (x1 > x2) { const t = x1; x1 = x2; x2 = t; }
@@ -289,19 +263,18 @@ const sb = new Uint8Array(241);    // 0 = moving left, 1 = moving right
 const sc = new Uint8Array(241);    // color index
 let frames = 0;
 
-function spiralInit(bak) {
+function spiralInit() {
   fb.fill(0); frames = 0;
   for (let q = 1; q <= 240; q++) {
-    sa[q] = bak ? 180 + Math.round(10*Math.sin(q/30)) : 180;
+    sa[q] = 180;
     sb[q] = 0; sc[q] = 0;
   }
 }
 // draw_line(a[q],q*2,a[q],q*2,col) -- both endpoints identical, so it is a
 // set_point written the long way round.
 function splot(x, y, col) {
-  if (x < 0 || x >= W || y < 0 || y >= H) { clipped++; return; }
-  fb[y*W + x] = col; writes++;
-  if (el('solid').checked && y+1 < H) fb[(y+1)*W + x] = col;
+  if (x < 0 || x >= W || y < 0 || y >= H) return;
+  fb[y*W + x] = col;
 }
 function spiralStep() {
   const sine = el('sine').checked, flat = el('flat').checked;
@@ -359,7 +332,6 @@ function drawRibbon(bothHalves) {
 function palSpiral() {                       // for q:=1to 64do set_dac(q,0,0,q)
   PAL.fill(0);
   for (let n = 1; n <= 64; n++) PAL[n] = (255<<24) | (dac(n) << 16);
-  PAL[200] = (255<<24) | (120<<16) | (30<<8) | 40;
 }
 function palNew() {
   PAL.fill(0);
@@ -368,7 +340,7 @@ function palNew() {
 }
 
 // === driver ================================================================
-let mode = 'spiral', bak = true, lastTick = 0;
+let mode = 'spiral', bak = false, lastTick = 0;
 const variantEl = el('variant');
 
 function reset() {
@@ -377,18 +349,12 @@ function reset() {
   bak  = v.endsWith('bak');
   el('spiralOpts').classList.toggle('hidden', mode !== 'spiral');
   el('newOpts').classList.toggle('hidden', mode !== 'new');
-  showNote(v);
-  writes = 0; clipped = 0;
-  if (mode === 'spiral') { palSpiral(); spiralInit(bak); }
+  if (mode === 'spiral') { palSpiral(); spiralInit(); }
   else { palNew(); phase = 0; recompute(0); fb.fill(0); }
   lastTick = performance.now();
 }
 variantEl.addEventListener('change', reset);
 el('restart').addEventListener('click', reset);
-el('next').addEventListener('click', () => {
-  variantEl.selectedIndex = (variantEl.selectedIndex+1) % variantEl.length; reset(); });
-el('prev').addEventListener('click', () => {
-  variantEl.selectedIndex = (variantEl.selectedIndex+variantEl.length-1) % variantEl.length; reset(); });
 el('sine').addEventListener('change', reset);
 el('rate').addEventListener('input', () => el('rateLabel').textContent = el('rate').value);
 el('step').addEventListener('input', () =>
@@ -396,23 +362,13 @@ el('step').addEventListener('input', () =>
 
 function frame() {
   requestAnimationFrame(frame);
-  writes = 0; clipped = 0;
 
   if (mode === 'spiral') {
     for (let i = 0, n = +el('rate').value; i < n; i++) spiralStep();
-    if (el('env').checked)
-      for (let q = 1; q <= 240; q += 2) {
-        const lo = Math.round(180 - q*0.75), hi = Math.round(180 + q*0.75);
-        if (lo >= 0) fb[q*2*W + lo] = 200;
-        if (hi < W)  fb[q*2*W + hi] = 200;
-      }
-    el('status').textContent =
-      `frame ${w(frames.toLocaleString(),7)}   row 1 turns every ~3 frames, row 240 every ~720` +
-      `   a[240] = ${w(sa[240],4)}   pixels written ${w(writes,6)}   off-screen ${w(clipped,6)}`;
   } else {
     const st = +el('step').value / 100;
     if (!bak) {                        // NEW.PAS: clear, draw, then advance
-      fb.fill(0); writes += W * H;
+      fb.fill(0);
       drawRibbon(true);
       phase += st; recompute(phase);
     } else {                           // NEW.BAK: erase old, advance, draw new
@@ -423,9 +379,6 @@ function frame() {
       phase += st; recompute(phase);
       drawRibbon(false);
     }
-    el('status').textContent =
-      `phase ${phase.toFixed(2)} rad   pixels written ${writes.toLocaleString()}` +
-      `   off-screen ${clipped.toLocaleString()}`;
   }
 
   for (let i = 0; i < fb.length; i++) out[i] = PAL[fb[i]];
@@ -434,6 +387,10 @@ function frame() {
 
 reset();
 frame();
+
+demoStrip('variant');
+screenAspect();
+underScreen('restart');
 </script>
 </body>
 </html>

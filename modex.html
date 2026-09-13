@@ -2,49 +2,43 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>04 &middot; Enter Mode X</title>
+<title>02 &middot; Enter Mode X</title>
 <link rel="stylesheet" href="archive.css">
-<style>
-
-  #screen{width:min(94vw,640px)}
-</style>
 </head>
 <body>
 
 <nav class="ring">
-  <a href="jbars.html"><b>&laquo; PREVIOUS</b><span>03 &middot; Copper Bars: Palette Cycling 101</span></a>
-  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
-  <a class="next" href="mimsy.html"><b>NEXT &raquo;</b><span>05 &middot; Jabberwocky</span></a>
+  <a href="jbars.html"><b>&laquo; PREVIOUS</b><span>01 &middot; Copper Bars: Palette Cycling 101</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>16 entries</span></a>
+  <a class="next" href="mimsy.html"><b>NEXT &raquo;</b><span>03 &middot; Jabberwocky</span></a>
 </nav>
 
 <header class="entry">
-  <div class="num">04</div>
+  <div class="num">02</div>
   <h1>Enter Mode X</h1>
   <div class="lede">
-    One of my best finds on entry 02 was Mode X. Aside from the library being genuinely useful, it included demo code that
+    One of my best BBS finds was Mode X. Aside from the library being genuinely useful, it included demo code that
     I spent ages digging through to try to understand. The first demo below is their demo out of the box, and the second
-    is my own stripped down version.
+    is my own stripped down version. Many of the later entries continue to use this library.
   </div>
-  <details class="meta">
-    <summary>Details</summary>
-    <dl>
-      <dt>Files</dt><dd><code>pas/TEST5.PAS</code> 15,873 B (1995-05-16, collected) &middot; <code>pas/JTEST.BAK</code> 2,837 B (1995-06-10 13:28) &middot; <code>pas/JTEST.PAS</code> 2,771 B (1995-09-21 17:59)</dd>
-      <dt>Library</dt><dd><code>utils/JMODEX.PAS</code>, my Pascal unit over <code>obj/MODEX2.OBJ</code>, installed into <code>TURBO.TPL</code> five minutes after it was saved</dd>
-      <dt>Provenance</dt><dd><b>Collected, modified.</b> Abrash &rarr; Pritchard &rarr; Wyatt &rarr; me - see below</dd>
-      <dt>Demo</dt><dd>TEST5's full <code>Page_Demo</code>, and JTEST's cut-down of it</dd>
-    </dl>
-  </details>
 </header>
 
 <div class="demo">
 <div class="panel selector">
-  <button id="prev">&larr;</button>
   <select id="mode">
-      <option value="test5">pas/TEST5.PAS: 16 May 1995, 15,873 B, the library's own Page_Demo</option>
-      <option value="jtest">pas/JTEST.PAS: 2,771 B, the same, cut down as I studied it</option>
+      <option value="test5">TEST5: 16 May 1995 (download time), 15,873 B, the library's own Page_Demo</option>
+      <option value="jtest">JTEST: 10 Jun 1995, 2,771 B, the same, cut down as I studied it</option>
     </select>
-  <button id="next">&rarr;</button>
   <button id="restart">restart</button>
+</div>
+
+<div id="notes" class="captions">
+<div class="note" data-note="test5" hidden>
+16 May 1995 (download time), 15,873 B, the library's own Page_Demo
+</div>
+<div class="note" data-note="jtest" hidden>
+10 Jun 1995, 2,771 B, the same, cut down as I studied it
+</div>
 </div>
 
 <canvas id="screen" width="320" height="200"></canvas>
@@ -66,263 +60,70 @@ Only the first is ever on screen.</div>
 <div class="cap" id="viewcap"></div>
 
 <div id="status"></div>
+</div>
 
-<div id="notes">
-<div class="note" data-note="test5" hidden>
-<b>pas/TEST5.PAS: 16 May 1995, 15,873 bytes. Not mine, and worth naming
-properly.</b> The package is <b>MODEX104</b>, release 1.04 of 14 March 1993,
+<div class="prose">
+<h2><a href="#test5">TEST5.PAS</a>: The ModeX Demo</h2>
+<p>This is from <b>MODEX104</b>, release 1.04 of 14 March 1993,
 <b>a library of Mode X assembly routines by Matt Pritchard</b>, placed by him in
 the public domain. Its README credits two more people: <b>Michael Abrash</b>
 "He told us all how to do it in the first place" and <b>Scott Wyatt</b>, "He
 ported the Main Demo code to Turbo Pascal." <b>TEST5.PAS is Scott Wyatt's file</b>,
-and obj/MODEX2.OBJ in the archive is Pritchard's MODEX.OBJ renamed (5,208 bytes,
+and MODEX2.OBJ in the archive is Pritchard's MODEX.OBJ renamed (5,208 bytes,
 matching the packing list to the byte). Abrash → Pritchard → Wyatt.
 It shows off everything the library could do: a
 360×240 virtual page larger than the 320×200 display, three pages, hardware
 panning, page flipping, transparent sprite blits, and palette cycling. The
 labels down the left are a list of its own entry points.
-The panning is the part worth watching. <b>Nothing moves.</b> Set_Window
+</p>
+<p>The panning is the part worth watching. <b>Nothing moves.</b> Set_Window
 rewrites the CRTC start address and the card begins reading video memory
 somewhere else; no pixels are copied, no frame is redrawn. Tick the box to show the whole page and you can watch the window slide over a
 picture that is standing perfectly still.
 Sixty-four sprites bounce around on top, drawn onto whichever page is about to
 be displayed and erased from the other one by copying 16×16 boxes back from
-page 2, the clean master. That is why there are three pages and not two.
-And down in the loop are four lines that matter more than anything else here -
-see the next entry.
-</div>
-<div class="note" data-note="jtest" hidden>
-<b>pas/JTEST.PAS: 2,771 bytes, .BAK 10 June 1995.</b> Page_Demo with the
+page 2, the clean master. That is why there are three pages and not two.</p>
+
+<h2><a href="#jtest">JTEST.PAS</a>: My Study Cut</h2>
+<p>This is Page_Demo with the
 sixteen label lines, the sixty-four sprites and the keyboard handler deleted.
 What is left is the fan, the panning and the chaser, and it runs unchanged.
-<b>This is where entry 09's ALL.PAS's P10, P14 and P15 come from.</b> The fan -
+<b>This is where entry 08's P10, P14 and P15 come from.</b> The fan -
 <code>DRAW_LINE(ScreenX div 2 - 1, ScreenY div 4, X, ScreenY-1, c+50)</code>
 with the index walking a triangle 0..60..0 - and the four-line chaser over two
-palette banks at 50 and 150 are lifted into ALL fifteen months later, verbatim.
-<b>What ALL changes is the bounce.</b> Here the chaser's counters are tested:
-<code>IF (SetColor = 60) OR (SetColor = 0) THEN SDir := -SDir</code>, so they
-oscillate cleanly inside the bank. ALL's P14 drops that and writes
-<code>p := p + 1; s := s + 2</code> on plain Bytes, so they run past 60, past
-110, past 255, and wrap, scribbling values across all 256 registers at two
-different rates. That is where P14's moiré comes from, and it is an <i>edit</i>
-to this code, not a property of it.
-<b>Two fossils left behind.</b> The second palette bank at 150..210 is set up
+palette banks at 50 and 150 are lifted into my ALL.PAS fifteen months later, verbatim.
+More details on what was then changed are in the later entry.
+</p>
+<p><b>Two fossils left behind.</b> The second palette bank at 150..210 is set up
 and written every single frame, and nothing on screen is ever drawn in it,
 here or in TEST5. And <code>For c := 1 to 4 DO
 Set_Dac_Register(19+c, 63-(c*10), 0, 0)</code> is still there, setting four
 shades of red for registers 20 to 23, which are the colors baked into the four
 sprite bitmaps I deleted. Dead palette entries for sprites that no longer exist.
 One more seam: <code>ERROR_OUT</code> writes <code>int 10h</code> in hex while
-the main block ends with my <code>int 16</code> in decimal. Two hands, one file.
-</div>
-</div>
-</div>
+the main block ends with my <code>int 16</code> in decimal. Two hands, one file.</p>
 
-<div class="prose">
 <h2>Where this entry sits in the archive</h2>
 
-<p><b>It arrives on the download morning.</b> 1995-03-22 08:56, inside a 228 KB
-<code>MODEX.ZIP</code> - see <a href="download.html">entry 02</a>.</p>
-
 <p><b>The unit goes into the compiler the day before <code>JTEST.BAK</code>.</b>
-<code>utils/JMODEX.PAS</code> is saved 1995-06-09 17:46 and
+<code>JMODEX.PAS</code> is saved 1995-06-09 17:46 and
 <code>TURBO.TPL</code> is rebuilt at <b>17:51</b>, five minutes later,
 with <code>JMODEX</code> installed into the standard unit library beside
 Borland's own. From that moment <code>uses jmodex</code> compiles with no paths
 set, and every Mode X program in the rest of the archive is one line away from
-building. <code>JTEST.BAK</code> is the following afternoon.</p>
+building.</p>
 
-<p><b><code>JTEST.PAS</code> is re-saved three months after that</b>, at
+<p><b><code>JTEST.PAS</code> is re-saved three months after that</b> (original
+timestamp pulled from the .BAK), at
 1995-09-21 17:59, the opening file of the twenty-one hours that also
 produced <code>MYDEMO</code>, <code>BOX2</code> and the
-<a href="pattern.html">PATTERN1 &rarr; JUAN &rarr; DOODLE</a> sequence. It is the
-busiest stretch in the collection; see <a href="cube.html">entry 08</a>.</p>
+<a href="pattern.html">PATTERN1 &rarr; JUAN &rarr; DOODLE</a> sequence.</p>
 
-<p><b>And then the idiom leaves.</b> The fan geometry and the two-bank spark
-chaser reappear in <a href="all.html">ALL</a> fifteen months later as P10, P14
-and P15 with one change, which is that the chaser's bounce is deleted and
-the counters are left to wrap. That edit is what produces P14's moir&eacute;.
-The note under the JTEST demo above has the code.</p>
 </div>
 
 <details class="source">
-<summary>JTEST.PAS: 2,771 bytes</summary>
-<p class="cap">My cut-down. Note <code>ERROR_OUT</code>'s <code>int 10h</code> against the main block's <code>int 16</code>.</p>
-<pre>Uses Crt,jmodex;
-
-Var
-  XCenter,X1,Y1,X2,Y2,Z,Colr,XChars,YChars,X,Y,N,Gap : Integer;
-  s : string;
-  s1 : Array[1..35] of Char;
-  ch : Char;
-  ScreenX,ScreenY : Integer;
-  c, dc,CurrentPage, LastPage : Integer;
-  SetColor, SDir, PrevColor, PDir : Byte;
-  XView, YView : Integer;
-  XView_Change, YView_Change : Integer;
-  Right : Boolean;
-
-Procedure ERROR_OUT(s:string);Begin asm mov ah,0;mov al,3;int 10h;end;
-WriteLn(s);Halt(0);END;
-
-Procedure Page_Demo;
-Begin
-  XView_Change := 1;
-  YView_Change := 1;
-  XView := 1;
-  YView := 1;
-  Right := TRUE;
-  ScreenX := 360;
-  ScreenY := 240;
-  PrevColor := 0;
-  SetColor := 3;
-  SDir := 1;
-  PDir := 1;
-  Str(0,s);
-
-  IF SET_VGA_MODEX(0, ScreenX, ScreenY, 3) = 0 THEN
-    ERROR_OUT(&#x27;Unable to SET_VGA_MODEX&#x27; + S);
-
-  SET_ACTIVE_PAGE(0);
-  CLEAR_VGA_SCREEN(0);
-  
-  FOR X := 0 TO 60 DO
-    Begin
-      SET_DAC_REGISTER( 50 + X, 3 + X, 0, 60 - X);
-      SET_DAC_REGISTER( 150 + X, 3 + X, 0, 60 - X);
-    End;
-
-  c := 0;
-  DC := 1;
-  FOR X := 0 TO ScreenX div 2 DO
-    Begin
-      DRAW_LINE( ScreenX div 2 - 1, ScreenY div 4, X, ScreenY - 1, c + 50);
-      DRAW_LINE( ScreenX div 2, ScreenY div 4, ScreenX - X - 1, ScreenY - 1, c + 50);
-      c := c + DC;
-      IF (c = 0) OR (c = 60) THEN DC := -DC;
-    End;
-
-  COPY_PAGE( 0, 1);
-  COPY_PAGE( 0, 2);
-
-  Ch := #0;
-  CurrentPage := 1;
-  LastPage := 0;
-  For c := 1 to 4 DO
-    Set_Dac_Register(19+c,63-(c*10),0,0);
-
-  While Ch &lt;&gt; #27 DO
-    Begin
-      Set_Active_Page(currentpage);
-      If Right Then
-        Begin
-          XView := XView + XView_Change;
-          If (XView &gt; 38) OR (XView &lt; 2) Then
-            Begin
-              XView_Change := -(XView_Change);
-              Right := FALSE;
-            End;
-        End
-      Else
-        Begin
-          YView := YView + YView_Change;
-          If (YView &gt; 38) OR (YView &lt; 2) Then
-            Begin
-              YView_Change := -(YView_Change);
-              Right := TRUE;
-            End;
-        End;
-
-      Set_Window(currentpage,XView,YView);
-      Set_Display_Page(currentpage);
-      Set_Dac_Register(50 + PrevColor, 3 + PrevColor, 0, 60 - PrevColor);
-      Set_Dac_Register(50 + SetColor, SetColor, 10, 63 - SetColor);
-      Set_Dac_Register(150 + PrevColor, 3 + PrevColor, 0, 60 - PrevColor);
-      Set_Dac_Register(150 + SetColor, 63, 63, SetColor);
-      SetColor := SetColor + SDir;
-      IF (SetColor = 60) OR (SetColor = 0) THEN SDir := -SDir;
-      PrevColor := PrevColor + PDir;
-      IF (PrevColor = 60) OR (PrevColor = 0) THEN PDir := -PDir;
-
-      lastpage := (lastpage+1) MOD 2;
-      currentpage := (currentpage+1) MOD 2;
-    End;
-END;
-
-Begin
-  Page_Demo;
-  asm mov ah,0;mov al,3;int 16;end;
-END.</pre>
-</details>
-<details class="source">
-<summary>JMODEX.PAS: 3,189 bytes</summary>
-<p class="cap">Pascal interface to Pritchard's object file.</p>
-<pre>unit jmodex;
-
-interface
-
-Function SET_VGA_MODEX (Mode,MaxXpos,MaxYpos,Pages : integer) : integer;
-Function SET_MODEX (Mode:integer) : Integer;
-Procedure CLEAR_VGA_SCREEN (Color:integer);
-Procedure SET_POINT (Xpos,Ypos,Color : integer);
-Function READ_POINT (Xpos,Ypos:integer) : integer;
-Procedure FILL_BLOCK (Xpos1,Ypos1,Xpos2,Ypos2,Color:integer);
-Procedure DRAW_LINE (Xpos1,Ypos1,Xpos2,Ypos2,Color:integer);
-Procedure SET_DAC_REGISTER (RegNo,Red,Green,Blue:integer);
-Procedure GET_DAC_REGISTER (RegNo,Red,Green,Blue:integer);
-Procedure SET_ACTIVE_PAGE (PageNo:integer);
-Function GET_ACTIVE_PAGE : integer;
-Procedure SET_DISPLAY_PAGE (PageNo:integer);
-Function GET_DISPLAY_PAGE : integer;
-Procedure SET_WINDOW (DisplayPage,XOffset,YOffset : integer);
-Function GET_X_OFFSET : integer;
-Function GET_Y_OFFSET : integer;
-Procedure SYNC_DISPLAY;
-Procedure GPRINTC (CharNum,Xpos,Ypos,ColorF,ColorB:integer);
-Procedure TGPRINTC ( CharNum,Xpos,Ypos,ColorF : integer);
-Procedure PRINT_STR (Var Text;MaxLen,Xpos,Ypos,ColorF,ColorB:integer);
-Procedure TPRINT_STR (Var Text;MaxLen,Xpos,Ypos,ColorF:integer);
-Procedure SET_DISPLAY_FONT (Var FontData;FontNumber:integer);
-Procedure DRAW_BITMAP (Var Image;Xpos,Ypos,Width,Height:integer);
-Procedure TDRAW_BITMAP (Var Image;Xpos,Ypos,Width,Height:integer);
-Procedure COPY_PAGE (SourcePage,DestPage:integer);
-Procedure COPY_BITMAP (SourcePage,X1,Y1,X2,Y2,DestPage,DestX1,DestY1:integer);
-
-implementation
-
-Function SET_VGA_MODEX (Mode,MaxXpos,MaxYpos,Pages : integer) : integer; external;
-Function SET_MODEX (Mode:integer) : Integer; external;
-Procedure CLEAR_VGA_SCREEN (Color:integer); external;
-Procedure SET_POINT (Xpos,Ypos,Color : integer); external;
-Function READ_POINT (Xpos,Ypos:integer) : integer; external;
-Procedure FILL_BLOCK (Xpos1,Ypos1,Xpos2,Ypos2,Color:integer); external;
-Procedure DRAW_LINE (Xpos1,Ypos1,Xpos2,Ypos2,Color:integer); external;
-Procedure SET_DAC_REGISTER (RegNo,Red,Green,Blue:integer); external;
-Procedure GET_DAC_REGISTER (RegNo,Red,Green,Blue:integer); external;
-Procedure SET_ACTIVE_PAGE (PageNo:integer); external;
-Function GET_ACTIVE_PAGE : integer; external;
-Procedure SET_DISPLAY_PAGE (PageNo:integer); external;
-Function GET_DISPLAY_PAGE : integer; external;
-Procedure SET_WINDOW (DisplayPage,XOffset,YOffset : integer); external;
-Function GET_X_OFFSET : integer; external;
-Function GET_Y_OFFSET : integer; external;
-Procedure SYNC_DISPLAY; external;
-Procedure GPRINTC (CharNum,Xpos,Ypos,ColorF,ColorB:integer); external;
-Procedure TGPRINTC ( CharNum,Xpos,Ypos,ColorF : integer); external;
-Procedure PRINT_STR (Var Text;MaxLen,Xpos,Ypos,ColorF,ColorB:integer); external;
-Procedure TPRINT_STR (Var Text;MaxLen,Xpos,Ypos,ColorF:integer); external;
-Procedure SET_DISPLAY_FONT (Var FontData;FontNumber:integer); external;
-Procedure DRAW_BITMAP (Var Image;Xpos,Ypos,Width,Height:integer); external;
-Procedure TDRAW_BITMAP (Var Image;Xpos,Ypos,Width,Height:integer); external;
-Procedure COPY_PAGE (SourcePage,DestPage:integer); external;
-Procedure COPY_BITMAP (SourcePage,X1,Y1,X2,Y2,DestPage,DestX1,DestY1:integer); external;
-{$L \turbo\obj\modex2.obj}
-
-END.</pre>
-</details>
-<details class="source">
-<summary>TEST5.PAS: 15,873 bytes</summary>
-<p class="cap">Scott Wyatt's Turbo Pascal port of Pritchard's demo, the file everything here descends from.</p>
+<summary>TEST5.PAS</summary>
+<p class="cap">15,873 bytes &middot; Scott Wyatt's Turbo Pascal port of Pritchard's demo, the file everything here descends from.</p>
 <pre>{                      ModeX Turbo Pascal Demo Program                       }
 {                  Converted to Turbo Pascal by Scott Wyatt                  }
 {          Original program written in QuickBasic by Matt Prichard           }
@@ -812,22 +613,191 @@ Begin
 
 END.</pre>
 </details>
+<details class="source">
+<summary>JTEST.PAS</summary>
+<p class="cap">2,771 bytes &middot; My cut-down.</p>
+<pre>Uses Crt,jmodex;
+
+Var
+  XCenter,X1,Y1,X2,Y2,Z,Colr,XChars,YChars,X,Y,N,Gap : Integer;
+  s : string;
+  s1 : Array[1..35] of Char;
+  ch : Char;
+  ScreenX,ScreenY : Integer;
+  c, dc,CurrentPage, LastPage : Integer;
+  SetColor, SDir, PrevColor, PDir : Byte;
+  XView, YView : Integer;
+  XView_Change, YView_Change : Integer;
+  Right : Boolean;
+
+Procedure ERROR_OUT(s:string);Begin asm mov ah,0;mov al,3;int 10h;end;
+WriteLn(s);Halt(0);END;
+
+Procedure Page_Demo;
+Begin
+  XView_Change := 1;
+  YView_Change := 1;
+  XView := 1;
+  YView := 1;
+  Right := TRUE;
+  ScreenX := 360;
+  ScreenY := 240;
+  PrevColor := 0;
+  SetColor := 3;
+  SDir := 1;
+  PDir := 1;
+  Str(0,s);
+
+  IF SET_VGA_MODEX(0, ScreenX, ScreenY, 3) = 0 THEN
+    ERROR_OUT(&#x27;Unable to SET_VGA_MODEX&#x27; + S);
+
+  SET_ACTIVE_PAGE(0);
+  CLEAR_VGA_SCREEN(0);
+  
+  FOR X := 0 TO 60 DO
+    Begin
+      SET_DAC_REGISTER( 50 + X, 3 + X, 0, 60 - X);
+      SET_DAC_REGISTER( 150 + X, 3 + X, 0, 60 - X);
+    End;
+
+  c := 0;
+  DC := 1;
+  FOR X := 0 TO ScreenX div 2 DO
+    Begin
+      DRAW_LINE( ScreenX div 2 - 1, ScreenY div 4, X, ScreenY - 1, c + 50);
+      DRAW_LINE( ScreenX div 2, ScreenY div 4, ScreenX - X - 1, ScreenY - 1, c + 50);
+      c := c + DC;
+      IF (c = 0) OR (c = 60) THEN DC := -DC;
+    End;
+
+  COPY_PAGE( 0, 1);
+  COPY_PAGE( 0, 2);
+
+  Ch := #0;
+  CurrentPage := 1;
+  LastPage := 0;
+  For c := 1 to 4 DO
+    Set_Dac_Register(19+c,63-(c*10),0,0);
+
+  While Ch &lt;&gt; #27 DO
+    Begin
+      Set_Active_Page(currentpage);
+      If Right Then
+        Begin
+          XView := XView + XView_Change;
+          If (XView &gt; 38) OR (XView &lt; 2) Then
+            Begin
+              XView_Change := -(XView_Change);
+              Right := FALSE;
+            End;
+        End
+      Else
+        Begin
+          YView := YView + YView_Change;
+          If (YView &gt; 38) OR (YView &lt; 2) Then
+            Begin
+              YView_Change := -(YView_Change);
+              Right := TRUE;
+            End;
+        End;
+
+      Set_Window(currentpage,XView,YView);
+      Set_Display_Page(currentpage);
+      Set_Dac_Register(50 + PrevColor, 3 + PrevColor, 0, 60 - PrevColor);
+      Set_Dac_Register(50 + SetColor, SetColor, 10, 63 - SetColor);
+      Set_Dac_Register(150 + PrevColor, 3 + PrevColor, 0, 60 - PrevColor);
+      Set_Dac_Register(150 + SetColor, 63, 63, SetColor);
+      SetColor := SetColor + SDir;
+      IF (SetColor = 60) OR (SetColor = 0) THEN SDir := -SDir;
+      PrevColor := PrevColor + PDir;
+      IF (PrevColor = 60) OR (PrevColor = 0) THEN PDir := -PDir;
+
+      lastpage := (lastpage+1) MOD 2;
+      currentpage := (currentpage+1) MOD 2;
+    End;
+END;
+
+Begin
+  Page_Demo;
+  asm mov ah,0;mov al,3;int 16;end;
+END.</pre>
+</details>
+<details class="source">
+<summary>JMODEX.PAS</summary>
+<p class="cap">3,189 bytes &middot; Pascal interface to Pritchard's object file.</p>
+<pre>unit jmodex;
+
+interface
+
+Function SET_VGA_MODEX (Mode,MaxXpos,MaxYpos,Pages : integer) : integer;
+Function SET_MODEX (Mode:integer) : Integer;
+Procedure CLEAR_VGA_SCREEN (Color:integer);
+Procedure SET_POINT (Xpos,Ypos,Color : integer);
+Function READ_POINT (Xpos,Ypos:integer) : integer;
+Procedure FILL_BLOCK (Xpos1,Ypos1,Xpos2,Ypos2,Color:integer);
+Procedure DRAW_LINE (Xpos1,Ypos1,Xpos2,Ypos2,Color:integer);
+Procedure SET_DAC_REGISTER (RegNo,Red,Green,Blue:integer);
+Procedure GET_DAC_REGISTER (RegNo,Red,Green,Blue:integer);
+Procedure SET_ACTIVE_PAGE (PageNo:integer);
+Function GET_ACTIVE_PAGE : integer;
+Procedure SET_DISPLAY_PAGE (PageNo:integer);
+Function GET_DISPLAY_PAGE : integer;
+Procedure SET_WINDOW (DisplayPage,XOffset,YOffset : integer);
+Function GET_X_OFFSET : integer;
+Function GET_Y_OFFSET : integer;
+Procedure SYNC_DISPLAY;
+Procedure GPRINTC (CharNum,Xpos,Ypos,ColorF,ColorB:integer);
+Procedure TGPRINTC ( CharNum,Xpos,Ypos,ColorF : integer);
+Procedure PRINT_STR (Var Text;MaxLen,Xpos,Ypos,ColorF,ColorB:integer);
+Procedure TPRINT_STR (Var Text;MaxLen,Xpos,Ypos,ColorF:integer);
+Procedure SET_DISPLAY_FONT (Var FontData;FontNumber:integer);
+Procedure DRAW_BITMAP (Var Image;Xpos,Ypos,Width,Height:integer);
+Procedure TDRAW_BITMAP (Var Image;Xpos,Ypos,Width,Height:integer);
+Procedure COPY_PAGE (SourcePage,DestPage:integer);
+Procedure COPY_BITMAP (SourcePage,X1,Y1,X2,Y2,DestPage,DestX1,DestY1:integer);
+
+implementation
+
+Function SET_VGA_MODEX (Mode,MaxXpos,MaxYpos,Pages : integer) : integer; external;
+Function SET_MODEX (Mode:integer) : Integer; external;
+Procedure CLEAR_VGA_SCREEN (Color:integer); external;
+Procedure SET_POINT (Xpos,Ypos,Color : integer); external;
+Function READ_POINT (Xpos,Ypos:integer) : integer; external;
+Procedure FILL_BLOCK (Xpos1,Ypos1,Xpos2,Ypos2,Color:integer); external;
+Procedure DRAW_LINE (Xpos1,Ypos1,Xpos2,Ypos2,Color:integer); external;
+Procedure SET_DAC_REGISTER (RegNo,Red,Green,Blue:integer); external;
+Procedure GET_DAC_REGISTER (RegNo,Red,Green,Blue:integer); external;
+Procedure SET_ACTIVE_PAGE (PageNo:integer); external;
+Function GET_ACTIVE_PAGE : integer; external;
+Procedure SET_DISPLAY_PAGE (PageNo:integer); external;
+Function GET_DISPLAY_PAGE : integer; external;
+Procedure SET_WINDOW (DisplayPage,XOffset,YOffset : integer); external;
+Function GET_X_OFFSET : integer; external;
+Function GET_Y_OFFSET : integer; external;
+Procedure SYNC_DISPLAY; external;
+Procedure GPRINTC (CharNum,Xpos,Ypos,ColorF,ColorB:integer); external;
+Procedure TGPRINTC ( CharNum,Xpos,Ypos,ColorF : integer); external;
+Procedure PRINT_STR (Var Text;MaxLen,Xpos,Ypos,ColorF,ColorB:integer); external;
+Procedure TPRINT_STR (Var Text;MaxLen,Xpos,Ypos,ColorF:integer); external;
+Procedure SET_DISPLAY_FONT (Var FontData;FontNumber:integer); external;
+Procedure DRAW_BITMAP (Var Image;Xpos,Ypos,Width,Height:integer); external;
+Procedure TDRAW_BITMAP (Var Image;Xpos,Ypos,Width,Height:integer); external;
+Procedure COPY_PAGE (SourcePage,DestPage:integer); external;
+Procedure COPY_BITMAP (SourcePage,X1,Y1,X2,Y2,DestPage,DestX1,DestY1:integer); external;
+{$L \turbo\obj\modex2.obj}
+
+END.</pre>
+</details>
 
 <nav class="ring">
-  <a href="jbars.html"><b>&laquo; PREVIOUS</b><span>03 &middot; Copper Bars: Palette Cycling 101</span></a>
-  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
-  <a class="next" href="mimsy.html"><b>NEXT &raquo;</b><span>05 &middot; Jabberwocky</span></a>
+  <a href="jbars.html"><b>&laquo; PREVIOUS</b><span>01 &middot; Copper Bars: Palette Cycling 101</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>16 entries</span></a>
+  <a class="next" href="mimsy.html"><b>NEXT &raquo;</b><span>03 &middot; Jabberwocky</span></a>
 </nav>
 
 <script src="archive.js"></script>
 <script>
 'use strict';
-// Notes live in the markup as hidden siblings, so they are plain HTML with no
-// escaping and cannot break this script. This only flips which one is visible.
-function showNote(key) {
-  for (const n of document.getElementById('notes').children)
-    n.hidden = n.dataset.note !== String(key);
-}
 // ---------------------------------------------------------------------------
 // pas/TEST5.PAS is the sample program that shipped with the Mode X unit in
 // MODEX.ZIP, downloaded 22 March 1995. pas/JTEST.PAS is my cut-down of its
@@ -878,17 +848,12 @@ function drawLine(pg, x0, y0, x1, y1, c) {
     if (e2 <= dx) { err += dx; y0 += sy; }
   }
 }
-// Print_Text(s,X,Y,BColor,FColor) -- the library's 8x8 font. Approximated.
+// Print_Text(s,X,Y,BColor,FColor) -- the library's 8x8 font, which it gets
+// from the BIOS: the ROM table, romText().
 function text(pg, s, x0, y0, col) {
-  const c = document.createElement('canvas'), g = c.getContext('2d');
-  c.width = s.length*8 + 8; c.height = 10;
-  g.font = '8px "Courier New", monospace'; g.textBaseline = 'top';
-  g.fillStyle = '#fff'; g.fillText(s, 0, 1);
-  const d = g.getImageData(0, 0, c.width, c.height).data;
-  for (let y = 0; y < c.height; y++)
-    for (let x = 0; x < c.width; x++)
-      if (d[(y*c.width+x)*4+3] > 110 && x0+x >= 0 && x0+x < PW && y0+y >= 0 && y0+y < PH)
-        pg[(y0+y)*PW + x0+x] = col;
+  romText(s, x0, y0, (x, y) => {
+    if (x >= 0 && x < PW && y >= 0 && y < PH) pg[y*PW + x] = col;
+  });
 }
 
 // The four sprite bitmaps, from TEST5's typed constants. The color index is
@@ -1034,7 +999,6 @@ function reset() {
   initSprites();
   buildMaster();
   el('o-sprites').classList.toggle('hidden', mode !== 'test5');
-  showNote(mode);
   last = performance.now();
 }
 
@@ -1086,6 +1050,10 @@ function render() {
   const whole = el('showpage').checked;
   const w = whole ? PW : VW, h = whole ? PH : VH;
   canvas.width = w; canvas.height = h;
+  // The whole-page view is a picture of video memory with the visible window
+  // outlined in it, not a picture of a screen, so it opts out of the 4:3
+  // stretch and stays 1:1. The window inside it is the part that was 4:3.
+  canvas.toggleAttribute('data-native', whole);
   const img = ctx.createImageData(w, h);
   const out = new Uint32Array(img.data.buffer);
   const src = pages[displayPage];
@@ -1114,10 +1082,6 @@ function render() {
 }
 el('mode').addEventListener('change', reset);
 el('restart').addEventListener('click', reset);
-el('next').addEventListener('click', () => {
-  const m = el('mode'); m.selectedIndex = (m.selectedIndex+1) % m.length; reset(); });
-el('prev').addEventListener('click', () => {
-  const m = el('mode'); m.selectedIndex = (m.selectedIndex+m.length-1) % m.length; reset(); });
 el('rate').addEventListener('input', () => el('rateLabel').textContent = el('rate').value);
 // Nothing erases a sprite except Remove_Sprites, so switching them off would
 // otherwise leave the last frame's shapes baked into pages 0 and 1 for good.
@@ -1140,6 +1104,10 @@ function frame() {
 
 reset();
 frame();
+
+demoStrip('mode');
+screenAspect();
+underScreen('restart');
 </script>
 </body>
 </html>

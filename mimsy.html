@@ -2,36 +2,24 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>05 &middot; Jabberwocky</title>
+<title>03 &middot; Jabberwocky</title>
 <link rel="stylesheet" href="archive.css">
-<style>
-
-  #screen{height:min(70vh,600px)}
-</style>
 </head>
 <body>
 
 <nav class="ring">
-  <a href="modex.html"><b>&laquo; PREVIOUS</b><span>04 &middot; Enter Mode X</span></a>
-  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
-  <a class="next" href="circle.html"><b>NEXT &raquo;</b><span>06 &middot; Drawing Circles</span></a>
+  <a href="modex.html"><b>&laquo; PREVIOUS</b><span>02 &middot; Enter Mode X</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>16 entries</span></a>
+  <a class="next" href="circle.html"><b>NEXT &raquo;</b><span>04 &middot; Drawing Circles</span></a>
 </nav>
 
 <header class="entry">
-  <div class="num">05</div>
+  <div class="num">03</div>
   <h1>Jabberwocky</h1>
   <div class="lede">
     This may be the first one of my own that wasn't simply altering someone else's code.  Nothing
     too exciting, but it seems I was starting to make sense of the Mode X routines.
   </div>
-  <details class="meta">
-    <summary>Details</summary>
-    <dl>
-      <dt>File</dt><dd><code>MIMSY.PAS</code>, 1,039 bytes, <b>1995-06-16 00:32</b></dd>
-      <dt>Provenance</dt><dd>Mine</dd>
-      <dt>Demo</dt><dd>The first stanza, falling</dd>
-    </dl>
-  </details>
 </header>
 
 <div class="demo">
@@ -43,7 +31,6 @@
   <label><input id="loop" type="checkbox" checked> repeat</label>
 </div>
 
-<div id="status"></div>
 </div>
 
 <div class="prose">
@@ -64,8 +51,8 @@ checking off is the reason a great deal of this archive runs at all.</p>
 </div>
 
 <details class="source">
-<summary>MIMSY.PAS: 1,039 bytes</summary>
-<p class="cap">All of it. The stanza is a typed constant array of strings.</p>
+<summary>MIMSY.PAS</summary>
+<p class="cap">1,039 bytes &middot; All of it. The stanza is a typed constant array of strings.</p>
 <pre>Uses Crt,jmodex;Const z:array[1..4]of string=(
 &#x27;&#x27;&#x27;Twas brillig and the slithy toves&#x27;,
 &#x27;  Did gyre and gimble in the wabe&#x27;,
@@ -88,9 +75,9 @@ repeat until keypressed;end;Begin Demo;asm mov ah,0;mov al,3;int 16;end;END.</pr
 </details>
 
 <nav class="ring">
-  <a href="modex.html"><b>&laquo; PREVIOUS</b><span>04 &middot; Enter Mode X</span></a>
-  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
-  <a class="next" href="circle.html"><b>NEXT &raquo;</b><span>06 &middot; Drawing Circles</span></a>
+  <a href="modex.html"><b>&laquo; PREVIOUS</b><span>02 &middot; Enter Mode X</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>16 entries</span></a>
+  <a class="next" href="circle.html"><b>NEXT &raquo;</b><span>04 &middot; Drawing Circles</span></a>
 </nav>
 
 <script src="archive.js"></script>
@@ -123,21 +110,12 @@ const LINES = [
   "    And the mome raths outgrabe"
 ];
 
-// jmodex's TPrint_Str stamped an 8x8 ROM glyph in a single color. Rendering
-// the strings once to an offscreen canvas and thresholding gives the same
-// one-bit-per-pixel mask to blit.
+// jmodex's TPrint_Str stamped 8x8 ROM glyphs in a single color. Each string is
+// laid out once, from the ROM table (romText), as a one-bit-per-pixel mask.
 function mask(str) {
-  const c = document.createElement('canvas');
-  const g = c.getContext('2d');
-  c.width = str.length * 8 + 8; c.height = 10;
-  g.font = '8px "Courier New", monospace';
-  g.textBaseline = 'top';
-  g.fillStyle = '#fff';
-  g.fillText(str, 0, 1);
-  const d = g.getImageData(0, 0, c.width, c.height).data;
-  const bits = new Uint8Array(c.width * c.height);
-  for (let i = 0; i < bits.length; i++) bits[i] = d[i*4 + 3] > 110 ? 1 : 0;
-  return { w: c.width, h: c.height, bits };
+  const w = str.length * 8, h = 8, bits = new Uint8Array(w * h);
+  romText(str, 0, 0, (x, y) => { bits[y*w + x] = 1; });
+  return { w, h, bits };
 }
 const MASKS = LINES.map(mask);
 
@@ -177,12 +155,11 @@ function frame() {
 
   for (let i = 0; i < vram.length; i++) out[i] = PAL[vram[i]];
   ctx.putImageData(img, 0, 0);
-
-  document.getElementById('status').textContent =
-    `step ${w(step,3)}/400   color index ${w(col,3)}   blue ${w(col >> 2,2)}/63`;
 }
 
 frame();
+
+screenAspect();
 </script>
 </body>
 </html>

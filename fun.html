@@ -2,42 +2,28 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>12 &middot; Random Walking</title>
+<title>11 &middot; Random Walking</title>
 <link rel="stylesheet" href="archive.css">
-<style>
-
-  #screen{max-height:60vh;max-width:94vw}
-</style>
 </head>
 <body>
 
 <nav class="ring">
-  <a href="pattern.html"><b>&laquo; PREVIOUS</b><span>11 &middot; Doodling With Lines</span></a>
-  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
-  <a class="next" href="asmstars.html"><b>NEXT &raquo;</b><span>13 &middot; Parallax Starfield</span></a>
+  <a href="pattern.html"><b>&laquo; PREVIOUS</b><span>10 &middot; Doodling With Lines</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>16 entries</span></a>
+  <a class="next" href="asmstars.html"><b>NEXT &raquo;</b><span>12 &middot; Parallax Starfield</span></a>
 </nav>
 
 <header class="entry">
-  <div class="num">12</div>
+  <div class="num">11</div>
   <h1>Random Walking</h1>
   <div class="lede">
     So far my palette cycling was generally drawing one initial screen, and then playing with the colors. But what if the image
     continues drawing randomly instead? Here were some experiments in that vein.
   </div>
-  <details class="meta">
-    <summary>Details</summary>
-    <dl>
-      <dt>Files</dt><dd><code>FUN1.BAK</code>, <code>FUN.PAS</code>, <code>FUN2</code>, <code>FUN3</code>, <code>FUN4</code>:all 1995-12-31, 03:12&ndash;06:29</dd>
-      <dt>Then</dt><dd><code>FUN5.BAK</code> 1996-01-01 03:38 &middot; <code>FUN1.PAS</code> 1996-01-02 05:45 &middot; <code>FUN5.PAS</code> finished <b>1996-08-08</b></dd>
-      <dt>Provenance</dt><dd>Mine</dd>
-      <dt>Demo</dt><dd>All seven variations</dd>
-    </dl>
-  </details>
 </header>
 
 <div class="demo">
 <div class="panel selector">
-  <button id="prev">&larr;</button>
   <select id="variant">
       <option value="fun">FUN.PAS: Mode X, circ(r=1), static palette</option>
       <option value="fun1b">FUN1.BAK: Mode X, circ(r=10), static palette</option>
@@ -47,21 +33,10 @@
       <option value="fun5b">FUN5.BAK: 16 walkers on a 4x4 grid</option>
       <option value="fun1">FUN1.PAS: back to circles, now with everything learned</option>
     </select>
-  <button id="next">&rarr;</button>
   <button id="restart">restart</button>
 </div>
 
-<canvas id="screen" width="360" height="480"></canvas>
-<canvas id="strip" width="256" height="16"></canvas>
-<div class="cap" id="stripcap">the 256 DAC registers</div>
-
-<div class="panel">
-  <label><input id="bug" type="checkbox" checked> call randomize() every frame (as written)</label>
-</div>
-
-<div id="status"></div>
-
-<div id="notes">
+<div id="notes" class="captions">
 <div class="note" data-note="fun" hidden>
 The starting point. A radius-1 circle stamped at each step, drawn through the full differential circle routine from CIRCLE.PAS. Palette set once and left alone.
 </div>
@@ -81,9 +56,18 @@ jmodex is dropped entirely. Mode 13h set by INT 10h, pixels poked straight into 
 Sixteen walkers seeded on a 4x4 grid, sharing one color index. FUN5.PAS is this same file with the vsync wait swapped for delay(100), eight months later, and much slower.
 </div>
 <div class="note" data-note="fun1" hidden>
-Two days on, back to Mode X and radius-10 circles, but now with the vsync wait and the cycling palette from FUN3/FUN4 folded in. This is the finished version of the idea.
+Two days on, back to Mode X and radius-10 circles, but now with the vsync wait and the cycling palette from FUN3/FUN4 folded in.
 </div>
 </div>
+
+<canvas id="screen" width="360" height="480"></canvas>
+<canvas id="strip" width="256" height="16"></canvas>
+<div class="cap" id="stripcap">the 256 DAC registers</div>
+
+<div class="panel">
+  <label><input id="bug" type="checkbox" checked> call randomize() every frame (as written)</label>
+</div>
+
 </div>
 
 <div class="prose">
@@ -119,8 +103,8 @@ three weeks later, and it is how the rest of the archive talks to the screen.</p
 </div>
 
 <details class="source">
-<summary>FUN.PAS: 685 bytes</summary>
-<p class="cap">03:16, 31 December.</p>
+<summary>FUN.PAS</summary>
+<p class="cap">03:16, 31 December &middot; 685 bytes</p>
 <pre>uses crt,jmodex;var q,x,y,r,s:integer;
 
 procedure circ(x,y,r,l:integer);var b,c:integer;a:real;begin if r=0 then b:=0
@@ -136,8 +120,8 @@ if q&gt;29then s:=-s else if q&lt;1then s:=-s;inc(q,s);circ(x,y,1,q);
 until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
 </details>
 <details class="source">
-<summary>FUN1.BAK: 686 bytes</summary>
-<p class="cap">03:12, the earliest of the night.</p>
+<summary>FUN1.BAK</summary>
+<p class="cap">03:12 &middot; 686 bytes &middot; The earliest of the night.</p>
 <pre>uses crt,jmodex;var q,x,y,r,s:integer;
 procedure circ(x,y,r,l:integer);var b,c:integer;a:real;
 begin if r=0 then b:=0 else b:=round(sqrt(r*r-1));a:=b;
@@ -152,8 +136,8 @@ if q&gt;62then s:=-s else if q&lt;1then s:=-s;inc(q,s);circ(x,y,10,q);
 until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
 </details>
 <details class="source">
-<summary>FUN1.PAS: 825 bytes</summary>
-<p class="cap">2 January, 05:45.</p>
+<summary>FUN1.PAS</summary>
+<p class="cap">2 January, 05:45 &middot; 825 bytes</p>
 <pre>uses crt,jmodex;var c,q,x,y,r,s,o:integer;
 procedure circ(x,y,r,l:integer);var b,c:integer;a:real;
 begin if r=0 then b:=0 else b:=round(sqrt(r*r-1));a:=b;
@@ -170,8 +154,8 @@ for c:=1to 63do set_dac_register(c,c*2+o,0,0);
 until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
 </details>
 <details class="source">
-<summary>FUN2.PAS: 625 bytes</summary>
-<p class="cap">03:21.</p>
+<summary>FUN2.PAS</summary>
+<p class="cap">03:21 &middot; 625 bytes</p>
 <pre>uses crt,jmodex;var q,x,y,s:integer;
 
 procedure circ(x,y,l:integer);var b,c:integer;a:real;begin
@@ -187,8 +171,8 @@ if q&gt;29then s:=-s else if q&lt;1then s:=-s;inc(q,s);circ(x,y,q);
 until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
 </details>
 <details class="source">
-<summary>FUN3.PAS: 653 bytes</summary>
-<p class="cap">03:45.</p>
+<summary>FUN3.PAS</summary>
+<p class="cap">03:45 &middot; 653 bytes</p>
 <pre>uses crt,jmodex;var o,c,q,x,y,s:integer;
 
 begin if set_vga_modex(7,360,480,1)=0 then halt(0);clear_vga_screen(0);
@@ -207,8 +191,8 @@ for c:=1to 30do set_dac_register(c,c*2+o,0,0);
 until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
 </details>
 <details class="source">
-<summary>FUN4.PAS: 643 bytes</summary>
-<p class="cap">06:29, raw mode 13h, DAC ports, and the ancestor of ASMSTARS.</p>
+<summary>FUN4.PAS</summary>
+<p class="cap">06:29 &middot; 643 bytes &middot; Raw mode 13h, DAC ports, and the ancestor of ASMSTARS.</p>
 <pre>uses crt;var o,c,q,x,y,s:integer;
 
 begin
@@ -230,8 +214,8 @@ Port[$3C9]:=0;End;
 until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
 </details>
 <details class="source">
-<summary>FUN5.BAK: 1,073 bytes</summary>
-<p class="cap">New Year's Day, 03:38.</p>
+<summary>FUN5.BAK</summary>
+<p class="cap">New Year's Day, 03:38 &middot; 1,073 bytes</p>
 <pre>uses crt;var o,c,q,s:integer;x,y:array[1..16]of integer;
 
 begin
@@ -272,8 +256,8 @@ Port[$3C9]:=0;End;
 until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
 </details>
 <details class="source">
-<summary>FUN5.PAS: 1,019 bytes</summary>
-<p class="cap">Finished 1996-08-08, seven months later.</p>
+<summary>FUN5.PAS</summary>
+<p class="cap">1996-08-08 &middot; 1,019 bytes &middot; Finished seven months later.</p>
 <pre>uses crt;var o,c,q,s:integer;x,y:array[1..16]of integer;
 
 begin
@@ -315,19 +299,13 @@ until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
 </details>
 
 <nav class="ring">
-  <a href="pattern.html"><b>&laquo; PREVIOUS</b><span>11 &middot; Doodling With Lines</span></a>
-  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
-  <a class="next" href="asmstars.html"><b>NEXT &raquo;</b><span>13 &middot; Parallax Starfield</span></a>
+  <a href="pattern.html"><b>&laquo; PREVIOUS</b><span>10 &middot; Doodling With Lines</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>16 entries</span></a>
+  <a class="next" href="asmstars.html"><b>NEXT &raquo;</b><span>12 &middot; Parallax Starfield</span></a>
 </nav>
 
 <script src="archive.js"></script>
 <script>
-// Notes live in the markup as hidden siblings, so they are plain HTML with no
-// escaping and cannot break this script. This only flips which one is visible.
-function showNote(key) {
-  for (const n of document.getElementById('notes').children)
-    n.hidden = n.dataset.note !== String(key);
-}
 
 // ---------------------------------------------------------------------------
 // Every FUN file is the same program: a walker that steps -1/0/+1 on each axis,
@@ -431,7 +409,6 @@ function reset() {
     ? [64,128,192,256].flatMap(x => [40,80,120,160].map(y => ({x, y})))
     : [{ x: v.w >> 1, y: v.h >> 1 }];
   for (let c = 1; c <= v.pal; c++) dac(c, c * (v.pal === 64 && !v.anim ? 1 : v.mul));
-  showNote(cur);
 }
 
 document.getElementById('variant').addEventListener('change', e => {
@@ -482,25 +459,15 @@ function frame() {
   document.getElementById('stripcap').hidden = !v.anim;
   if (v.anim) paintStrip(x => PAL[x]);
   frames++;
-
-  document.getElementById('status').textContent =
-    `${w(v.w,3)}x${w(v.h,3)}   color ${w(q,2)}/${w(v.qmax,2)}   palette offset ${w(o & 63,2)}   ` +
-    `walkers ${w(walkers.length,2)}   frame ${w(frames,7)}`;
 }
 
 reset();
 frame();
 
-// --- ring standard: the arrows step the selector -----------------------------
-(function () {
-  const sel = document.getElementById('variant');
-  const step = d => {
-    sel.selectedIndex = (sel.selectedIndex + d + sel.length) % sel.length;
-    for (const t of ['change', 'input']) sel.dispatchEvent(new Event(t));
-  };
-  document.getElementById('prev').addEventListener('click', () => step(-1));
-  document.getElementById('next').addEventListener('click', () => step(1));
-})();
+demoStrip('variant');
+
+screenAspect();
+underScreen('restart');
 </script>
 </body>
 </html>

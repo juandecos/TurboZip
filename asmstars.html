@@ -2,43 +2,25 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>13 &middot; Parallax Starfield</title>
+<title>12 &middot; Parallax Starfield</title>
 <link rel="stylesheet" href="archive.css">
-<style>
-
-  /* Everything this page used to declare is now in archive.css. What was here
-     -- height:100% plus justify-content:center -- pinned the body to the
-     viewport and centered an overflowing page, which pushed the top ring strip
-     off-screen where it could not be reached. Only the canvas rule is genuinely
-     page-specific: this is the one demo that wants to be wider than 880px. */
-  #screen{width:min(96vw,1280px);aspect-ratio:320/200}
-</style>
 </head>
 <body>
 
 <nav class="ring">
-  <a href="fun.html"><b>&laquo; PREVIOUS</b><span>12 &middot; Random Walking</span></a>
-  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
-  <a class="next" href="asctxt.html"><b>NEXT &raquo;</b><span>14 &middot; Bouncing Lines</span></a>
+  <a href="fun.html"><b>&laquo; PREVIOUS</b><span>11 &middot; Random Walking</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>16 entries</span></a>
+  <a class="next" href="asctxt.html"><b>NEXT &raquo;</b><span>13 &middot; Bouncing Lines</span></a>
 </nav>
 
 <header class="entry">
-  <div class="num">13</div>
+  <div class="num">12</div>
   <h1>Parallax Starfield</h1>
   <div class="lede">
-    Almost a year earlier in entry 02 I had downloaded someone else's starfield code, and here I convert it from BGI to direct
+    Almost a year earlier I had downloaded someone else's starfield code, and here I convert it from BGI to direct
     memory manipulation. Nothing exciting, but it seems I was getting more comfortable with these different approaches and
     how to translate between them.
   </div>
-  <details class="meta">
-    <summary>Details</summary>
-    <dl>
-      <dt>Files</dt><dd><code>ASMSTARS.BAK</code> 1,053 B (1996-01-25 06:48) &middot; <code>ASMSTARS.PAS</code> 1,188 B (07:00)</dd>
-      <dt>Ancestor</dt><dd><code>pas/STARS.PAS</code> (downloaded 1995-03-22 08:36) &rarr; <code>pas/JSTARS.PAS</code>, which is byte-identical to <code>ASMSTARS.BAK</code></dd>
-      <dt>Provenance</dt><dd>Mine, descended from collected code</dd>
-      <dt>Demo</dt><dd>Three-layer parallax starfield</dd>
-    </dl>
-  </details>
 </header>
 
 <div class="demo">
@@ -51,7 +33,7 @@
 <div class="panel">
   <label>stars/layer <input id="count" type="range" min="1" max="60" value="5">
     <span id="countLabel">5</span></label>
-  <label><input id="artifact" type="checkbox" checked> original edge artifact</label>
+  <label><input id="fixedge" type="checkbox"> fix right edge bug</label>
   <label><input id="trails" type="checkbox"> keep trails</label>
 </div>
 </div>
@@ -68,8 +50,8 @@ compensating for something the rewrite makes unnecessary.</p>
 </div>
 
 <details class="source">
-<summary>ASMSTARS.PAS: 1,188 bytes</summary>
-<p class="cap">07:00. Mode 13h, direct DAC writes, the FUN4 machinery.</p>
+<summary>ASMSTARS.PAS</summary>
+<p class="cap">07:00 &middot; 1,188 bytes &middot; Mode 13h, direct DAC writes, the FUN4 machinery.</p>
 <pre>Uses Crt;Type StarField=Array[1..3,1..2,1..5]of Integer;T=Array[1..3]of
 Integer;Var Colors:T;Stars:StarField;x,y,q:integer;
 
@@ -97,8 +79,8 @@ Stars[x,1,y]:=Random(319);Stars[x,2,y]:=Random(200);End;
 ChangeStars(Stars,Colors);vidmode(3);End.</pre>
 </details>
 <details class="source">
-<summary>ASMSTARS.BAK: 1,053 bytes</summary>
-<p class="cap">06:48. Byte-identical to <code>pas/JSTARS.PAS</code>.</p>
+<summary>ASMSTARS.BAK</summary>
+<p class="cap">06:48 &middot; 1,053 bytes &middot; Byte-identical to <code>pas/JSTARS.PAS</code>.</p>
 <pre>Uses Crt, Graph, BGIDriv;
 Type StarField=Array[1..3,1..2,1..5]of Integer;T=Array[1..3]of Integer;
 Var Colors:T;Stars:StarField;d,m,x,y,q:integer;
@@ -121,8 +103,8 @@ Stars[x,1,y]:=Random(639);Stars[x,2,y]:=Random(480);End;
 ChangeStars (Stars,Colors);Closegraph;End.</pre>
 </details>
 <details class="source">
-<summary>STARS.PAS: 5,670 bytes</summary>
-<p class="cap">The collected original, 5,670 bytes, downloaded 1995-03-22.</p>
+<summary>STARS.PAS</summary>
+<p class="cap">1995-03-22 &middot; 5,670 bytes &middot; The collected original, as downloaded.</p>
 <pre>Uses
    Crt, Graph, BGIDriv;
 
@@ -338,9 +320,9 @@ End.</pre>
 </details>
 
 <nav class="ring">
-  <a href="fun.html"><b>&laquo; PREVIOUS</b><span>12 &middot; Random Walking</span></a>
-  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
-  <a class="next" href="asctxt.html"><b>NEXT &raquo;</b><span>14 &middot; Bouncing Lines</span></a>
+  <a href="fun.html"><b>&laquo; PREVIOUS</b><span>11 &middot; Random Walking</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>16 entries</span></a>
+  <a class="next" href="asctxt.html"><b>NEXT &raquo;</b><span>13 &middot; Bouncing Lines</span></a>
 </nav>
 
 <script src="archive.js"></script>
@@ -413,7 +395,7 @@ function tick(edgeArtifact, keepTrails) {
 
 const countEl    = document.getElementById('count');
 const countLabel = document.getElementById('countLabel');
-const artifactEl = document.getElementById('artifact');
+const fixEdgeEl = document.getElementById('fixedge');
 const trailsEl   = document.getElementById('trails');
 
 countEl.addEventListener('input', () => {
@@ -421,11 +403,19 @@ countEl.addEventListener('input', () => {
   seed(+countEl.value);
 });
 trailsEl.addEventListener('change', () => pixels.fill(0));
+// The edge bug leaves its pixels in the last column, where nothing erases them,
+// so fixing it from here on would leave the old ones on screen. Clear that one
+// column and put back any star that is genuinely standing in it.
+fixEdgeEl.addEventListener('change', () => {
+  for (let y = 0; y < H; y++) pixels[y * W + W - 1] = 0;
+  for (let L = 0; L < LAYERS; L++)
+    for (const s of stars[L]) if (s.x === W - 1) plot(s.x, s.y, COLORS[L]);
+});
 
 // The DOS version ran flat out with a Delay(2) per layer; requestAnimationFrame
 // gives a steady ~60 ticks/second, which lands close to how it looked on a 386.
 function frame() {
-  tick(artifactEl.checked, trailsEl.checked);
+  tick(!fixEdgeEl.checked, trailsEl.checked);
   ctx.putImageData(screen, 0, 0);
   requestAnimationFrame(frame);
 }
@@ -434,6 +424,9 @@ seed(+countEl.value);
 frame();
 
 document.getElementById('restart').addEventListener('click', () => { pixels.fill(0); seed(+countEl.value); });
+
+screenAspect();
+underScreen('restart');
 </script>
 </body>
 </html>

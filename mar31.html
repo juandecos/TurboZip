@@ -2,23 +2,19 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>16 &middot; Wiggles and Waves</title>
+<title>15 &middot; Wiggles and Waves</title>
 <link rel="stylesheet" href="archive.css">
-<style>
-
-  #screen{height:min(56vh,480px)}
-</style>
 </head>
 <body>
 
 <nav class="ring">
-  <a href="mar27.html"><b>&laquo; PREVIOUS</b><span>15 &middot; Spiral Illusions</span></a>
-  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
-  <a class="next" href="saver001.html"><b>NEXT &raquo;</b><span>17 &middot; Mixing It Up</span></a>
+  <a href="mar27.html"><b>&laquo; PREVIOUS</b><span>14 &middot; Spiral Illusions</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>16 entries</span></a>
+  <a class="next" href="saver001.html"><b>NEXT &raquo;</b><span>16 &middot; Mixing It Up</span></a>
 </nav>
 
 <header class="entry">
-  <div class="num">16</div>
+  <div class="num">15</div>
   <h1>Wiggles and Waves</h1>
   <div class="lede">
     These files are all from the same morning of March 31, 1996, four days after the last entry's session.
@@ -28,27 +24,28 @@
     For the second one I believe I was inspired by some effects I had seen on Super Nintendo, although I can't remember
     which game precisely. I seem to have been working towards something but never got there.
   </div>
-  <details class="meta">
-    <summary>Details</summary>
-    <dl>
-      <dt>Files</dt><dd><code>WIGGLE.PAS</code> 07:58 &middot; <code>NEWWAVE.BAK</code> 08:25 &middot; <code>NEWWAVE.PAS</code> 08:48</dd>
-      <dt>Provenance</dt><dd>Mine</dd>
-      <dt>Demo</dt><dd>Both programs, with the shared palette table shown live</dd>
-      <dt>Note</dt><dd><b>The last program in the archive written from scratch.</b> <code>SAVER001</code> is later, but it is <code>ASCTXT.PAS</code> extended.</dd>
-    </dl>
-  </details>
 </header>
 
 <div class="demo">
 <div class="panel selector">
-  <button id="prev">&larr;</button>
   <select id="variant">
       <option value="wiggle-pas">07:58 WIGGLE.PAS: vertical bars, palette rotated back and forth</option>
       <option value="wave-bak">08:25 NEWWAVE.BAK: fan, five bands, blue</option>
       <option value="wave-pas">08:48 NEWWAVE.PAS: fan, one band, magenta</option>
     </select>
-  <button id="next">&rarr;</button>
   <button id="restart">restart</button>
+</div>
+
+<div id="notes" class="captions">
+<div class="note" data-note="wiggle-pas" hidden>
+07:58 &middot; vertical bars, palette rotated back and forth
+</div>
+<div class="note" data-note="wave-bak" hidden>
+08:25 &middot; fan, five bands, blue
+</div>
+<div class="note" data-note="wave-pas" hidden>
+08:48 &middot; fan, one band, magenta
+</div>
 </div>
 
 <canvas id="screen" width="360" height="480"></canvas>
@@ -62,40 +59,35 @@
   <label>ms/step <input id="rate" type="range" min="1" max="60" value="10">
     <span id="rateLabel">10</span></label>
   <label id="o-raw"><input id="raw" type="checkbox" checked> unthrottled, untick to slow it down</label>
-  <label><input id="scroll" type="checkbox"> drop the reverse loop for continuous scroll</label>
   <label><input id="idx" type="checkbox"> reveal the color indices</label>
 </div>
+</div>
 
-<div id="status"></div>
-
-<div id="notes">
-<div class="note" data-note="wiggle-pas" hidden>
-<b>WIGGLE.PAS: 07:58, 799 bytes.</b> Vertical stripes, and that is the whole
+<div class="prose">
+<h2><a href="#wiggle-pas">WIGGLE.PAS</a></h2>
+<p>Vertical stripes, and that is the whole
 picture: five repeats of indices 1..64 across the screen plus a truncated sixth
 band of 40. Then the palette does everything. Rotating 3 slots per step for 64
 steps moves the table 192 slots (exactly three full bands) and lands it back
 where it started, at which point the loop runs in reverse. That reversal is
-what makes it wiggle rather than scroll; tick
-"drop the reverse loop" to see it scroll instead.
+what makes it wiggle rather than scroll.
 There is <b>no delay anywhere</b> and
 the retrace wait does not work, so on real hardware it rewrote 64 registers and
 immediately rotated again, the full 128-step cycle in well under a tenth of a
-second, which is what you are watching. Untick "unthrottled" to slow it down.
-NEWWAVE, fifty minutes later, puts a delay in; whether that was a correction or
-a change of mind is discussed below.
-</div>
-<div class="note" data-note="wave-bak" hidden>
-<b>NEWWAVE.BAK: 08:25, 921 bytes.</b> The same palette engine, now driving a
+second, which is what you are watching. Untick "unthrottled" to slow it down.</p>
+
+<h2><a href="#wave-bak">NEWWAVE.BAK</a></h2>
+<p>The same palette engine, now driving a
 fan: every line runs from its own point on the top or bottom edge to a single
 vanishing point at the screen center, with a 20-pixel sine wobble along its
 length. r runs 0..4, so indices 1..64 repeat five times across the screen and
 the traveling band appears five times over.
 The palette blackout is commented out in this version, so on real hardware you
 watched all 76,800 sines grind out line by line before the effect started.
-The mirror here is a plain vertical flip.
-</div>
-<div class="note" data-note="wave-pas" hidden>
-<b>NEWWAVE.PAS: 08:48, 928 bytes.</b> Three changes, all of them decisions.
+The mirror here is a plain vertical flip.</p>
+
+<h2><a href="#wave-pas">NEWWAVE.PAS</a></h2>
+<p>Three changes, all of them decisions.
 <b>(1)</b> the r loop is cut to a single pass, so 64 lines are laid down instead
 of 320, one band, not five, and the fan reads as a shape rather than a texture.
 <b>(2)</b> the mirror becomes a true 180° rotation (x is flipped as well as y),
@@ -106,14 +98,12 @@ Every one of those is the same edit: stop showing the machinery. Four days after
 NEW.PAS was clearing 172,800 bytes a frame, this writes zero pixels and 64
 registers. It is also the last program here written from scratch. Nothing else
 is saved until 8 August, and that morning produces a year-old demo switched
-back on plus one more file that is ASCTXT.PAS with a color engine added.
-</div>
-</div>
+back on plus one more file that is ASCTXT.PAS with a color engine added.</p>
 </div>
 
 <details class="source">
-<summary>WIGGLE.PAS: 799 bytes</summary>
-<p class="cap">07:58</p>
+<summary>WIGGLE.PAS</summary>
+<p class="cap">07:58 &middot; 799 bytes</p>
 <pre>uses crt,jmodex;var b,c,d,q,r:integer;a:array[1..64]of byte;
 begin if set_vga_modex(7,360,480,1)=0 then halt(0);clear_vga_screen(0);
 for q:=1to 32do a[q]:=(q-1);for q:=33to 64do a[q]:=(64-q);
@@ -130,8 +120,8 @@ for q:=64downto 4do a[q]:=a[q-3];a[1]:=d;a[2]:=c;a[3]:=b;end;
 until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
 </details>
 <details class="source">
-<summary>NEWWAVE.BAK: 921 bytes</summary>
-<p class="cap">08:25</p>
+<summary>NEWWAVE.BAK</summary>
+<p class="cap">08:25 &middot; 921 bytes</p>
 <pre>uses crt,jmodex;var b,c,d,q,r,s,t:integer;a:array[1..64]of byte;
 begin if set_vga_modex(7,360,480,1)=0 then halt(0);clear_vga_screen(0);
 for q:=1to 32do a[q]:=(q-1);for q:=33to 64do a[q]:=(64-q);
@@ -153,8 +143,8 @@ for q:=64downto 4do a[q]:=a[q-3];a[1]:=d;a[2]:=c;a[3]:=b;delay(10);end;
 until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
 </details>
 <details class="source">
-<summary>NEWWAVE.PAS: 928 bytes</summary>
-<p class="cap">08:48 the last one written from scratch.</p>
+<summary>NEWWAVE.PAS</summary>
+<p class="cap">08:48 &middot; 928 bytes &middot; The last one written from scratch.</p>
 <pre>uses crt,jmodex;var b,c,d,q,r,s,t:integer;a:array[1..64]of byte;
 begin if set_vga_modex(7,360,480,1)=0 then halt(0);clear_vga_screen(0);
 for q:=1to 32do a[q]:=(q-1);for q:=33to 64do a[q]:=(64-q);
@@ -176,20 +166,14 @@ until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
 </details>
 
 <nav class="ring">
-  <a href="mar27.html"><b>&laquo; PREVIOUS</b><span>15 &middot; Spiral Illusions</span></a>
-  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
-  <a class="next" href="saver001.html"><b>NEXT &raquo;</b><span>17 &middot; Mixing It Up</span></a>
+  <a href="mar27.html"><b>&laquo; PREVIOUS</b><span>14 &middot; Spiral Illusions</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>16 entries</span></a>
+  <a class="next" href="saver001.html"><b>NEXT &raquo;</b><span>16 &middot; Mixing It Up</span></a>
 </nav>
 
 <script src="archive.js"></script>
 <script>
 'use strict';
-// Notes live in the markup as hidden siblings, so they are plain HTML with no
-// escaping and cannot break this script. This only flips which one is visible.
-function showNote(key) {
-  for (const n of document.getElementById('notes').children)
-    n.hidden = n.dataset.note !== String(key);
-}
 // ---------------------------------------------------------------------------
 // 31 March 1996, 07:56 to 08:48. Four saves, two programs, one sitting -- four
 // days after SPIRAL and NEW, and the exact opposite approach.
@@ -248,13 +232,11 @@ function applyPal() {
 }
 function advance() {
   applyPal();
-  const s = el('scroll').checked;
-  rot3(s ? 1 : dir);
-  // 192 slots = 3 color bands = one full turn of the table, so the net
-  // shift is a position in a cycle rather than a running total. Wrapping
-  // keeps it meaningful while scrolling, where it would otherwise just climb.
-  shifted = (shifted + 3 * (s ? 1 : dir) + 192) % 192;
-  if (++step === 64) { step = 0; if (!s) dir = -dir; }
+  rot3(dir);
+  // 192 slots = 3 color bands = one full turn of the table, so the net shift
+  // is a position in a cycle rather than a running total.
+  shifted = (shifted + 3 * dir + 192) % 192;
+  if (++step === 64) { step = 0; dir = -dir; }
 }
 
 // === WIGGLE ================================================================
@@ -312,7 +294,6 @@ function reset() {
   kind = v.startsWith('wiggle') ? 'bars' : 'wave';
   magenta = (v === 'wave-pas');
   el('o-raw').classList.toggle('hidden', kind !== 'bars');
-  showNote(v);
   initTable();
   if (kind === 'bars') buildBars(); else buildWave(v === 'wave-bak');
   applyPal();
@@ -320,10 +301,6 @@ function reset() {
 }
 variantEl.addEventListener('change', reset);
 el('restart').addEventListener('click', reset);
-el('next').addEventListener('click', () => {
-  variantEl.selectedIndex = (variantEl.selectedIndex+1) % variantEl.length; reset(); });
-el('prev').addEventListener('click', () => {
-  variantEl.selectedIndex = (variantEl.selectedIndex+variantEl.length-1) % variantEl.length; reset(); });
 el('rate').addEventListener('input', () => el('rateLabel').textContent = el('rate').value);
 
 function frame() {
@@ -347,21 +324,14 @@ function frame() {
 
   paintStrip(x => { const v = dac(a[x+1]);
     return magenta ? (255<<24)|(v<<16)|v : (255<<24)|(v<<16); });
-
-  // The line is centred, so any change in its LENGTH slides the whole thing
-  // sideways -- at 60 fps that reads as a blur rather than as text. Every
-  // varying field is padded to a fixed width.
-  const w = (v, n) => String(v).padStart(n);
-  el('status').textContent =
-    `step ${w(step, 2)}/64  ${(el('scroll').checked ? 'scrolling'
-                              : dir > 0 ? 'forward' : 'reverse').padEnd(9)}` +
-    `   net shift ${w(shifted, 3)}/192 palette slots` +
-    `   built ${w(builtWrites.toLocaleString(), 7)} pixels` +
-    `   pixels written this frame: 0   DAC registers rewritten: 64`;
 }
 
 reset();
 frame();
+
+demoStrip('variant');
+screenAspect();
+underScreen('restart');
 </script>
 </body>
 </html>

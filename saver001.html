@@ -2,23 +2,19 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>17 &middot; Mixing It Up</title>
+<title>16 &middot; Mixing It Up</title>
 <link rel="stylesheet" href="archive.css">
-<style>
-
-  #screen{height:min(66vh,560px)}
-</style>
 </head>
 <body>
 
 <nav class="ring">
-  <a href="mar31.html"><b>&laquo; PREVIOUS</b><span>16 &middot; Wiggles and Waves</span></a>
-  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
+  <a href="mar31.html"><b>&laquo; PREVIOUS</b><span>15 &middot; Wiggles and Waves</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>16 entries</span></a>
   <a class="next" href="index.html"><b>NEXT &raquo;</b><span>Home &middot; back to the start</span></a>
 </nav>
 
 <header class="entry">
-  <div class="num">17</div>
+  <div class="num">16</div>
   <h1>Mixing It Up</h1>
   <div class="lede">
     <p>
@@ -34,16 +30,6 @@
       Thanks for visiting!
     </p>
   </div>
-  <details class="meta">
-    <summary>Details</summary>
-    <dl>
-      <dt>Files</dt><dd><code>SAVER001.BAK</code> 1,254 B (1996-08-08 05:32) &middot; <code>SAVER001.PAS</code> 1,287 B (<b>1996-09-02 10:19</b>)</dd>
-      <dt>Binary</dt><dd><code>SAVER001.EXE</code>, 1996-08-08 05:33, built from the <code>.BAK</code>, one minute after it was saved</dd>
-      <dt>Provenance</dt><dd>Mine</dd>
-      <dt>Demo</dt><dd>The screensaver, with the history buffer visible</dd>
-      <dt>Note</dt><dd><b>The last Pascal file in the archive.</b></dd>
-    </dl>
-  </details>
 </header>
 
 <div class="demo">
@@ -65,18 +51,6 @@
   <label>steps/frame <input id="rate" type="range" min="1" max="40" value="3">
     <span id="rateLabel">3</span></label>
   <label><input id="fix0" type="checkbox"> don't cycle the background</label>
-  <label><input id="sym" type="checkbox"> symmetric bounce speeds</label>
-</div>
-
-<div id="status"></div>
-
-<div id="notes">
-<div class="note" data-note="pas" hidden>
-random(33)+30 is re-rolled every frame, so each channel turns around somewhere between 30 and 62 rather than at a fixed point -- and, crucially, the three channels stop moving in lockstep.
-</div>
-<div class="note" data-note="bak" hidden>
-The .BAK bound is a constant 63 for all three channels. r, g and b start at 0 with the same step direction and identical limits, so they stay exactly equal forever: the whole screensaver is grayscale. That is what the one-line change on 2 Sep 1996 fixed.
-</div>
 </div>
 </div>
 
@@ -88,17 +62,8 @@ a wave of color travels along the scribble in the order it was laid down. You ar
 watching the drawing's own history play back through the palette.</p>
 <p>It is the same idea as <code>PLASMA</code>'s walker from thirteen months
 earlier, pointed at something better suited to it.</p>
-
-<h2>The one-line fix, eleven months late</h2>
-<p>The only difference between <code>.BAK</code> and <code>.PAS</code> fixes a bug
-that had been sitting in <code>ALL</code>'s P2 since September 1995: r, g and b
-start equal with equal bounds, so they never diverge and the whole thing is
-grayscale. <code>random(33)+30</code> breaks the tie.</p>
-<p>What makes this the right file to end on is the shape of it. <b>P5, eleven
-lines below P2 in the same file, always had the answer.</b> So did
-<code>PLASMA.PAS</code> in July 1995, which never had the bug at all. The fix took
-eleven months to travel eleven lines, and then it is the last thing I
-wrote.</p>
+<p>Toggling to the .BAK version's
+greyscale take is worth a peek for a more metallic look.</p>
 
 <h2>Two things left in it</h2>
 <p>The palette loop writes <b>register 256</b>, which wraps to 0, so the newest
@@ -114,8 +79,8 @@ recompiled. That is the last thing that happens in this archive.</p>
 </div>
 
 <details class="source">
-<summary>SAVER001.PAS: 1,287 bytes</summary>
-<p class="cap">1996-09-02 The last Pascal file in the archive.</p>
+<summary>SAVER001.PAS</summary>
+<p class="cap">1996-09-02 &middot; 1,287 bytes &middot; The last Pascal file in the archive.</p>
 <pre>uses jmodex,crt;var p:array[1..2]of integer;q:array[1..2]of integer;
 d:array[1..256]of record r,g,b:byte;end;
 s,t,u,x,c:integer;f:array[1..4]of shortint;a:byte;
@@ -150,8 +115,8 @@ if(b&gt;(random(33)+30-abs(u)))or(b&lt;abs(u))then u:=-u;end;
 until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
 </details>
 <details class="source">
-<summary>SAVER001.BAK: 1,254 bytes</summary>
-<p class="cap">1996-08-08 grayscale-locked, and the version that was compiled.</p>
+<summary>SAVER001.BAK</summary>
+<p class="cap">1996-08-08 &middot; 1,254 bytes &middot; Grayscale-locked, and the version that was compiled.</p>
 <pre>uses jmodex,crt;var p:array[1..2]of integer;q:array[1..2]of integer;
 d:array[1..256]of record r,g,b:byte;end;
 s,t,u,x,c:integer;f:array[1..4]of shortint;a:byte;
@@ -187,19 +152,13 @@ until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
 </details>
 
 <nav class="ring">
-  <a href="mar31.html"><b>&laquo; PREVIOUS</b><span>16 &middot; Wiggles and Waves</span></a>
-  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
+  <a href="mar31.html"><b>&laquo; PREVIOUS</b><span>15 &middot; Wiggles and Waves</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>16 entries</span></a>
   <a class="next" href="index.html"><b>NEXT &raquo;</b><span>Home &middot; back to the start</span></a>
 </nav>
 
 <script src="archive.js"></script>
 <script>
-// Notes live in the markup as hidden siblings, so they are plain HTML with no
-// escaping and cannot break this script. This only flips which one is visible.
-function showNote(key) {
-  for (const n of document.getElementById('notes').children)
-    n.hidden = n.dataset.note !== String(key);
-}
 // ---------------------------------------------------------------------------
 // SAVER001.PAS -- 2 Sep 1996. The last Pascal file in the archive.
 //
@@ -278,7 +237,7 @@ function line(x0, y0, x1, y1, col) {
 
 function step() {
   const bak = document.getElementById('bak').checked;
-  const back = document.getElementById('sym').checked ? -2 : -3;
+  const back = -3;
 
   // if (p[x]>=(359-f[x])) then f[x]:=random(2)-3 else
   // if (p[x]<=(1-f[x])) then f[x]:=random(2)+1;
@@ -331,15 +290,11 @@ function frame() {
   paintStrip(x =>
     (255 << 24) | (dacB(db[x+1]) << 16) | (dacB(dg[x+1]) << 8) | dacB(dr[x+1]));
 
-  document.getElementById('status').textContent =
-    `frame ${w(frames.toLocaleString(),7)}   color index ${w(c & 255,3)}   ` +
-    `screen painted ${(100*npainted/(W*H)).toFixed(1)}%\n` +
-    `newest color  r ${w(dr[256],2)}  g ${w(dg[256],2)}  b ${w(db[256],2)}   ` +
-    `step dirs ${s>0?'+':'-'}${t>0?'+':'-'}${u>0?'+':'-'}   ` +
-    `1024 port writes per frame, crammed into one vblank`;
-  showNote(document.getElementById('bak').checked ? 'bak' : 'pas');
 }
 frame();
+
+screenAspect();
+underScreen('restart');
 </script>
 </body>
 </html>

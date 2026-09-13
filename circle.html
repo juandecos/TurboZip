@@ -2,11 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>06 &middot; Drawing Circles</title>
+<title>04 &middot; Drawing Circles</title>
 <link rel="stylesheet" href="archive.css">
 <style>
 
-  #screen{height:min(62vh,480px)}
   table{border-collapse:collapse;font-size:12px}
   th,td{padding:3px 12px;text-align:right;border-bottom:1px solid #2a2a2a}
   th{color:#7a7;font-weight:normal;text-align:right}
@@ -17,13 +16,13 @@
 <body>
 
 <nav class="ring">
-  <a href="mimsy.html"><b>&laquo; PREVIOUS</b><span>05 &middot; Jabberwocky</span></a>
-  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
-  <a class="next" href="pcx.html"><b>NEXT &raquo;</b><span>07 &middot; PCX + Plasma</span></a>
+  <a href="mimsy.html"><b>&laquo; PREVIOUS</b><span>03 &middot; Jabberwocky</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>16 entries</span></a>
+  <a class="next" href="pcx.html"><b>NEXT &raquo;</b><span>05 &middot; PCX + Plasma</span></a>
 </nav>
 
 <header class="entry">
-  <div class="num">06</div>
+  <div class="num">04</div>
   <h1>Drawing Circles</h1>
   <div class="lede">
     <p>
@@ -53,45 +52,19 @@
       Bresenham had an even better solution in 1962.
     </p>
   </div>
-  <details class="meta">
-    <summary>Details</summary>
-    <dl>
-      <dt>Files</dt><dd><code>TIME.PAS</code> 595 B (1995-07-22 06:09) &middot; <code>CIRCLE.PAS</code> 690 B (1995-07-23 12:30) &middot; <code>TIME2.PAS</code> 433 B (1995-09-16 16:41)</dd>
-      <dt>Provenance</dt><dd>Mine, including the algorithm</dd>
-      <dt>Demo</dt><dd>The differential circle, with three reconstructed rivals to measure it against</dd>
-    </dl>
-  </details>
 </header>
 
 <div class="demo">
-<div class="panel selector">
-  <button id="prev">&larr;</button>
-  <select id="algo">
-      <option value="diff">3. differential, CIRCLE.PAS as written</option>
-      <option value="oct">2. octant + mirror, sqrt per row</option>
-      <option value="naive">1. sqrt per row, no symmetry</option>
-      <option value="bres">4. midpoint/Bresenham, not in the archive</option>
-    </select>
-  <button id="next">&rarr;</button>
-  <button id="restart">restart</button>
-</div>
-
 <canvas id="screen" width="360" height="480"></canvas>
 
 <table id="stats">
   <tr><th>method</th><th>iterations</th><th>sqrt</th><th>divides</th><th>max radial error</th></tr>
 </table>
 
-<div class="cap">Costs are for one filled circle of the current radius. The 1995 code
+<div class="cap">Costs are for one filled circle of radius 180. The 1995 code
 ran on a 386 with Turbo Pascal's 6-byte software <code>real</code>; no FPU, so
 every sqrt and every divide was a subroutine call.</div>
 
-<div class="panel">
-  
-  <label>r <input id="rad" type="range" min="2" max="180" value="180">
-    <span id="radLabel">180</span></label>
-  <label><input id="ideal" type="checkbox" checked> overlay true circle</label>
-</div>
 </div>
 
 <div class="prose">
@@ -130,8 +103,8 @@ before <i>y</i> reaches 140. But it is the right instinct, two months early
 </div>
 
 <details class="source">
-<summary>CIRCLE.PAS: 690 bytes</summary>
-<p class="cap">One procedure, <code>circ</code>, drawn once and timed.</p>
+<summary>CIRCLE.PAS</summary>
+<p class="cap">1995-07-23 12:30 &middot; 690 bytes &middot; One procedure, <code>circ</code>, drawn once and timed.</p>
 <pre>uses crt,jmodex,dos;var q:integer;d,e,f,g:word;
 
 procedure circ(x,y,r,l:integer);var b,c:integer;a:real;
@@ -150,8 +123,8 @@ repeat until keypressed;asm mov ah,0;mov al,3;int 16;end;
 writeln(d,&#x27;.&#x27;,e,&#x27; to &#x27;,f,&#x27;.&#x27;,g);writeln((f-d)*100+g-e);readln;readln;end.</pre>
 </details>
 <details class="source">
-<summary>TIME.PAS: 595 bytes</summary>
-<p class="cap">The benchmark, 1995-07-22 06:09.</p>
+<summary>TIME.PAS</summary>
+<p class="cap">1995-07-22 06:09 &middot; 595 bytes &middot; The benchmark.</p>
 <pre>uses crt,jmodex,dos;var d,e,f,g:word;
 
 procedure circ(x,y,r,l:integer);var b,c:integer;a:real;
@@ -169,8 +142,8 @@ writeln(d,&#x27;.&#x27;,e,&#x27; to &#x27;,f,&#x27;.&#x27;,g);writeln((f-d)*100+
 end.</pre>
 </details>
 <details class="source">
-<summary>TIME2.PAS: 433 bytes</summary>
-<p class="cap">A different benchmark: 172,800 <code>set_point</code> calls, timed.</p>
+<summary>TIME2.PAS</summary>
+<p class="cap">1995-09-16 16:41 &middot; 433 bytes &middot; A different benchmark: 172,800 <code>set_point</code> calls, timed.</p>
 <pre>uses crt,jmodex,dos;var a,b,c,d,e,f,g,h:word;X,Y:integer;
 
 procedure p(x,y,c:integer);
@@ -190,9 +163,9 @@ end.</pre>
 </details>
 
 <nav class="ring">
-  <a href="mimsy.html"><b>&laquo; PREVIOUS</b><span>05 &middot; Jabberwocky</span></a>
-  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
-  <a class="next" href="pcx.html"><b>NEXT &raquo;</b><span>07 &middot; PCX + Plasma</span></a>
+  <a href="mimsy.html"><b>&laquo; PREVIOUS</b><span>03 &middot; Jabberwocky</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>16 entries</span></a>
+  <a class="next" href="pcx.html"><b>NEXT &raquo;</b><span>05 &middot; PCX + Plasma</span></a>
 </nav>
 
 <script src="archive.js"></script>
@@ -218,7 +191,6 @@ const vram = new Uint8Array(W * H);
 const PAL = new Uint32Array(256);
 for (let q = 0; q < 256; q++) PAL[q] = (255<<24) | Math.min(255, Math.round(q*255/63));
 PAL[0] = 0;
-PAL[200] = (255<<24)|(80<<16)|(220<<8)|80;   // overlay color, not from the original
 
 function hline(x0, x1, y, c) {
   if (y < 0 || y >= H) return;
@@ -281,26 +253,17 @@ const NAMES = { diff: '3. differential (CIRCLE.PAS)', oct: '2. octant + sqrt',
                 naive: '1. sqrt per row', bres: '4. midpoint/Bresenham' };
 
 function run() {
-  const r    = +document.getElementById('rad').value;
-  const pick = document.getElementById('algo').value;
+  const r = 180;
   vram.fill(0);
 
   const rows = [];
   for (const key of ['naive','oct','diff','bres']) {
     const s = { iter: 0, sqrt: 0, div: 0, pts: [] };
-    // Only the selected one actually paints; the others run for their numbers.
-    if (key === pick) ALGOS[key](CXC, CYC, r, 63, s);
+    // Only CIRCLE.PAS paints; the rivals run for their numbers alone.
+    if (key === 'diff') ALGOS[key](CXC, CYC, r, 63, s);
     else { const save = vram.slice(); ALGOS[key](CXC, CYC, r, 63, s); vram.set(save); }
     const err = s.pts.reduce((m,[b,c]) => Math.max(m, Math.abs(Math.hypot(b,c) - r)), 0);
     rows.push({ key, ...s, err });
-  }
-
-  if (document.getElementById('ideal').checked) {
-    for (let t = 0; t < 2048; t++) {
-      const a = t * Math.PI * 2 / 2048;
-      const px = Math.round(CXC + r*Math.cos(a)), py = Math.round(CYC + r*Math.sin(a));
-      if (px>=0 && px<W && py>=0 && py<H) vram[py*W + px] = 200;
-    }
   }
 
   for (let i = 0; i < vram.length; i++) out[i] = PAL[vram[i]];
@@ -309,31 +272,14 @@ function run() {
   const t = document.getElementById('stats');
   t.innerHTML = '<tr><th>method</th><th>iterations</th><th>sqrt</th><th>divides</th>' +
                 '<th>max radial error</th></tr>' +
-    rows.map(m => `<tr class="${m.key===pick?'on':''}"><td>${NAMES[m.key]}</td>` +
+    rows.map(m => `<tr class="${m.key==='diff'?'on':''}"><td>${NAMES[m.key]}</td>` +
       `<td>${m.iter}</td><td>${m.sqrt}</td><td>${m.div}</td>` +
       `<td>${m.err.toFixed(3)} px</td></tr>`).join('');
 }
 
-for (const id of ['algo','rad','ideal'])
-  document.getElementById(id).addEventListener('input', () => {
-    document.getElementById('radLabel').textContent =
-      document.getElementById('rad').value;
-    run();
-  });
 run();
 
-// --- ring standard: the arrows step the selector -----------------------------
-(function () {
-  const sel = document.getElementById('algo');
-  const step = d => {
-    sel.selectedIndex = (sel.selectedIndex + d + sel.length) % sel.length;
-    for (const t of ['change', 'input']) sel.dispatchEvent(new Event(t));
-  };
-  document.getElementById('prev').addEventListener('click', () => step(-1));
-  document.getElementById('next').addEventListener('click', () => step(1));
-})();
-
-document.getElementById('restart').addEventListener('click', run);
+screenAspect();
 </script>
 </body>
 </html>

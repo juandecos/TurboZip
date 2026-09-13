@@ -6,8 +6,8 @@
 <link rel="stylesheet" href="archive.css">
 <style>
 
-  .hub{width:min(94vw,880px)}
-  #banner{width:min(94vw,880px);height:34px;display:block;
+  .hub{width:var(--col)}
+  #banner{width:var(--col);height:34px;display:block;
           image-rendering:pixelated;border:1px solid #333;margin:2px 0 4px}
   #bannercap{color:#5f5f5f;font-size:11px;margin:0 0 20px}
   #bannercap a{color:#7a8a8a}
@@ -51,9 +51,9 @@
 <body>
 
 <nav class="ring">
-  <a href="saver001.html"><b>&laquo; PREVIOUS</b><span>17 &middot; Mixing It Up</span></a>
+  <a href="saver001.html"><b>&laquo; PREVIOUS</b><span>16 &middot; Mixing It Up</span></a>
   <div class="home here"><b>HOME</b><span>you are here</span></div>
-  <a class="next" href="palette.html"><b>NEXT &raquo;</b><span>01 &middot; Inspiration: BBS Loaders</span></a>
+  <a class="next" href="jbars.html"><b>NEXT &raquo;</b><span>01 &middot; Copper Bars: Palette Cycling 101</span></a>
 </nav>
 
 <div class="hub">
@@ -121,8 +121,8 @@
       BBSs (long distance calls were forbidden by mom).
 </p>
 <p>
-      Much of the demo scene code of the time was in pure Assembly or C/C++,
-      and I only knew Pascal and Basic, so I'd hunt around on the BBSs for
+      Much of the demo scene code of the time was in Assembly or C/C++,
+      and I only knew Pascal and Basic so far, so I'd hunt around on the BBSs for
       any sample code in Pascal I could get my hands on.
 </p>
 <p>
@@ -144,14 +144,14 @@ graduated, and another in September 1995 when I started college and first had in
 <h2>Time of Day</h2>
 <div class="chart"><div class="hrow"><span class="hcol night" title="00:00 6 files"><i style="height:85.7%"></i><em>00</em></span><span class="hcol night" title="01:00 2 files"><i style="height:28.6%"></i><em>01</em></span><span class="hcol night" title="02:00 1 file"><i style="height:14.3%"></i><em>02</em></span><span class="hcol night" title="03:00 7 files"><i style="height:100.0%"></i><em>03</em></span><span class="hcol night" title="04:00 2 files"><i style="height:28.6%"></i><em>04</em></span><span class="hcol night" title="05:00 6 files"><i style="height:85.7%"></i><em>05</em></span><span class="hcol night" title="06:00 4 files"><i style="height:57.1%"></i><em>06</em></span><span class="hcol night" title="07:00 5 files"><i style="height:71.4%"></i><em>07</em></span><span class="hcol" title="08:00 2 files"><i style="height:28.6%"></i><em>08</em></span><span class="hcol" title="09:00 0 files"><i style="height:0.0%"></i><em>09</em></span><span class="hcol" title="10:00 3 files"><i style="height:42.9%"></i><em>10</em></span><span class="hcol" title="11:00 1 file"><i style="height:14.3%"></i><em>11</em></span><span class="hcol" title="12:00 1 file"><i style="height:14.3%"></i><em>12</em></span><span class="hcol" title="13:00 2 files"><i style="height:28.6%"></i><em>13</em></span><span class="hcol" title="14:00 2 files"><i style="height:28.6%"></i><em>14</em></span><span class="hcol" title="15:00 3 files"><i style="height:42.9%"></i><em>15</em></span><span class="hcol" title="16:00 2 files"><i style="height:28.6%"></i><em>16</em></span><span class="hcol" title="17:00 3 files"><i style="height:42.9%"></i><em>17</em></span><span class="hcol" title="18:00 2 files"><i style="height:28.6%"></i><em>18</em></span><span class="hcol" title="19:00 0 files"><i style="height:0.0%"></i><em>19</em></span><span class="hcol" title="20:00 0 files"><i style="height:0.0%"></i><em>20</em></span><span class="hcol" title="21:00 0 files"><i style="height:0.0%"></i><em>21</em></span><span class="hcol" title="22:00 1 file"><i style="height:14.3%"></i><em>22</em></span><span class="hcol" title="23:00 1 file"><i style="height:14.3%"></i><em>23</em></span></div></div>
 <p><b>33 of the 56 source files (59%) were saved between midnight and 8 AM</b>.
-The peak is 3 AM. Nothing at all between 7 PM and 10 PM. I've always been a bit
+The peak is 3 AM. I've always been a bit
 nocturnal, and in high school I'd have to wait until everyone was asleep to sneak
 down to the shared computer in the dining room.</p>
 
 <h2>Navigation Notes</h2>
 <p>
-For each entry, you'll get a bit of personal story, followed by a collapsible "Details" block with file archive details, then
-a demo picker for pages with multiple examples, then the running demo, demo controls for those that have them, technical commentary, and
+For each entry, you'll get a brief intro, then a demo picker for pages with multiple examples, then the
+running demo, demo-specific controls for those that have them, longer-form technical commentary, and
 finally the original source in collapsible panels.
 </p>
 
@@ -160,23 +160,22 @@ finally the original source in collapsible panels.
       Each page links to the next so start anywhere. I'd suggest 01.      
 </p>
 <ol class="toc">
-<li><a href="palette.html"><span class="n">01</span><span><span class="d">1990&ndash;1994</span><span class="t">Inspiration: BBS Loaders</span></span></a></li>
-<li><a href="download.html"><span class="n">02</span><span><span class="d">1995-03-22</span><span class="t">Downloading at School</span></span></a></li>
-<li><a href="jbars.html"><span class="n">03</span><span><span class="d">1995-05-06</span><span class="t">Copper Bars: Palette Cycling 101</span></span></a></li>
-<li><a href="modex.html"><span class="n">04</span><span><span class="d">1995-06 &rarr; 09</span><span class="t">Enter Mode X</span></span></a></li>
-<li><a href="mimsy.html"><span class="n">05</span><span><span class="d">1995-06-16</span><span class="t">Jabberwocky</span></span></a></li>
-<li><a href="circle.html"><span class="n">06</span><span><span class="d">1995-07 &rarr; 09</span><span class="t">Drawing Circles</span></span></a></li>
-<li><a href="pcx.html"><span class="n">07</span><span><span class="d">1995-07-26</span><span class="t">PCX + Plasma</span></span></a></li>
-<li><a href="cube.html"><span class="n">08</span><span><span class="d">1994-07 &rarr; 1995-09</span><span class="t">Spinning Cubes</span></span></a></li>
-<li><a href="all.html"><span class="n">09</span><span><span class="d">1995-09-16</span><span class="t">More Fun With Palette Cycling</span></span></a></li>
-<li><a href="mydemo.html"><span class="n">10</span><span><span class="d">1995-09-21</span><span class="t">My Awful Demo</span></span></a></li>
-<li><a href="pattern.html"><span class="n">11</span><span><span class="d">1995-09-22</span><span class="t">Doodling With Lines</span></span></a></li>
-<li><a href="fun.html"><span class="n">12</span><span><span class="d">1995-12-31</span><span class="t">Random Walking</span></span></a></li>
-<li><a href="asmstars.html"><span class="n">13</span><span><span class="d">1996-01-25</span><span class="t">Parallax Starfield</span></span></a></li>
-<li><a href="asctxt.html"><span class="n">14</span><span><span class="d">1996-02 &rarr; 03</span><span class="t">Bouncing Lines</span></span></a></li>
-<li><a href="mar27.html"><span class="n">15</span><span><span class="d">1996-03-27</span><span class="t">Spiral Illusions</span></span></a></li>
-<li><a href="mar31.html"><span class="n">16</span><span><span class="d">1996-03-31</span><span class="t">Wiggles and Waves</span></span></a></li>
-<li><a href="saver001.html"><span class="n">17</span><span><span class="d">1996-09-02</span><span class="t">Mixing It Up</span></span></a></li>
+<li><a href="jbars.html"><span class="n">01</span><span><span class="d">1991 &rarr; 1995</span><span class="t">Copper Bars: Palette Cycling 101</span></span></a></li>
+<li><a href="modex.html"><span class="n">02</span><span><span class="d">1995-06 &rarr; 09</span><span class="t">Enter Mode X</span></span></a></li>
+<li><a href="mimsy.html"><span class="n">03</span><span><span class="d">1995-06-16</span><span class="t">Jabberwocky</span></span></a></li>
+<li><a href="circle.html"><span class="n">04</span><span><span class="d">1995-07 &rarr; 09</span><span class="t">Drawing Circles</span></span></a></li>
+<li><a href="pcx.html"><span class="n">05</span><span><span class="d">1995-07-26</span><span class="t">PCX + Plasma</span></span></a></li>
+<li><a href="cube.html"><span class="n">06</span><span><span class="d">1994-07 &rarr; 1995-09</span><span class="t">Spinning Cubes</span></span></a></li>
+<li><a href="all.html"><span class="n">07</span><span><span class="d">1995-09-16</span><span class="t">More Fun With Palette Cycling</span></span></a></li>
+<li><a href="all2.html"><span class="n">08</span><span><span class="d">1995-09-16</span><span class="t">Fans, Bars and Noise</span></span></a></li>
+<li><a href="mydemo.html"><span class="n">09</span><span><span class="d">1995-09-21</span><span class="t">Baby's First Demo</span></span></a></li>
+<li><a href="pattern.html"><span class="n">10</span><span><span class="d">1995-09-22</span><span class="t">Doodling With Lines</span></span></a></li>
+<li><a href="fun.html"><span class="n">11</span><span><span class="d">1995-12-31</span><span class="t">Random Walking</span></span></a></li>
+<li><a href="asmstars.html"><span class="n">12</span><span><span class="d">1996-01-25</span><span class="t">Parallax Starfield</span></span></a></li>
+<li><a href="asctxt.html"><span class="n">13</span><span><span class="d">1996-02 &rarr; 03</span><span class="t">Bouncing Lines</span></span></a></li>
+<li><a href="mar27.html"><span class="n">14</span><span><span class="d">1996-03-27</span><span class="t">Spiral Illusions</span></span></a></li>
+<li><a href="mar31.html"><span class="n">15</span><span><span class="d">1996-03-31</span><span class="t">Wiggles and Waves</span></span></a></li>
+<li><a href="saver001.html"><span class="n">16</span><span><span class="d">1996-09-02</span><span class="t">Mixing It Up</span></span></a></li>
 </ol>
 
 <h2>AI Note</h2>
@@ -195,32 +194,39 @@ finally the original source in collapsible panels.
       do it without AI help, which would be cool, too.
 </p>
 
-<h2>Disclaimer</h2>
+<h2>Provenance</h2>
 <p>
-      Some of this code is not mine, and I do my best to attribute it. This
+      Much of this archive is other people's work, adapted: ZSoft, Matt Pritchard,
+      Scott Wyatt, Michael Abrash, Fred Nietzche, Frank Jan S&oslash;rensen, Brian
+      Baynes. One file (<a href="cube.html">BOX</a>) I haven't been able to nail
+      down attribution for, and its entry says so rather than guessing. This
       content is presented as historical and not an attempt to redistribute
       anything without license. If any of it is yours and you object to its
       inclusion, let me know.
 </p>
 
-<h2>More Notes</h2>
+<h2>Bug Philosophy</h2>
 <p><b>Bugs are generally reproduced, not fixed.</b> Where a program had a fault you can see,
 the port has it too, usually behind a toggle so you can turn it off and compare.
 In some cases where the bug completely ruins the demo, it starts in a better state,
 with documentation and toggles to get back to the original code.</p>
-<p><b>Provenance is tracked as carefully as the code.</b> A lot of this archive is
-other people's work, adapted: ZSoft, Matt Pritchard, Scott Wyatt, Michael Abrash,
-Fred Nietzche, Frank Jan S&oslash;rensen, Brian Baynes. One file (<a href="cube.html">BOX</a>)
-I haven't been able to nail down attribution for, and its entry says so rather than
-guessing.</p>
+
+<h2>Aspect Ratios</h2>
+<p>
+      The graphics modes used had a variety of resolutions (e.g. 360×480 3:4) which would
+      then be stretched to display on the 4:3 hardware.  I default to applying the
+      stretch to get it more period-accurate, but also provide a button below each
+      demo to toggle to 1:1 square pixels if you prefer.
+</p>
+
 
 </div>
 </div>
 
 <nav class="ring">
-  <a href="saver001.html"><b>&laquo; PREVIOUS</b><span>17 &middot; Mixing It Up</span></a>
+  <a href="saver001.html"><b>&laquo; PREVIOUS</b><span>16 &middot; Mixing It Up</span></a>
   <div class="home here"><b>HOME</b><span>you are here</span></div>
-  <a class="next" href="palette.html"><b>NEXT &raquo;</b><span>01 &middot; Inspiration: BBS Loaders</span></a>
+  <a class="next" href="jbars.html"><b>NEXT &raquo;</b><span>01 &middot; Copper Bars: Palette Cycling 101</span></a>
 </nav>
 
 <script src="archive.js"></script>
@@ -228,7 +234,7 @@ guessing.</p>
 'use strict';
 // ---------------------------------------------------------------------------
 // The banner strip. NOT a port of anything -- it is SAVER001.PAS's palette
-// engine (entry 17) with the bouncing line removed, so only the color half
+// engine (entry 16) with the bouncing line removed, so only the color half
 // survives. Kept faithful to that file: Turbo Pascal's own generator, the same
 // +/-1 walk per channel, and the same re-rolled ceiling that stops r, g and b
 // moving in lockstep. The buffer is pre-rolled before the first paint so the

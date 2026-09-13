@@ -2,23 +2,19 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>08 &middot; Spinning Cubes</title>
+<title>06 &middot; Spinning Cubes</title>
 <link rel="stylesheet" href="archive.css">
-<style>
-
-  #screen{height:min(58vh,460px)}
-</style>
 </head>
 <body>
 
 <nav class="ring">
-  <a href="pcx.html"><b>&laquo; PREVIOUS</b><span>07 &middot; PCX + Plasma</span></a>
-  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
-  <a class="next" href="all.html"><b>NEXT &raquo;</b><span>09 &middot; More Fun With Palette Cycling</span></a>
+  <a href="pcx.html"><b>&laquo; PREVIOUS</b><span>05 &middot; PCX + Plasma</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>16 entries</span></a>
+  <a class="next" href="all.html"><b>NEXT &raquo;</b><span>07 &middot; More Fun With Palette Cycling</span></a>
 </nav>
 
 <header class="entry">
-  <div class="num">08</div>
+  <div class="num">06</div>
   <h1>Spinning Cubes</h1>
   <div class="lede">
     <p>
@@ -26,36 +22,45 @@
     </p>
     <p>
     I've struggled
-    to attribute the first one in this collection - the timestamp seems to place it before I started these experiments, and the text doesn't feel like my
-    own, although 30 years make this hazy. I've found copies of many of the other external influences on the internet,
-    but haven't found this one, and there are other anomalies mentioned below. I highly suspect it
-    isn't mine, but can't figure out the true author. Any leads are appreciated.
+    to attribute the first one in this collection - the text doesn't feel like my
+    own, although 30 years make this hazy. There are other anomalies detailed below. I highly suspect it
+    isn't mine, but can't figure out the author. Any leads are appreciated. The rest are my own variations.
     </p>
   </div>
-  <details class="meta">
-    <summary>Details</summary>
-    <dl>
-      <dt>First</dt><dd><code>BOX.EXE</code> <b>1994-07-24 01:26:52</b> &middot; <code>BOX.PAS</code> 7,069 B (re-saved 1995-09-21 23:47)</dd>
-      <dt>Then</dt><dd><code>ASMBOX</code> 08-19 23:05 &middot; <code>ASMBOX3</code> 08-21 00:35 &middot; <code>WINGS</code> 08-21 00:50 &middot; <code>ASMBOX2</code> 09-02 11:14 &middot; <code>BOX2</code> 09-22 00:27</dd>
-      <dt>Provenance</dt><dd><b><code>BOX</code> is uncertain.</b> The other five are mine.</dd>
-      <dt>Demo</dt><dd>All six, in the order the code was written</dd>
-    </dl>
-  </details>
 </header>
 
 <div class="demo">
 <div class="panel selector">
-  <button id="prev">&larr;</button>
   <select id="mode">
-      <option value="box">1994-07-24 01:26 &nbsp; BOX: BGI 640&times;480, sorted faces</option>
+      <option value="box">1994-07-24 01:26 &nbsp; BOX: BGI 640&times;480, sorted faces and instructional text</option>
       <option value="asmbox">1995-08-19 23:05 &nbsp; ASMBOX: wireframe, three axes</option>
       <option value="asmbox3">1995-08-21 00:35 &nbsp; ASMBOX3: minified; velocity + zoom</option>
       <option value="wings">1995-08-21 00:50 &nbsp; WINGS: same engine, new points</option>
       <option value="asmbox2">1995-09-02 11:14 &nbsp; ASMBOX2: expanded again, plus pan</option>
       <option value="box2">1995-09-22 00:27 &nbsp; BOX2: BOX back in Mode X</option>
     </select>
-  <button id="next">&rarr;</button>
   <button id="restart">restart</button>
+</div>
+
+<div id="notes" class="captions">
+<div class="note" data-note="box" hidden>
+1994-07-24 01:26 &middot; BGI 640&times;480, sorted faces and instructional text
+</div>
+<div class="note" data-note="asmbox" hidden>
+1995-08-19 23:05 &middot; wireframe, three axes
+</div>
+<div class="note" data-note="asmbox3" hidden>
+1995-08-21 00:35 &middot; minified; velocity + zoom
+</div>
+<div class="note" data-note="wings" hidden>
+1995-08-21 00:50 &middot; same engine, new points
+</div>
+<div class="note" data-note="asmbox2" hidden>
+1995-09-02 11:14 &middot; expanded again, plus pan
+</div>
+<div class="note" data-note="box2" hidden>
+1995-09-22 00:27 &middot; BOX back in Mode X
+</div>
 </div>
 
 <canvas id="screen" width="360" height="480"></canvas>
@@ -63,124 +68,20 @@
 <div class="panel" id="opts">
   <label id="o-flicker"><input id="flicker" type="checkbox" checked> no retrace wait, as written (flickers)</label>
   <label id="o-h"><input id="hbug" type="checkbox"> revert h:=0 bug fix</label>
-  <label id="o-edges">edges
-    <select id="edges">
-      <option value="cube">cube topology (as written)</option>
-      <option value="poly">18-gon outline</option>
-      <option value="web">every chord</option>
-    </select></label>
-  <label id="o-dots"><input id="dots" type="checkbox"> mark all 18 points</label>
   <label id="o-zoombug"><input id="zoombug" type="checkbox" checked> ASMBOX2 starts at z:=1 (0.1&times;)</label>
   <label id="o-bar"><input id="showbar" type="checkbox"> show BOX's erase rectangle</label>
 </div>
 
 <div id="keys"></div>
-
-<div id="status"></div>
-
-<div id="notes">
-<div class="note" data-note="asmbox" hidden>
-<b>ASMBOX.PAS, 19 Aug 1995, 2,233 bytes.</b> The first of the five 1995 files,
-and the only one that turns on all three axes at once.
-Eight points, twelve edges, no sorting, no zoom, no velocity - press X, Y or Z
-to stop and start an axis. Its rotation matrix came straight out of BOX and its
-depth sort did not, which is the argument in the commentary below.
-There is no retrace wait: the loop body draws the cube, reads the keyboard,
-and then calls clear_vga_screen(0), so the erase lands wherever in the frame
-it lands, which is the flicker you are looking at. Untick the box to hold it
-still; the file itself has no way to do that.
-Also note the angle wrap: <b>IF x=361 THEN x:=0</b> is tested <i>before</i> the
-increment, so the counter runs 1..361 and 361° is drawn as a repeat of 1°.
-One duplicated frame per revolution, in all six files.
-</div>
-<div class="note" data-note="asmbox3" hidden>
-<b>ASMBOX3.PAS, 21 Aug 1995, 1,756 bytes, thirty hours later.</b> The whole
-program is now fourteen lines with every procedure renamed to a single letter
-(k, f, g, m, h). Three things are new and all three stick: a proper double-edge
-retrace wait, an integer zoom <b>z</b> applied as *z/10 inside the rotate loop,
-and velocity instead of on/off: I/K/J/M nudge the per-frame angle step rather
-than toggling it, clamped to ±50. The z axis is gone; the matrix is the same one
-with zangle fixed at 0.
-Both this file and ASMBOX2 start <i>at rest</i> (nothing moves until you press a
-key) so the demo opens them at pitch 1, yaw 1 instead, which is two keystrokes
-from where the original starts you. I/M and K/J adjust from there; W and S zoom.
-</div>
-<div class="note" data-note="wings" hidden>
-<b>WINGS.PAS, 21 Aug 1995 00:50, fifteen minutes after ASMBOX3.</b> I had
-started working on some enhancements to ASMBOX and a bug resulted in this
-weird wing shape. It wasn't intentional, but I liked it enough to save a
-separate file for it. It seems that I kept working and managed to break
-it, with the archive version rendering a single point. The demo here sneaks
-a bug fix in to show the wing shape, but you can check the box to remove the
-fix.
-There were a few issues with this code:
-<b>(1)</b> the main block reads <b>SetPoints;h:=50;</b> but h is a global, so it is
-still 0 when the points are generated, and all eighteen land on the origin.
-<b>(2)</b> Drawc was never touched: it still draws the cube's twelve edges over
-points 1..8, so points 9..18 are computed every frame and never referenced.
-</div>
-<div class="note" data-note="asmbox2" hidden>
-<b>ASMBOX2.PAS, 2 Sep 1995, 2,042 bytes.</b> Chronologically last of the three,
-but I would guess that I wanted to add more features, and the minified ASMBOX3
-would be a pain to work with so I went back to this one to do so.
-Drawc takes a center (j,k) so
-R/D/F/C pan the cube, and the zoom is a <b>real</b> rather than an integer.
-That last change carries a bug: ASMBOX3 initialized z:=10 and divided by 10, so
-it started at 1.0×. ASMBOX2 kept the /10 and set <b>z:=1</b>, so it starts at
-0.1×, a twelve-pixel cube, and you have to press W nine times to get back to
-where you were. Untick the box to start it at 1.0× instead.
-</div>
-<div class="note" data-note="box" hidden>
-<b>BOX.PAS and BOX.EXE, 24 July 1994 01:26:52. 7,069 bytes.</b>
-<b>This one is unattributed.</b> The compiled binary is thirteen
-months older than ASMBOX and is built from this source; it holds all eight of
-the file's string literals, in order, byte for byte. So the cube came first, and
-BOX.PAS's 1995-09-21 date is a re-save.
-<i>Why</i> it is unattributed rather than mine, and what the later files
-took from it, is in the commentary below.
-The odd one out on every axis: 640×480 through BGI rather than 360×480
-through jmodex, fully spelled-out names, comments, a help screen, and six faces
-instead of twelve edges.
-The new machinery is SETPRIORITIES, a home-made depth sort, and the rule
-<b>IF (order&lt;4)</b> - only the three nearest faces are drawn at all. That is
-not back-face culling; there are no normals anywhere in the file. It is
-"a convex cube shows exactly three faces, so draw three." With no fill routine
-each face gets its two diagonals in its own color, which is as close to shading
-as BGI would get you for free.
-Two details worth pointing at. The erase rectangle <b>bar(215,135,425,345)</b>
-is 320±105, and the cube's furthest corner is 60√3 = 103.9, sized by hand, and
-tight. And the program ends with <b>FOR x:=1 TO 6 DO Writeln(priority[x])</b>,
-left in: debug output for the sort, printed to a text screen the moment you quit.
-The help text along the top and bottom is the program's own, drawn once
-before the loop, including the footer, which is worth reading before the
-commentary below.
-</div>
-<div class="note" data-note="box2" hidden>
-<b>BOX2.PAS, 22 Sep 1995 00:27, forty minutes after BOX.PAS was re-saved.</b>
-This is the year-old BOX being opened and worked on. The same program
-in Mode X: BGI and its Line3d/setcolor go, jmodex and a one-line helper
-<b>L(a,b,c,d,e)</b> come in, the six SetPoints faces collapse from 72 commented
-assignments to one dense procedure named <b>a</b>, and the color Case becomes
-<b>1:c:=4; 2:c:=1; 3:c:=7;</b>… SETPRIORITIES and RotateCube and SetRotation
-survive with only the variable names shortened: s for side, ci for CubeImage.
-The loop drops the dirty-rect bar for a whole-screen clear, drops the Delay, and
-starts with all three axes turning. The Writeln debug line is gone too.
-This is the minification habit caught mid-stroke: the interesting half of the
-file is preserved exactly and everything around it is compressed.
-</div>
-</div>
 </div>
 
 <div class="prose">
-<h2>Who wrote BOX cannot be recovered, and this page does not guess</h2>
-<p>This is the one entry in the collection that declines to answer its own
-question, so it is worth setting out what the answer rests on. The dating is not
-in doubt (the note under the BOX demo above has it) and neither is
-the consequence: <b>the cube is the oldest original program here</b>, thirteen
-months older than anything else in this family.</p>
-<p>Three facts bear on it, and they do not agree with each other. That
-disagreement is the answer.</p>
-<p><b>Against it being mine: it points at a directory that never existed here.</b>
+<h2><a href="#box">BOX</a></h2>
+<p><b>This one is unattributed.</b> The compiled binary is thirteen
+months older than ASMBOX and is built from this source; it holds all eight of
+the file's string literals, in order, byte for byte. So the cube came first, and
+BOX.PAS's 1995-09-21 date is a re-save.</p>
+<p><b>Strange Directory</b>: It points at a directory that never existed here.
 Of seventy-odd files, <code>BOX</code> is the only one that hands
 <code>InitGraph</code> a non-empty path. Every other program, mine and borrowed
 alike, passes <code>''</code>. That path is a fossil of a machine where Turbo
@@ -189,31 +90,98 @@ Pascal lived at <code>C:\TP\</code>; this archive lived at
 <code>RegisterBGIDriver</code> runs two lines above it and
 <code>InitGraph</code> never goes to disk at all, which is precisely why it
 survived unnoticed.</p>
-<p><b>Also against: July 1994 is inside a school year with no computer in the
-house.</b> Whatever machine compiled <code>BOX.EXE</code> at 1:26 in the morning,
+<p><b>The Timestamp</b>: July 1994 is inside a school year before I had a computer in the
+house. I had taken another Pascal class the prior school year and the one after,
+but not this one. Whatever machine compiled <code>BOX.EXE</code> at 1:26 in the morning,
 it was not one I had.</p>
-<p><b>For it being mine: the file is unsigned.</b> Every borrowed thing in this
-collection carries a credit block, a handle or a copyright notice, without
-exception across six acquisitions: ZSoft, Frank Jan S&oslash;rensen, Matt
-Pritchard, Scott Wyatt, Fred Nietzche, Brian Baynes. <code>BOX</code> carries
-nothing. A file addressed to &ldquo;all you demo programmers&rdquo; with no name
-on it does not look like something that came off a BBS.</p>
-<p>So the honest position is <b>unattributed</b>: not &ldquo;probably mine&rdquo;,
-which risks claiming someone else's work, and not &ldquo;probably not&rdquo;,
-which risks disowning my own.</p>
-
-<h2>What is certain is everything downstream</h2>
-<p><code>ASMBOX</code>'s rotation matrix is character-identical to
+<p>This is the odd one out on every axis: 640×480 through BGI rather than 360×480
+through jmodex, fully spelled-out names, comments, a help screen, and six faces
+instead of twelve edges.</p>
+<p>The new machinery is SETPRIORITIES, a home-made depth sort, and the rule
+<b>IF (order&lt;4)</b> - only the three nearest faces are drawn at all. That is
+not back-face culling; there are no normals anywhere in the file. It is
+"a convex cube shows exactly three faces, so draw three." With no fill routine
+each face gets its two diagonals in its own color, which is as close to shading
+as BGI would get you for free.
+Two details worth pointing at. The erase rectangle <b>bar(215,135,425,345)</b>
+is 320±105, and the cube's furthest corner is 60√3 = 103.9, sized by hand, and
+tight. And the program ends with <b>FOR x:=1 TO 6 DO Writeln(priority[x])</b>,
+left in: debug output for the sort, printed to a text screen the moment you quit.</p>
+<p><b>What is certain is everything downstream.</b>
+<code>ASMBOX</code>'s rotation matrix is character-identical to
 <code>BOX</code>'s, down to idiosyncrasies like <code>cos(y)*(-sin(z))</code>,
 so it was copied, not re-derived. But it took only the trigonometry.
 <b><code>SETPRIORITIES</code>, the cleverest thing in the family, appears in
 exactly two files</b>, <code>BOX</code> and <code>BOX2</code>, and never in
 anything written from scratch. I likely didn't understand it and kept the parts I did.</p>
+
+<h2><a href="#asmbox">ASMBOX</a></h2>
+<p>The first of the five 1995 files,
+and the only one that turns on all three axes at once.
+Eight points, twelve edges, no sorting, no zoom, no velocity - <a href="#asmbox">press X, Y or Z</a>
+to stop and start an axis. Its rotation matrix came straight out of BOX and its
+depth sort did not.
+There is no retrace wait: the loop body draws the cube, reads the keyboard,
+and then calls clear_vga_screen(0), so the erase lands wherever in the frame
+it lands, which causes a flicker. <a href="#asmbox">Untick the box to fix that</a>;
+the file itself has no way to do that.
+Also note the angle wrap: <b>IF x=361 THEN x:=0</b> is tested <i>before</i> the
+increment, so the counter runs 1..361 and 361° is drawn as a repeat of 1°.
+One duplicated frame per revolution, in all six files.</p>
+
+<h2><a href="#asmbox3">ASMBOX3</a></h2>
+<p>The whole
+program is now fourteen lines with every procedure renamed to a single letter
+(k, f, g, m, h). Three things are new and all three stick: a proper double-edge
+retrace wait, an integer zoom <b>z</b> applied as *z/10 inside the rotate loop,
+and velocity instead of on/off: I/K/J/M nudge the per-frame angle step rather
+than toggling it, clamped to ±50. The z axis is gone; the matrix is the same one
+with zangle fixed at 0.
+Both this file and ASMBOX2 start <i>at rest</i> (nothing moves until you press a
+key) so the demo opens them at pitch 1, yaw 1 instead, which is two keystrokes
+from where the original starts you. <a href="#asmbox3">I/M and K/J adjust from there</a>; W and S zoom.</p>
+
+<h2><a href="#wings">WINGS</a></h2>
+<p>I had
+started working on some enhancements to ASMBOX and a bug resulted in this
+weird wing shape. It wasn't intentional, but I liked it enough to save a
+separate file for it. It seems that I kept working and managed to break
+it, with the archive version rendering a single point. The demo here sneaks
+a bug fix in to show the wing shape, but you can <a href="#wings">check the box to remove the
+fix</a>.
+There were a few issues with this code:
+<b>(1)</b> the main block reads <b>SetPoints;h:=50;</b> but h is a global, so it is
+still 0 when the points are generated, and all eighteen land on the origin.
+<b>(2)</b> Drawc was never touched: it still draws the cube's twelve edges over
+points 1..8, so points 9..18 are computed every frame and never referenced.</p>
+
+<h2><a href="#asmbox2">ASMBOX2</a></h2>
+<p>Chronologically last of the three,
+but I would guess that I wanted to add more features, and the minified ASMBOX3
+would be a pain to work with so I went back to this one to do so.
+Drawc takes a center (j,k) so
+R/D/F/C pan the cube, and the zoom is a <b>real</b> rather than an integer.
+That last change carries a bug: ASMBOX3 initialized z:=10 and divided by 10, so
+it started at 1.0×. ASMBOX2 kept the /10 and set <b>z:=1</b>, so it starts at
+0.1×, a twelve-pixel cube, and you have to <a href="#asmbox2">press W nine times</a> to get back to
+where you were. <a href="#asmbox2">Untick the box to start it at 1.0×</a> instead.</p>
+
+<h2><a href="#box2">BOX2</a></h2>
+<p>This is the year-old BOX being opened and worked on. The same program
+in Mode X: BGI and its Line3d/setcolor go, jmodex and a one-line helper
+<b>L(a,b,c,d,e)</b> come in, the six SetPoints faces collapse from 72 commented
+assignments to one dense procedure named <b>a</b>, and the color Case becomes
+<b>1:c:=4; 2:c:=1; 3:c:=7;</b>… SETPRIORITIES and RotateCube and SetRotation
+survive with only the variable names shortened: s for side, ci for CubeImage.
+The loop drops the dirty-rect bar for a whole-screen clear, drops the Delay, and
+starts with all three axes turning. The Writeln debug line is gone too.
+This is the minification habit caught mid-stroke: the interesting half of the
+file is preserved exactly and everything around it is compressed.</p>
 </div>
 
 <details class="source">
-<summary>BOX.PAS: 7,069 bytes</summary>
-<p class="cap">The 1994 file. Verbose, commented, BGI at 640&times;480, six sorted faces.</p>
+<summary>BOX.PAS</summary>
+<p class="cap">1994 &middot; 7,069 bytes &middot; Verbose, commented, BGI at 640&times;480, six sorted faces.</p>
 <pre>USES crt, graph, bgidriv;
 VAR
   Cube: ARRAY[1..6,1..3,1..4] OF integer;
@@ -428,8 +396,8 @@ BEGIN {main program}
 END. {main program}</pre>
 </details>
 <details class="source">
-<summary>ASMBOX.PAS: 2,233 bytes</summary>
-<p class="cap">Thirteen months later: eight points, twelve edges, Mode X. Same matrix.</p>
+<summary>ASMBOX.PAS</summary>
+<p class="cap">2,233 bytes &middot; Thirteen months later: eight points, twelve edges, Mode X. Same matrix.</p>
 <pre>USES crt,JMODEX;VAR C,i:ARRAY[1..8,1..3]OF integer;r:ARRAY[1..3,1..3]OF real;
 x,y,z,q:integer;ch:char;p,d:array[1..8]of byte;incx,incy,incz:boolean;
 
@@ -471,8 +439,8 @@ IF(UpCase(ch)=&#x27;Y&#x27;)THEN INCY:=NOT(INCY);IF(UpCase(ch)=&#x27;Z&#x27;)THE
 END;clear_vga_screen(0);UNTIL Ord(ch)=27;asm mov ah,0;mov al,3;int 16;end;END.</pre>
 </details>
 <details class="source">
-<summary>ASMBOX3.PAS: 1,756 bytes</summary>
-<p class="cap">Fourteen lines. Retrace wait, zoom, velocity.</p>
+<summary>ASMBOX3.PAS</summary>
+<p class="cap">1,756 bytes &middot; Fourteen lines. Retrace wait, zoom, velocity.</p>
 <pre>USES crt,JMODEX;VAR C,i:ARRAY[1..8,1..3]OF integer;r:ARRAY[1..3,1..3]OF real;x,y,z,q,a,b:integer;j:char;PROCEDURE k;VAR b:byte;
 BEGIN FOR b:=1TO 8DO begin i[b,1]:=Trunc(((r[1,1]*c[b,1])+(r[1,2]*c[b,2])+(r[1,3]*c[b,3]))*z/10)+180;i[b,2]:=239-Trunc(((r[2,1]
 *c[b,1])+(r[2,2]*c[b,2])+(r[2,3]*c[b,3]))*z/10);END;end;PROCEDURE f(m,n:integer);VAR x,y:real;BEGIN x:=m*(pi/180);y:=n*(pi/180)
@@ -489,8 +457,8 @@ halt(0);g;x:=0;y:=0;z:=10;j:=&#x27; &#x27;;a:=0;b:=0;f(x,y);k;REPEAT IF x=361THE
 :=z-1;end;END;clear_vga_screen(0);UNTIL Ord(j)=27;asm mov ah,0;mov al,3;int 16;end;END.</pre>
 </details>
 <details class="source">
-<summary>WINGS.PAS: 1,968 bytes</summary>
-<p class="cap">Fifteen minutes after ASMBOX3.</p>
+<summary>WINGS.PAS</summary>
+<p class="cap">1,968 bytes &middot; Fifteen minutes after ASMBOX3.</p>
 <pre>USES crt,JMODEX;VAR C,i:ARRAY[1..18,1..3]OF integer;r:ARRAY[1..3,1..3]OF real;
 x,y,q,z,h:integer;ch:char;incx,incy:shortint;
 
@@ -530,8 +498,8 @@ end;
 END;clear_vga_screen(0);UNTIL Ord(ch)=27;asm mov ah,0;mov al,3;int 16;end;END.</pre>
 </details>
 <details class="source">
-<summary>ASMBOX2.PAS: 2,042 bytes</summary>
-<p class="cap">ASMBOX3 un-minified, plus panning and the zoom bug.</p>
+<summary>ASMBOX2.PAS</summary>
+<p class="cap">2,042 bytes &middot; ASMBOX3 un-minified, plus panning and the zoom bug.</p>
 <pre>USES crt,JMODEX;VAR C,i:ARRAY[1..8,1..3]OF integer;r:ARRAY[1..3,1..3]OF real;
 j,k,x,y,q:integer;ch:char;p,d:array[1..8]of byte;incx,incy:shortint;z:real;
 
@@ -571,8 +539,8 @@ IF Keypressed THEN BEGIN ch:=readkey;case upcase(ch) of &#x27;I&#x27;:inc(INCX);
 END;clear_vga_screen(0);UNTIL Ord(ch)=27;asm mov ah,0;mov al,3;int 16;end;END.</pre>
 </details>
 <details class="source">
-<summary>BOX2.PAS: 3,929 bytes</summary>
-<p class="cap">BOX caught halfway through the minification pass.</p>
+<summary>BOX2.PAS</summary>
+<p class="cap">3,929 bytes &middot; BOX caught halfway through the minification pass.</p>
 <pre>uses crt,jmodex;var c,ci:array[1..6,1..3,1..4]of integer;
   rotation: ARRAY[1..3,1..3] OF real;
   Priority,DrawOrder: ARRAY[1..6] OF Byte;
@@ -674,20 +642,14 @@ asm mov ah,0;mov al,3;int 16;end;END.</pre>
 </details>
 
 <nav class="ring">
-  <a href="pcx.html"><b>&laquo; PREVIOUS</b><span>07 &middot; PCX + Plasma</span></a>
-  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
-  <a class="next" href="all.html"><b>NEXT &raquo;</b><span>09 &middot; More Fun With Palette Cycling</span></a>
+  <a href="pcx.html"><b>&laquo; PREVIOUS</b><span>05 &middot; PCX + Plasma</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>16 entries</span></a>
+  <a class="next" href="all.html"><b>NEXT &raquo;</b><span>07 &middot; More Fun With Palette Cycling</span></a>
 </nav>
 
 <script src="archive.js"></script>
 <script>
 'use strict';
-// Notes live in the markup as hidden siblings, so they are plain HTML with no
-// escaping and cannot break this script. This only flips which one is visible.
-function showNote(key) {
-  for (const n of document.getElementById('notes').children)
-    n.hidden = n.dataset.note !== String(key);
-}
 // ---------------------------------------------------------------------------
 // Six files. Five of them span five weeks in Aug-Sep 1995; the sixth, BOX, is
 // thirteen months older than any of them -- BOX.EXE is stamped 1994-07-24
@@ -757,18 +719,14 @@ function frameRect(x1, y1, x2, y2, c) {
   drawLine(x2,y2,x1,y2,c); drawLine(x1,y2,x1,y1,c);
 }
 
-// BGI's OutTextXY with the default 8x8 stroke... actually bitmap... font.
-// Approximated by thresholding a small offscreen canvas.
+// BGI's OutTextXY in the default font. That is not a font Borland shipped:
+// EGAVGA.BGI addresses the ROM character table at F000:FA6E itself (ADD BP,
+// 0FA6Eh / MOV AX,0F000h at offset 0C73h of the driver in TPBGI.ZIP), so it is
+// the same bitmap every other program here prints with -- romText().
 function text(s, x0, y0, col) {
-  const c = document.createElement('canvas'), g = c.getContext('2d');
-  c.width = s.length * 8 + 16; c.height = 12;
-  g.font = '9px "Courier New", monospace'; g.textBaseline = 'top';
-  g.fillStyle = '#fff'; g.fillText(s, 0, 1);
-  const d = g.getImageData(0, 0, c.width, c.height).data;
-  for (let y = 0; y < c.height; y++)
-    for (let x = 0; x < c.width; x++)
-      if (d[(y*c.width + x)*4 + 3] > 110 && x0+x >= 0 && x0+x < W && y0+y >= 0 && y0+y < H)
-        vram[(y0+y)*W + x0+x] = col;
+  romText(s, x0, y0, (x, y) => {
+    if (x >= 0 && x < W && y >= 0 && y < H) vram[y*W + x] = col;
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -866,13 +824,12 @@ let incx = false, incy = true, incz = true;  // boolean flags in ASMBOX/BOX/BOX2
 let velx = 0, vely = 0;                      // shortint velocities in ASMBOX2/3
 let zoom = 10, panx = 0, pany = 0;
 let d = 0;                                   // BOX's Delay(d)
-let wraps = 0, stalled = false;
 
 const el = id => document.getElementById(id);
 const OPTS = {
   asmbox:  ['o-flicker'],
   asmbox3: [],
-  wings:   ['o-h','o-edges','o-dots'],
+  wings:   ['o-h'],
   asmbox2: ['o-zoombug'],
   box:     ['o-bar'],
   box2:    []
@@ -897,7 +854,6 @@ const KEYS = {
 };
 function reset() {
   ax = ay = az = 0; velx = vely = 0; panx = pany = 0; d = 0;
-  wraps = 0; stalled = false;
   zoom = 10;
   // Opening states. Where these differ from the file it is only ever a starting
   // position the keys can reach in a keystroke or two -- not a change to how any
@@ -921,12 +877,11 @@ function reset() {
     text('Press <Escape> to quit.', 10, 70, 15);
     text('Remember all you demo programmers: this is written PURELY in Turbo Pascal', 10, 430, 15);
     text('so of course it runs slow and is not flood-filled.  Maybe after I learn some', 10, 450, 15);
-    text('assembley...', 10, 468, 15);
+    text('assembley...', 10, 470, 15);
   }
   for (const g of Object.values(OPTS)) g.forEach(id => el(id).classList.add('hidden'));
   OPTS[mode].forEach(id => el(id).classList.remove('hidden'));
   buildKeys();
-  showNote(mode);
 }
 
 // WINGS: PROCEDURE SetPoints -- eighteen points on a circle in the z=0 plane.
@@ -936,18 +891,8 @@ function wingPoints(h) {
     c.push([Math.trunc(h*Math.sin(a*Math.PI/9)), Math.trunc(h*Math.cos(a*Math.PI/9)), 0]);
   return c;
 }
-const POLY_EDGES = Array.from({length:18}, (_, i) => [i, (i+1)%18]);
-const WEB_EDGES  = (() => { const e=[];
-  for (let a=0;a<18;a++) for (let b=a+1;b<18;b++) e.push([a,b]); return e; })();
-
 const selMode = el('mode');
 selMode.addEventListener('change', () => { mode = selMode.value; reset(); });
-el('next').addEventListener('click', () => {
-  selMode.selectedIndex = (selMode.selectedIndex+1) % selMode.length;
-  mode = selMode.value; reset(); });
-el('prev').addEventListener('click', () => {
-  selMode.selectedIndex = (selMode.selectedIndex+selMode.length-1) % selMode.length;
-  mode = selMode.value; reset(); });
 el('restart').addEventListener('click', reset);
 el('zoombug').addEventListener('change', reset);
 
@@ -1011,7 +956,7 @@ addEventListener('keydown', e => {
 
 // IF x=361 THEN x:=0 ... Inc(x) -- tested before the increment, hence 1..361.
 function bump(v, step) {
-  if (v === 361) { v = 0; stalled = true; wraps++; }
+  if (v === 361) v = 0;
   return v + step;
 }
 
@@ -1019,7 +964,6 @@ let tick = 0;
 function frame() {
   requestAnimationFrame(frame);
   tick++;
-  stalled = false;
 
   // BOX's Delay(d) is in milliseconds; approximate by skipping frames.
   if (mode === 'box' && d > 0 && (tick % (1 + Math.min(20, d))) !== 0) {
@@ -1070,15 +1014,7 @@ function frame() {
       const i = rot(r, p, scale);
       return [i[0] + ox, oy - i[1]];
     });
-    const m = el('edges').value;
-    const edges = m === 'cube' ? EDGES : m === 'poly' ? POLY_EDGES : WEB_EDGES;
-    for (const [a, b] of edges) drawLine(pts[a][0], pts[a][1], pts[b][0], pts[b][1], 15);
-    if (el('dots').checked)
-      pts.forEach(([px, py], n) => {
-        const col = (m === 'cube' && n >= 8) ? 1 : 10;   // blue = generated, never drawn
-        for (let dy=-1; dy<=1; dy++) for (let dx=-1; dx<=1; dx++)
-          if (px+dx>=0 && px+dx<W && py+dy>=0 && py+dy<H) vram[(py+dy)*W + px+dx] = col;
-      });
+    for (const [a, b] of EDGES) drawLine(pts[a][0], pts[a][1], pts[b][0], pts[b][1], 15);
   } else {
     const i = V.map(p => rot(r, p, scale));
     for (const [a, b] of EDGES)
@@ -1091,21 +1027,14 @@ function frame() {
   if (mode === 'asmbox' && el('flicker').checked && (tick & 1)) out.fill(PAL[0]);
   ctx.putImageData(img, 0, 0);
   if (mode === 'asmbox' && el('flicker').checked) vram.fill(0);
-
-  const s = el('status');
-  if (twoAxis)
-    s.textContent = `x=${w(ax,3)}  y=${w(ay,3)}   velocity ${w(velx,3)},${w(vely,3)}   ` +
-      `zoom ${(zoom/10).toFixed(1)}×` + (mode==='asmbox2' ? `   pan ${w(panx,4)},${w(pany,4)}` : '') +
-      (mode==='wings' ? `   h=${w(el('hbug').checked ? 0 : 50,2)}` : '');
-  else
-    s.textContent = `x=${w(ax,3)}  y=${w(ay,3)}  z=${w(az,3)}   axes ` +
-      `${incx?'X':'·'}${incy?'Y':'·'}${incz?'Z':'·'}` +
-      (mode==='box' ? `   d=${d}` : '') +
-      `   revolutions ${wraps}` + (stalled ? '   ← 361 wrapped: 1° drawn twice' : '');
 }
 
 reset();
 frame();
+
+demoStrip('mode');
+screenAspect();
+underScreen('restart');
 </script>
 </body>
 </html>

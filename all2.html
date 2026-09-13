@@ -2,25 +2,23 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>07 &middot; More Fun With Palette Cycling</title>
+<title>08 &middot; Fans, Bars and Noise</title>
 <link rel="stylesheet" href="archive.css">
 </head>
 <body>
 
 <nav class="ring">
-  <a href="cube.html"><b>&laquo; PREVIOUS</b><span>06 &middot; Spinning Cubes</span></a>
+  <a href="all.html"><b>&laquo; PREVIOUS</b><span>07 &middot; More Fun With Palette Cycling</span></a>
   <a class="home" href="index.html"><b>HOME</b><span>16 entries</span></a>
-  <a class="next" href="all2.html"><b>NEXT &raquo;</b><span>08 &middot; Fans, Bars and Noise</span></a>
+  <a class="next" href="mydemo.html"><b>NEXT &raquo;</b><span>09 &middot; Baby's First Demo</span></a>
 </nav>
 
 <header class="entry">
-  <div class="num">07</div>
-  <h1>More Fun With Palette Cycling</h1>
+  <div class="num">08</div>
+  <h1>Fans, Bars and Noise</h1>
   <div class="lede">
-    As I got more comfortable, I started making variations on a theme, and made "ALL.PAS" as a single program that let
-    the user flip through the variations. Every one of these is palette cycling; after the initial screen draw no more
-    pixels are drawn, and all the "motion" is through manipulating the color palettes. The seven variants
-    on a circle theme are on this entry, and the rest on the next.
+    This is the second half of ALL.PAS. These are all still pure palette cycling, with
+    no pixels drawn after initial setup, but wandering outside the circle theme.
   </div>
 </header>
 
@@ -31,26 +29,23 @@
 </div>
 
 <div id="notes" class="captions">
-<div class="note" data-note="P1" hidden>
-180 nested circles, ramp cycle
+<div class="note" data-note="P10" hidden>
+full-screen double fan, two chasers
 </div>
-<div class="note" data-note="P2" hidden>
-rolling color history
+<div class="note" data-note="P11" hidden>
+vertical bars, blue scroll
 </div>
-<div class="note" data-note="P3" hidden>
-same buffer, pure random entries
+<div class="note" data-note="P12" hidden>
+the widest fan, and the flattest palette
 </div>
-<div class="note" data-note="P4" hidden>
-the walk that latches (and stays that way)
+<div class="note" data-note="P13" hidden>
+distance-weighted noise field
 </div>
-<div class="note" data-note="P5" hidden>
-no buffer, ramp built inside the loop
+<div class="note" data-note="P14" hidden>
+fan from the top center, four chasers
 </div>
-<div class="note" data-note="P6" hidden>
-random step sizes, bounds done properly
-</div>
-<div class="note" data-note="P7" hidden>
-64 circles, offset ramps
+<div class="note" data-note="P15" hidden>
+P14's treatment on the centered fan
 </div>
 </div>
 
@@ -61,58 +56,45 @@ random step sizes, bounds done properly
 <div class="panel">
   <label>speed <input id="rate" type="range" min="1" max="30" value="1">
     <span id="rateLabel">1</span>&times;</label>
-  <label data-for="P2 P4"><input id="fixgray" type="checkbox"> desynchronize r/g/b</label>
-  <label data-for="P4"><input id="fixlatch" type="checkbox"> put abs() back (stops the latch)</label>
-  <label data-for="P6"><input id="zero6" type="checkbox"> zero the array before the first frame</label>
+  <label data-for="P12"><input id="fix12" type="checkbox" checked> index the ramp by register (s+x)</label>
 </div>
 
 </div>
 
 <div class="prose">
-<h2><a href="#P1">P1</a></h2>
-<p>One circle per palette index, largest first. The cycle writes (x+s)*r as the red channel, and r is ±1, so on
-the negative half the value goes through the byte wrap and comes back as a mirrored ramp. This was likely not
-intended at first, but I kept it as I liked the effect.</p>
+<h2><a href="#P10">P10</a></h2>
+<p>Two overlapping fans, one anchored on the top and
+bottom edges, one on the left and right. The color index is a triangle wave of period 120, so each index recurs at three
+or four separate places in the fan, which is what turns a moving palette band into several moving bands at once. Two
+chasers here; P15 is this exact drawing with four. P12 is a third fan through the same center but drawn from two separate
+loops over a wider span, so it is a cousin rather than a twin.</p>
 
-<h2><a href="#P2">P2</a></h2>
-<p>A 180-entry history buffer: every frame it shifts down one and a new color is pushed in at the top, each channel
-doing a ±1 walk between 0 and 63. The r, g and b all start at 0 with the same step and the same bounds, so they
-never diverge; this is grayscale intentionally.</p>
+<h2><a href="#P11">P11</a></h2>
+<p>draw_line(x,0,x,480,x) for x=0..359, but the color parameter is taken as a byte, so columns 256..359 repeat indices 0..103.
+The seam is at x=256, and the blue ramp scrolls through it. This is WIGGLE six months early, without the triangle table.</p>
 
-<h2><a href="#P3">P3</a></h2>
-<p>The same shift register, but instead of a walk the new entry is three independent random(63) values. No continuity
-between neighbors, so it reads as random colored rings scrolling outward.</p>
+<h2><a href="#P12">P12</a></h2>
+<p>Another centered fan but drawn differently from P10/P15. Note that the version saved in the archive had a bug that breaks the
+effect; uncheck the "index the ramp" toggle to see the buggy version. I absolutely remember the fixed version running back
+then, so this seems like a work in progress issue that snuck into the archive.</p>
 
-<h2><a href="#P4">P4</a></h2>
-<p>P2 with the abs() removed from the bounds: &quot;if(r&gt;(64-s))or(r&lt;s)&quot;. On the way down s is -1, so the
-lower test becomes r &lt; -1, which a byte can never satisfy. The value runs off 0 into 255, the upper test fires,
-and about 128 frames in it locks into a 0↔255 flip. From then on the shift register is carrying alternating black
-and full-bright entries, one register apart, a comb with a period of two indices, marching through 180 concentric
-rings whose spacing changes with radius. I seem to have enjoyed these hypnotic effects.</p>
+<h2><a href="#P13">P13</a></h2>
+<p>The random(abs(180-x)+abs(240-c)+5) makes the RANGE of the noise grow with Manhattan distance from
+center, so the middle stays dark and calm and the corners go wild. Mirrored into four quadrants. The argument can reach 425,
+past a byte, so the far corners wrap through the palette and band.</p>
 
-<h2><a href="#P5">P5</a></h2>
-<p>The one that actually has color, and the reason is a single line: s:=34; t:=11; u:=10. The three channels run the
-same ±1 triangle but start 23 and 24 apart, and since they never reset they hold that offset forever. P2 and P4
-are the same idea started from 0,0,0, which is the whole difference between a rainbow and a grayscale.</p>
+<h2><a href="#P14">P14</a></h2>
+<p>A fan radiating from (180,1) down to the bottom edge. The palette starts black, but only for an instant: p and s are BYTES, so
+50+p and 150+s run past their banks and wrap at 255, scribbling values across all 256 registers. All four writes land in the
+visible 50..110 range, at four different phases and two different rates (p steps 1, period 256; s steps 2, period 128). Four
+sweeps beating against each other in time, over a triangle-wave index that repeats in space, give the moiré effect. The values
+written wrap too: 3+p exceeds 63 and 60-p goes negative, so the gradients themselves are sawtooths. Back then, I think I was
+mostly excited about the weird patterns that emerged from code that is only drawing straight lines.</p>
 
-<h2><a href="#P6">P6</a></h2>
-<p>The best-written of the seven. Step magnitudes are re-rolled to 1 or 2 every frame, and the bound test is split by
-direction and applied before the update, so nothing can overshoot. Note that its array e[] is a LOCAL and Turbo Pascal
-zeroes globals but not locals, so it starts from whatever P5 left on the stack. The random opening is an accident.</p>
-
-<h2><a href="#P7">P7</a></h2>
-<p>Same construction as P1 but only 64 rings, and the cycle adds x to each channel so the ramp itself moves through the
-rings while the three offsets drift apart. A small bullseye rather than a full screen.</p>
-
-<h2>The date on the file is eleven months late</h2>
-<p><code>ALL.PAS</code> is stamped 1996-08-08, but the demo was written in
-September 1995. The two files are identical except that <code>.BAK</code> carries
-a scratch <code>P16</code> flicker probe with everything else commented out:</p>
-<p><code>Begin P0;CircleDemos;{P10;P11;P12;P13;P14;P15;}P16;</code></p>
-<p>That is a bench test, not a demo, and it means the fifteen patterns
-already existed on 1995-09-16 and were merely switched back on eleven months
-later. P16 itself is gone from the dropdown here: it drew one line, erased it and
-repeated with no retrace wait, to see how badly <code>draw_line</code> tears.</p>
+<h2><a href="#P15">P15</a></h2>
+<p>P10's geometry with P14's four chasers instead of two, and both banks pre-filled rather than black. Twice the interference
+sources over a picture whose line density climbs steeply toward the center, so the pattern is finest exactly where the eye
+goes. But back then, I was probably just thinking it looked cool.</p>
 </div>
 
 <details class="source">
@@ -228,17 +210,17 @@ asm mov ah,0;mov al,3;int 16;end;END.</pre>
 </details>
 
 <nav class="ring">
-  <a href="cube.html"><b>&laquo; PREVIOUS</b><span>06 &middot; Spinning Cubes</span></a>
+  <a href="all.html"><b>&laquo; PREVIOUS</b><span>07 &middot; More Fun With Palette Cycling</span></a>
   <a class="home" href="index.html"><b>HOME</b><span>16 entries</span></a>
-  <a class="next" href="all2.html"><b>NEXT &raquo;</b><span>08 &middot; Fans, Bars and Noise</span></a>
+  <a class="next" href="mydemo.html"><b>NEXT &raquo;</b><span>09 &middot; Baby's First Demo</span></a>
 </nav>
 
 <script src="archive.js"></script>
 <script>
 'use strict';
 
-// Three of the options only mean anything for one or two patterns. Each label
-// carries data-for="P2 P4"; anything untagged (the speed slider) is always on.
+// The ramp-index option only means anything for P12. It carries data-for="P12";
+// anything untagged (the speed slider) is always on.
 function showOpts(key) {
   for (const l of document.querySelectorAll('.panel label[data-for]'))
     l.hidden = !l.dataset.for.split(' ').includes(String(key));
@@ -254,12 +236,10 @@ function showOpts(key) {
 // eleven months later, when P16 was deleted and the braces came off. ALL is a
 // September 1995 program that happens to carry a 1996 timestamp.
 //
-// P16 itself is not reproduced here. It drew one line, erased it, and repeated
-// with no retrace wait -- a bench test for how badly draw_line tears, not an
-// effect. It matters as evidence for the dating, not as something to look at.
+// This page is the second half of the main block: P10..P15, the calls after
+// CircleDemos. P1..P7 and the title card are on all.html.
 //
-// This page is P0 and CircleDemos, P1..P7; the six calls after it are on
-// all2.html. Every one is palette animation over a static image. Nothing here
+// Every one of them is palette animation over a static image. Nothing here
 // redraws pixels once the pattern has been laid down.
 // ---------------------------------------------------------------------------
 
@@ -299,154 +279,135 @@ function drawLine(x0, y0, x1, y1, c) {
     if (e2 <= dx) { err += dx; y0 += sy; }
   }
 }
-function fillBlock(x1, y1, x2, y2, c) {
-  for (let y = y1; y <= y2; y++) for (let x = x1; x <= x2; x++) setPoint(x, y, c);
-}
-
-// The differential circle, verbatim -- the same routine that appears in TIME,
-// CIRCLE, FUN and FUN1. dx/dy = -y/x integrated one step at a time, so there is
-// exactly one sqrt (the seed) and one divide per point, and no trig at all.
-function circ(cx, cy, r, l) {
-  let b = r === 0 ? 0 : Math.round(Math.sqrt(r*r - 1));
-  let a = b;
-  const n = Math.round(r / Math.SQRT2);
-  for (let c = 0; c <= n; c++) {
-    if (a === 0) a = 1;
-    a = a - (c/a);
-    b = Math.round(a);
-    drawLine(cx+b, cy+c, cx-b, cy+c, l);
-    drawLine(cx+b, cy-c, cx-b, cy-c, l);
-    drawLine(cx+c, cy+b, cx-c, cy+b, l);
-    drawLine(cx+c, cy-b, cx-c, cy-b, l);
-  }
-}
 
 // Turbo Pascal's generator, for the patterns that call Random.
 let seed = 12345;
 const rnd = n => { seed = (Math.imul(seed, 134775813) + 1) >>> 0;
                    return Math.floor(seed * n / 4294967296); };
 
-// jmodex's TPrint_Str stamped 8x8 ROM glyphs in one color -- romText().
-function text(s, x0, y0, col) {
-  romText(s, x0, y0, (x, y) => setPoint(x, y, col));
-}
-
-const GRAY = () => document.getElementById('fixgray').checked;
-const LATCH = () => document.getElementById('fixlatch').checked;
-
 // ============================================================================
-// P1..P7, CircleDemos.
+// P10..P15.
 // ============================================================================
 let st = {};                     // per-pattern state
 
 const PATTERNS = [
-{ id:'P1', name:'P1: 180 nested circles, ramp cycle',
+{ id:'P10', name:'P10: full-screen double fan, two chasers',
   init() {
     clearScreen(0);
-    for (let x = 1; x <= 254; x++) dac(x, 0, 0, 0);
-    for (let x = 1; x <= 180; x++) circ(180, 240, 180-x, x-1);
-    fillBlock(70, 0, 292, 7, 0);
-    st = { s:0, t:0, r:1 };
-  },
-  step() {
-    for (let x = 1; x <= 180; x++) dac(x, (x+st.s)*st.r, x+st.t, x+st.t);
-    st.s += st.r; st.t = (st.t + 1) << 16 >> 16;   // integer, wraps at 32767
-    if (st.s === 63 || st.s === 0) st.r = -st.r;
-  }
-},
-
-{ id:'P2', name:'P2: rolling color history',
-  init() {
-    st = { r:new Uint8Array(181), g:new Uint8Array(181), b:new Uint8Array(181),
-           s:1, t:1, u:1 };
-    if (GRAY()) { st.g[180] = 7; st.b[180] = 21; }   // break the tie
-  },
-  step() {
-    for (let x = 1; x <= 180; x++) dac(x, st.r[x], st.g[x], st.b[x]);
-    for (let x = 1; x <= 179; x++) { st.r[x]=st.r[x+1]; st.g[x]=st.g[x+1]; st.b[x]=st.b[x+1]; }
-    st.r[180] = st.r[179] + st.s; st.g[180] = st.g[179] + st.t; st.b[180] = st.b[179] + st.u;
-    if (st.r[180] > 63-Math.abs(st.s) || st.r[180] < Math.abs(st.s)) st.s = -st.s;
-    if (st.g[180] > 63-Math.abs(st.t) || st.g[180] < Math.abs(st.t)) st.t = -st.t;
-    if (st.b[180] > 63-Math.abs(st.u) || st.b[180] < Math.abs(st.u)) st.u = -st.u;
-  }
-},
-
-{ id:'P3', name:'P3: same buffer, pure random entries',
-  init() { st = { r:new Uint8Array(180), g:new Uint8Array(180), b:new Uint8Array(180) }; },
-  step() {
-    for (let x = 0; x <= 179; x++) dac(x+1, st.r[x], st.g[x], st.b[x]);
-    for (let x = 0; x <= 178; x++) { st.r[x]=st.r[x+1]; st.g[x]=st.g[x+1]; st.b[x]=st.b[x+1]; }
-    st.r[179] = rnd(63); st.g[179] = rnd(63); st.b[179] = rnd(63);
-  }
-},
-
-{ id:'P4', name:'P4: the walk that latches (and stays that way)',
-  init() {
-    st = { r:new Uint8Array(181), g:new Uint8Array(181), b:new Uint8Array(181),
-           s:1, t:1, u:1 };
-    if (GRAY()) { st.g[180] = 7; st.b[180] = 21; }
-  },
-  step() {
-    const A = LATCH() ? Math.abs : (v => v);
-    for (let x = 1; x <= 180; x++) dac(x, st.r[x], st.g[x], st.b[x]);
-    for (let x = 1; x <= 179; x++) { st.r[x]=st.r[x+1]; st.g[x]=st.g[x+1]; st.b[x]=st.b[x+1]; }
-    st.r[180] = st.r[179] + st.s; st.g[180] = st.g[179] + st.t; st.b[180] = st.b[179] + st.u;
-    if (st.r[180] > 64-A(st.s) || st.r[180] < A(st.s)) st.s = -st.s;
-    if (st.g[180] > 64-A(st.t) || st.g[180] < A(st.t)) st.t = -st.t;
-    if (st.b[180] > 64-A(st.u) || st.b[180] < A(st.u)) st.u = -st.u;
-  }
-},
-
-{ id:'P5', name:'P5: no buffer, ramp built inside the loop',
-  init() { st = { s:34, t:11, u:10, r:1, g:1, b:1 }; },
-  step() {
-    for (let q = 1; q <= 180; q++) {
-      dac(q, st.s, st.t, st.u);
-      st.s += st.r; st.t += st.g; st.u += st.b;
-      if (st.s === 63 || st.s === 0) st.r = -st.r;
-      if (st.t === 63 || st.t === 0) st.g = -st.g;
-      if (st.u === 63 || st.u === 0) st.b = -st.b;
+    for (let x = 0; x <= 60; x++) dac(50+x, x, 0, 60-x);
+    let c = 0, dc = 1;
+    for (let x = 0; x <= 360; x++) {
+      drawLine(x, 1, 360-x, 479, c+50);
+      drawLine(1, x+60, 360, 420-x, c+50);
+      c += dc; if (c === 0 || c === 60) dc = -dc;
     }
-  }
-},
-
-{ id:'P6', name:'P6: random step sizes, bounds done properly',
-  init() {
-    st = { r:new Uint8Array(181), g:new Uint8Array(181), b:new Uint8Array(181),
-           sm:1, tm:1, um:1, sd:1, td:1, ud:1 };
-    if (!document.getElementById('zero6').checked)
-      for (let q = 1; q <= 180; q++) { st.r[q]=rnd(256); st.g[q]=rnd(256); st.b[q]=rnd(256); }
+    st = { p:3, s:0 };
   },
   step() {
-    for (let q = 1; q <= 180; q++) dac(q, st.r[q], st.g[q], st.b[q]);
-    for (let q = 1; q <= 179; q++) { st.r[q]=st.r[q+1]; st.g[q]=st.g[q+1]; st.b[q]=st.b[q+1]; }
-    const R = st.r[180], G = st.g[180], B = st.b[180];
-    if ((st.sd > 0 && R >= 63-st.sm) || (st.sd < 0 && R <= st.sm)) st.sd = -st.sd;
-    if ((st.td > 0 && G >= 63-st.tm) || (st.td < 0 && G <= st.tm)) st.td = -st.td;
-    if ((st.ud > 0 && B >= 63-st.um) || (st.ud < 0 && B <= st.um)) st.ud = -st.ud;
-    st.r[180] = st.r[179] + st.sm*st.sd;
-    st.g[180] = st.g[179] + st.tm*st.td;
-    st.b[180] = st.b[179] + st.um*st.ud;
-    st.sm = rnd(2)+1; st.tm = rnd(2)+1; st.um = rnd(2)+1;
+    dac(50+st.p, 3+st.p, 0, 60-st.p);
+    dac(50+st.s, st.s, 10, 63-st.s);
+    st.p = (st.p + 1) & 255; st.s = (st.s + 2) & 255;
   }
 },
 
-{ id:'P7', name:'P7: 64 circles, offset ramps',
+{ id:'P11', name:'P11: vertical bars, blue scroll',
   init() {
     clearScreen(0);
-    for (let x = 1; x <= 254; x++) dac(x, 0, 0, 0);
-    for (let x = 0; x <= 63; x++) circ(180, 240, 63-x, x);
-    st = { s:34, t:11, u:0, r:1, g:1, b:1 };
+    for (let x = 1; x <= 255; x++) dac(x, 0, 0, x >> 2);
+    for (let x = 0; x <= 359; x++) drawLine(x, 0, x, 479, x);
+    st = { s:0 };
   },
   step() {
-    for (let x = 1; x <= 64; x++) dac(x, x+st.s, x+st.t, x+st.u);
-    st.s += st.r; st.t += st.g; st.u += st.b;
-    if (st.s === 63 || st.s === 0) st.r = -st.r;
-    if (st.t === 63 || st.t === 0) st.g = -st.g;
-    if (st.u === 63 || st.u === 0) st.b = -st.b;
+    for (let x = 1; x <= 359; x++) dac(x, 0, 0, (st.s + x) >> 2);
+    st.s = (st.s + 3) & 255;
   }
 },
 
+{ id:'P12', name:'P12: the widest fan, and the flattest palette',
+  init() {
+    clearScreen(0);
+    for (let x = 0; x <= 60; x++) dac(50+x, x, 0, 60-x);
+    let c = 0, dc = 1;
+    for (let x = 0; x <= 360; x++) {
+      drawLine(x, 0, 360-x, 479, c+50);
+      c += dc; if (c === 0 || c === 60) dc = -dc;
+    }
+    for (let x = 0; x <= 480; x++) {
+      drawLine(0, x, 360, 480-x, c+50);
+      c += dc; if (c === 0 || c === 60) dc = -dc;
+    }
+    st = { s:0 };
+  },
+  step() {
+    const ix = document.getElementById('fix12').checked;
+    for (let x = 0; x <= 60; x++) {
+      const v = ix ? st.s + x : st.s;
+      dac(50+x, v, 0, v);
+    }
+    st.s = (st.s + 3) << 16 >> 16;    // `integer` in the Pascal: wraps at 32767
+  }
+},
+
+{ id:'P13', name:'P13: distance-weighted noise field',
+  init() {
+    clearScreen(0);
+    for (let x = 1; x <= 255; x++) dac(x, x >> 2, 0, x >> 2);
+    let s = 0;
+    for (let x = 0; x <= 180; x++)
+      for (let c = 0; c <= 240; c++) {
+        s = rnd(Math.abs(180-x) + Math.abs(240-c) + 5);
+        setPoint(x, c, s); setPoint(360-x, c, s);
+        setPoint(x, 480-c, s); setPoint(360-x, 480-c, s);
+      }
+    st = { s };                    // s carries the last random value onward
+  },
+  step() {
+    for (let x = 1; x <= 255; x++) dac(x, st.s + x, 0, st.s + x);
+    st.s = (st.s + 3) << 16 >> 16;    // `integer` in the Pascal: wraps at 32767
+  }
+},
+
+{ id:'P14', name:'P14: fan from the top center, four chasers',
+  init() {
+    clearScreen(0);
+    for (let x = 0; x <= 60; x++) { dac(50+x, 0, 0, 0); dac(150+x, 0, 0, 0); }
+    let c = 0, dc = 1;
+    for (let x = 0; x <= 180; x++) {
+      drawLine(180, 1, x, 479, c+50);
+      drawLine(180, 1, 359-x, 479, c+50);
+      c += dc; if (c === 0 || c === 60) dc = -dc;
+    }
+    st = { p:3, s:0 };
+  },
+  step() {
+    dac(50+st.p, 3+st.p, 0, 60-st.p);
+    dac(50+st.s, st.s, 10, 63-st.s);
+    dac(150+st.p, 3+st.p, 0, 60-st.p);
+    dac(150+st.s, 63, 63, st.s);
+    st.p = (st.p + 1) & 255; st.s = (st.s + 2) & 255;
+  }
+},
+
+{ id:'P15', name:'P15: P14\'s treatment on the centered fan',
+  init() {
+    clearScreen(0);
+    for (let x = 0; x <= 60; x++) { dac(50+x, x, 0, 60-x); dac(150+x, x, 0, 60-x); }
+    let c = 0, dc = 1;
+    for (let x = 0; x <= 360; x++) {
+      drawLine(x, 1, 360-x, 479, c+50);
+      drawLine(1, x+60, 360, 420-x, c+50);
+      c += dc; if (c === 0 || c === 60) dc = -dc;
+    }
+    st = { p:3, s:0 };
+  },
+  step() {
+    dac(50+st.p, 3+st.p, 0, 60-st.p);
+    dac(50+st.s, st.s, 10, 63-st.s);
+    dac(150+st.p, 3+st.p, 0, 60-st.p);
+    dac(150+st.s, 63, 63, st.s);
+    st.p = (st.p + 1) & 255; st.s = (st.s + 2) & 255;
+  }
+},
 ];
 
 // --- driver -----------------------------------------------------------------
@@ -464,19 +425,12 @@ function load(i) {
 }
 sel.addEventListener('change', () => load(sel.selectedIndex));
 document.getElementById('restart').addEventListener('click', () => load(idx));
-for (const id of ['fixgray','fixlatch','zero6'])
+for (const id of ['fix12'])
   document.getElementById(id).addEventListener('change', () => load(idx));
 const rateEl = document.getElementById('rate');
 rateEl.addEventListener('input', () =>
   document.getElementById('rateLabel').textContent = rateEl.value);
 
-// P0: the title card, drawn once before anything else.
-clearScreen(0);
-dac(255, 50, 50, 50);
-text('Circle Demos: Press any key for next pattern', -5, 460, 255);
-text('Please wait... Initializing', 70, 0, 255);
-for (let i = 0; i < fb.length; i++) out[i] = PAL[fb[i]];
-ctx.putImageData(img, 0, 0);
 load(0);
 
 function frame() {

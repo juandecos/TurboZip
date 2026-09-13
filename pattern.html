@@ -2,56 +2,54 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>11 &middot; Doodling With Lines</title>
+<title>10 &middot; Doodling With Lines</title>
 <link rel="stylesheet" href="archive.css">
 <style>
 
-  #screen{width:min(94vw,660px)}
-  #mat{color:#c9a;white-space:pre;font-size:12px}
   kbd{background:#222;border:1px solid #555;border-radius:3px;padding:0 4px}
 </style>
 </head>
 <body>
 
 <nav class="ring">
-  <a href="mydemo.html"><b>&laquo; PREVIOUS</b><span>10 &middot; My Awful Demo</span></a>
-  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
-  <a class="next" href="fun.html"><b>NEXT &raquo;</b><span>12 &middot; Random Walking</span></a>
+  <a href="mydemo.html"><b>&laquo; PREVIOUS</b><span>09 &middot; Baby's First Demo</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>16 entries</span></a>
+  <a class="next" href="fun.html"><b>NEXT &raquo;</b><span>11 &middot; Random Walking</span></a>
 </nav>
 
 <header class="entry">
-  <div class="num">11</div>
+  <div class="num">10</div>
   <h1>Doodling With Lines</h1>
   <div class="lede">
     Back in the 1980s I had a <a href="https://en.wikipedia.org/wiki/Spirograph">Spirograph</a>, a toy that lets you draw various designs based on repeating geometry,
     and here it seems I figured out that I could get a similar effect by tweaking the earlier rotating cubes code. The first two demos set up the geometry, and the
     third finishes it.
   </div>
-  <details class="meta">
-    <summary>Details</summary>
-    <dl>
-      <dt>Files</dt><dd><code>PATTERN1.PAS</code> 1,929 B (1995-09-22 01:28) &middot; <code>JUAN.PAS</code> 1,869 B (14:17) &middot; <code>DOODLE.PAS</code> 1,236 B (15:20)</dd>
-      <dt>Provenance</dt><dd>Mine</dd>
-      <dt>Demo</dt><dd>All three saves of the day, in order</dd>
-    </dl>
-  </details>
 </header>
 
 <div class="demo">
 <div class="panel selector">
-  <button id="prev">&larr;</button>
   <select id="stage">
       <option value="pattern1">PATTERN1: 22 Sep 1995, 01:28, the z's commented out</option>
       <option value="juan">JUAN: 22 Sep 1995, 14:17, the z's put back</option>
       <option value="doodle">DOODLE: 22 Sep 1995, 15:20, minified, and it stops erasing</option>
     </select>
-  <button id="next">&rarr;</button>
   <button id="restart">restart</button>
 </div>
 
-<canvas id="screen" width="640" height="480"></canvas>
+<div id="notes" class="captions">
+<div class="note" data-note="pattern1" hidden>
+22 Sep 1995, 01:28, the z's commented out
+</div>
+<div class="note" data-note="juan" hidden>
+22 Sep 1995, 14:17, the z's put back
+</div>
+<div class="note" data-note="doodle" hidden>
+22 Sep 1995, 15:20, minified, and it stops erasing
+</div>
+</div>
 
-<div id="mat"></div>
+<canvas id="screen" width="640" height="480"></canvas>
 
 
 <div class="panel">
@@ -65,24 +63,23 @@
 </div>
 
 <div id="keys"></div>
-
-<div id="status"></div>
-
-<div id="notes">
-<div class="note" data-note="pattern1" hidden>
-<b>PATTERN1.PAS: 1,929 bytes, 01:28.</b> Four points, four edges, BGI, a
-bar() erase and a double-edge retrace wait. With the Z portion of
-SetPoints commented out, the fourth edge collapses to length zero.
 </div>
-<div class="note" data-note="juan" hidden>
-<b>JUAN.PAS: 1,869 bytes, 14:17, thirteen hours later.</b> Byte for byte the
+
+<div class="prose">
+<h2><a href="#pattern1">PATTERN1</a></h2>
+<p>Four points, four edges, BGI, a
+bar() erase and a double-edge retrace wait. With the Z portion of
+SetPoints commented out, the fourth edge collapses to length zero.</p>
+
+<h2><a href="#juan">JUAN</a></h2>
+<p>Byte for byte the
 same program with the four braces removed. Points 1 and 2 separate, all four
 edges have length, the determinant can go negative and the shape turns through
 itself. I have no idea why this file name, of all of them, bears my own first
-name.
-</div>
-<div class="note" data-note="doodle" hidden>
-<b>DOODLE.PAS: 1,236 bytes, 15:20, an hour after that.</b> The minified one,
+name.</p>
+
+<h2><a href="#doodle">DOODLE</a></h2>
+<p>The minified one,
 and it is a different program in three ways.
 <b>(1)</b> bar() becomes <b>setviewport(215,135,425,345,clipon)</b> and the
 helper <b>g()</b> offsets every point by +105 instead of ±320/239∓, so the
@@ -97,14 +94,12 @@ instead of two) so it can catch the tail of a blank rather than the start.
 One more artifact of the compression: <b>if RegisterBGIDriver(…)&lt;0 then;</b> -
 the halt was deleted and the empty <b>then</b> left behind. And the wrap test
 fires at 361 with a step of 6, so the cycle is 61 frames and the 6° orientation
-is drawn twice running.
-</div>
-</div>
+is drawn twice running.</p>
 </div>
 
 <details class="source">
-<summary>PATTERN1.PAS: 1,929 bytes</summary>
-<p class="cap">01:28. The z values are the commented-out ones.</p>
+<summary>PATTERN1.PAS</summary>
+<p class="cap">01:28 &middot; 1,929 bytes &middot; The z values are the commented-out ones.</p>
 <pre>uses crt,graph,bgidriv;var c,ci:array[1..4,1..3]of integer;
   rotation: ARRAY[1..3,1..3] OF real;
   driver, mode: integer;
@@ -169,8 +164,8 @@ BEGIN ClrScr;
   UNTIL Ord(ch)=27;  CloseGraph;  TextMode(co80);  ClrScr;END.</pre>
 </details>
 <details class="source">
-<summary>JUAN.PAS: 1,869 bytes</summary>
-<p class="cap">14:17. Identical but for those four values.</p>
+<summary>JUAN.PAS</summary>
+<p class="cap">14:17 &middot; 1,869 bytes &middot; Identical but for those four values.</p>
 <pre>uses crt,graph,bgidriv;
 const p=4;
 var c,ci:array[1..p,1..3]of integer;
@@ -227,8 +222,8 @@ SetRotation(x,y);Rotatec;bar(215,135,425,345);Drawc;IF Keypressed THEN
       END;UNTIL Ord(ch)=27;  CloseGraph;  TextMode(co80);  ClrScr;END.</pre>
 </details>
 <details class="source">
-<summary>DOODLE.PAS: 1,236 bytes</summary>
-<p class="cap">15:20. <code>if d then</code> - and <code>d</code> is never set.</p>
+<summary>DOODLE.PAS</summary>
+<p class="cap">15:20 &middot; 1,236 bytes &middot; <code>if d then</code> - and <code>d</code> is never set.</p>
 <pre>uses crt,graph,bgidriv;var c,p:array[1..4,1..3]of integer;r:ARRAY[1..3,1..3]OF
 real;x,y,k,l:integer;ch:char;a,b,d:boolean;v,w:real;PROCEDURE g(a,b,c,d:
 integer);BEGIN Line(a+105,b+105,c+105,d+105);END;BEGIN if RegisterBGIDriver(
@@ -248,20 +243,14 @@ UNTIL ord(ch)=27;asm mov ah,0;mov al,3;int 16;end;END.</pre>
 </details>
 
 <nav class="ring">
-  <a href="mydemo.html"><b>&laquo; PREVIOUS</b><span>10 &middot; My Awful Demo</span></a>
-  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
-  <a class="next" href="fun.html"><b>NEXT &raquo;</b><span>12 &middot; Random Walking</span></a>
+  <a href="mydemo.html"><b>&laquo; PREVIOUS</b><span>09 &middot; Baby's First Demo</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>16 entries</span></a>
+  <a class="next" href="fun.html"><b>NEXT &raquo;</b><span>11 &middot; Random Walking</span></a>
 </nav>
 
 <script src="archive.js"></script>
 <script>
 'use strict';
-// Notes live in the markup as hidden siblings, so they are plain HTML with no
-// escaping and cannot break this script. This only flips which one is visible.
-function showNote(key) {
-  for (const n of document.getElementById('notes').children)
-    n.hidden = n.dataset.note !== String(key);
-}
 // ---------------------------------------------------------------------------
 // One program, three saves, 22 September 1995 -- the tail of a twenty-one-hour
 // run that had already produced JTEST, MYDEMO, BOX and BOX2.
@@ -344,18 +333,11 @@ function reset() {
   for (const g of Object.values(OPTS)) g.forEach(id => el(id).classList.add('hidden'));
   OPTS[stage].forEach(id => el(id).classList.remove('hidden'));
   buildKeys();          // the D button only exists for DOODLE
-  showNote(stage);
   el('stage').value = stage;
 }
 
 const selStage = el('stage');
 selStage.addEventListener('change', () => { stage = selStage.value; reset(); });
-el('next').addEventListener('click', () => {
-  selStage.selectedIndex = (selStage.selectedIndex+1) % selStage.length;
-  stage = selStage.value; reset(); });
-el('prev').addEventListener('click', () => {
-  selStage.selectedIndex = (selStage.selectedIndex+selStage.length-1) % selStage.length;
-  stage = selStage.value; reset(); });
 el('restart').addEventListener('click', reset);
 el('erase').addEventListener('change', () => fb.fill(0));
 for (const [r, l] of [['step','stepLabel'],['rate','rateLabel']])
@@ -432,11 +414,6 @@ function frame() {
     for (let y = VY0; y <= VY1; y++) for (let x = VX0; x <= VX1; x++) fb[y*W+x] = 0;
   }
 
-  if (!doodle && el('guides').checked) {
-    for (let x = VX0; x <= VX1; x += 4) { px(x,VY0,40); px(x,VY1,40); }
-    for (let y = VY0; y <= VY1; y += 4) { px(VX0,y,40); px(VX1,y,40); }
-  }
-
   for (let i = 0; i < 4; i++) {
     const a = ci[i], b = ci[(i+1) % 4];
     if (doodle)   // g(a,b,c,d) -> Line(a+105, b+105, ...) inside the viewport: no y flip
@@ -446,38 +423,33 @@ function frame() {
   }
   frames++;
 
+  for (let i = 0; i < fb.length; i++) out[i] = PAL[fb[i]];
+
+  // The guides and the viewport outline are ours, not the program's, so they
+  // go onto the displayed image after fb is copied and never into fb itself.
+  // Drawn into fb they became part of the picture: DOODLE never erases, so an
+  // outline stayed after its box was unticked (and wrote over any trail along
+  // the edge), and with erase off the moving crosshair left a trail of crosses.
+  const ov = (x, y, c) => { if (x >= 0 && x < W && y >= 0 && y < H) out[y*W + x] = PAL[c]; };
   if (!doodle && el('guides').checked) {
+    for (let x = VX0; x <= VX1; x += 4) { ov(x,VY0,40); ov(x,VY1,40); }
+    for (let y = VY0; y <= VY1; y += 4) { ov(VX0,y,40); ov(VX1,y,40); }
     const cx = ci[0][0] + 320, cy = 239 - ci[0][1];
-    for (let d = -4; d <= 4; d++) { px(cx+d, cy, 41); px(cx, cy+d, 41); }
+    for (let d = -4; d <= 4; d++) { ov(cx+d, cy, 41); ov(cx, cy+d, 41); }
   }
   if (doodle && el('border').checked) {
-    for (let x = VX0; x <= VX1; x++) { fb[VY0*W+x] = 8; fb[VY1*W+x] = 8; }
-    for (let y = VY0; y <= VY1; y++) { fb[y*W+VX0] = 8; fb[y*W+VX1] = 8; }
+    for (let x = VX0; x <= VX1; x++) { ov(x,VY0,8); ov(x,VY1,8); }
+    for (let y = VY0; y <= VY1; y++) { ov(VX0,y,8); ov(VX1,y,8); }
   }
-
-  for (let i = 0; i < fb.length; i++) out[i] = PAL[fb[i]];
   ctx.putImageData(img, 0, 0);
-
-  const det = Math.cos(xa*Math.PI/180) * Math.cos(ya*Math.PI/180);
-  let ext = 0;
-  for (const p of ci) ext = Math.max(ext, Math.abs(p[0]), Math.abs(p[1]));
-  const edge12 = Math.hypot(ci[0][0]-ci[1][0], ci[0][1]-ci[1][1]);
-
-  el('status').textContent =
-    `x=${w(xa,3)} ${incx?'running':'FROZEN'}   y=${w(ya,3)} ${incy?'running':'FROZEN'}` +
-    `   period ${w(Math.ceil(361/st),3)} frames   extent ${w(ext,3)}px (the box covers ${w(OFF,3)})` +
-    (doodle ? `   clearing ${clearing?'on':'off'}   frame ${w(frames,7)}` : '');
-  el('mat').textContent = useZ
-    ? `full 3×3 active   ·   projected det = ${det.toFixed(3)}` +
-      (det < 0 ? '   ← negative: the figure has turned inside out' : '') +
-      `   ·   edge 1–2 length ${edge12.toFixed(1)}`
-    : `[ ${rot[0][0].toFixed(3).padStart(6)}   0.000 ]   det = ${det.toFixed(3)}` +
-      `   ·   edge 1–2 length ${edge12.toFixed(1)}  ← always 0\n` +
-      `[ ${rot[1][0].toFixed(3).padStart(6)}  ${rot[1][1].toFixed(3).padStart(6)} ]`;
 }
 
 reset();
 frame();
+
+demoStrip('stage');
+screenAspect();
+underScreen('restart');
 </script>
 </body>
 </html>

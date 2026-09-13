@@ -2,46 +2,41 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>14 &middot; Bouncing Lines</title>
+<title>13 &middot; Bouncing Lines</title>
 <link rel="stylesheet" href="archive.css">
-<style>
-
-  #screen{height:min(70vh,480px)}
-</style>
 </head>
 <body>
 
 <nav class="ring">
-  <a href="asmstars.html"><b>&laquo; PREVIOUS</b><span>13 &middot; Parallax Starfield</span></a>
-  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
-  <a class="next" href="mar27.html"><b>NEXT &raquo;</b><span>15 &middot; Spiral Illusions</span></a>
+  <a href="asmstars.html"><b>&laquo; PREVIOUS</b><span>12 &middot; Parallax Starfield</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>16 entries</span></a>
+  <a class="next" href="mar27.html"><b>NEXT &raquo;</b><span>14 &middot; Spiral Illusions</span></a>
 </nav>
 
 <header class="entry">
-  <div class="num">14</div>
+  <div class="num">13</div>
   <h1>Bouncing Lines</h1>
   <div class="lede">
     Another classic staple of the era was the bouncing line, and here were two of my own attempts.
   </div>
-  <details class="meta">
-    <summary>Details</summary>
-    <dl>
-      <dt>Files</dt><dd><code>ASCTXT.BAK</code> 586 B (1996-03-02 05:21) &middot; <code>ASCTXT.PAS</code> 767 B (06:10)</dd>
-      <dt>Provenance</dt><dd>Mine</dd>
-      <dt>Demo</dt><dd>Both versions of the bounce</dd>
-    </dl>
-  </details>
 </header>
 
 <div class="demo">
 <div class="panel selector">
-  <button id="prev">&larr;</button>
   <select id="ver">
-      <option value="pas">ASCTXT.PAS: red ramp palette, randomised bounce</option>
+      <option value="pas">ASCTXT.PAS: red ramp palette, randomized bounce</option>
       <option value="bak">ASCTXT.BAK: random colors, mirror bounce</option>
     </select>
-  <button id="next">&rarr;</button>
   <button id="restart">restart</button>
+</div>
+
+<div id="notes" class="captions">
+<div class="note" data-note="pas" hidden>
+red ramp palette, randomized bounce
+</div>
+<div class="note" data-note="bak" hidden>
+random colors, mirror bounce
+</div>
 </div>
 
 <canvas id="screen" width="360" height="480"></canvas>
@@ -52,7 +47,6 @@
     <span id="rateLabel">4</span></label>
 </div>
 
-<div id="status"></div>
 </div>
 
 <div class="prose">
@@ -90,8 +84,8 @@ side-effect of it, the rewrite removes the only way the program could stall.</p>
 </div>
 
 <details class="source">
-<summary>ASCTXT.BAK: 586 bytes</summary>
-<p class="cap">05:21, random colors, mirror bounce.</p>
+<summary>ASCTXT.BAK</summary>
+<p class="cap">05:21 &middot; 586 bytes &middot; Random colors, mirror bounce.</p>
 <pre>uses jmodex,crt;var p:array[1..2]of integer;q:array[1..2]of integer;
 x,c:integer;f:array[1..4]of shortint;
 begin if set_vga_modex(7,360,480,1)=0 then halt(0);clear_vga_screen(0);
@@ -108,8 +102,8 @@ draw_line(p[1],q[1],p[2],q[2],random(10)+4);
 until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
 </details>
 <details class="source">
-<summary>ASCTXT.PAS: 767 bytes</summary>
-<p class="cap">06:10, red ramp, randomised bounce.</p>
+<summary>ASCTXT.PAS</summary>
+<p class="cap">06:10 &middot; 767 bytes &middot; Red ramp, randomized bounce.</p>
 <pre>uses jmodex,crt;var p:array[1..2]of integer;q:array[1..2]of integer;
 x,c:integer;f:array[1..4]of shortint;a:byte;
 begin if set_vga_modex(7,360,480,1)=0 then halt(0);clear_vga_screen(0);
@@ -130,9 +124,9 @@ until keypressed;asm mov ah,0;mov al,3;int 16;end;end.</pre>
 </details>
 
 <nav class="ring">
-  <a href="asmstars.html"><b>&laquo; PREVIOUS</b><span>13 &middot; Parallax Starfield</span></a>
-  <a class="home" href="index.html"><b>HOME</b><span>17 entries</span></a>
-  <a class="next" href="mar27.html"><b>NEXT &raquo;</b><span>15 &middot; Spiral Illusions</span></a>
+  <a href="asmstars.html"><b>&laquo; PREVIOUS</b><span>12 &middot; Parallax Starfield</span></a>
+  <a class="home" href="index.html"><b>HOME</b><span>16 entries</span></a>
+  <a class="next" href="mar27.html"><b>NEXT &raquo;</b><span>14 &middot; Spiral Illusions</span></a>
 </nav>
 
 <script src="archive.js"></script>
@@ -242,24 +236,14 @@ function frame() {
   const pal = version === 'pas' ? PAL_RAMP : PAL_VGA;
   for (let i = 0; i < vram.length; i++) out[i] = pal[vram[i]];
   ctx.putImageData(img, 0, 0);
-  document.getElementById('status').textContent =
-    `A (${w(p[0]|0,3)},${w(q[0]|0,3)}) v${w(f[0],2)},${w(f[2],2)}   B (${w(p[1]|0,3)},${w(q[1]|0,3)}) v${w(f[1],2)},${w(f[3],2)}` +
-    (version === 'pas' ? `   color ${w(c,3)}` : '');
 }
 
 reset();
 frame();
 
-// --- ring standard: the arrows step the selector -----------------------------
-(function () {
-  const sel = document.getElementById('ver');
-  const step = d => {
-    sel.selectedIndex = (sel.selectedIndex + d + sel.length) % sel.length;
-    for (const t of ['change', 'input']) sel.dispatchEvent(new Event(t));
-  };
-  document.getElementById('prev').addEventListener('click', () => step(-1));
-  document.getElementById('next').addEventListener('click', () => step(1));
-})();
+demoStrip('ver');
+screenAspect();
+underScreen('restart');
 </script>
 </body>
 </html>
